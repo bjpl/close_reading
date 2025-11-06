@@ -1,122 +1,97 @@
-/**
- * Type definitions for the Close-Reading Platform
- */
+// Core type definitions for the Close-Reading Platform
 
-/**
- * Annotation types supported by the platform
- */
-export type AnnotationType = 'highlight' | 'note' | 'main_idea' | 'citation';
-
-/**
- * Annotation color options
- */
-export type AnnotationColor = 'yellow' | 'green' | 'blue' | 'pink' | 'purple';
-
-/**
- * Document view modes
- */
-export type ViewMode = 'original' | 'sentence';
-
-/**
- * Represents a single annotation on the document
- */
-export interface Annotation {
+export interface User {
   id: string;
-  type: AnnotationType;
-  text: string;
-  note?: string;
-  color: AnnotationColor;
-  startOffset: number;
-  endOffset: number;
-  paragraphId: string;
-  createdAt: Date;
-  updatedAt: Date;
+  email: string;
+  created_at: string;
+  updated_at?: string;
 }
 
-/**
- * Represents a paragraph in the document
- */
-export interface Paragraph {
-  id: string;
-  content: string;
-  order: number;
-  annotations: Annotation[];
-  linkedParagraphs: string[]; // IDs of linked paragraphs
-}
-
-/**
- * Represents a sentence in sentence view
- */
-export interface Sentence {
-  id: string;
-  content: string;
-  paragraphId: string;
-  order: number;
-  annotations: Annotation[];
-}
-
-/**
- * Represents an uploaded document
- */
-export interface Document {
-  id: string;
-  title: string;
-  content: string;
-  paragraphs: Paragraph[];
-  sentences: Sentence[];
-  userId: string;
-  projectId: string;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-/**
- * Represents a project containing multiple documents
- */
 export interface Project {
   id: string;
   name: string;
   description?: string;
-  documents: Document[];
-  userId: string;
-  createdAt: Date;
-  updatedAt: Date;
+  user_id: string;
+  created_at: string;
+  updated_at: string;
+  is_public: boolean;
 }
 
-/**
- * Citation format options
- */
-export type CitationFormat = 'mla' | 'apa' | 'chicago';
+export interface Document {
+  id: string;
+  project_id: string;
+  title: string;
+  content: string;
+  file_type: 'txt' | 'md' | 'docx' | 'pdf';
+  file_url: string;
+  created_at: string;
+  updated_at: string;
+}
 
-/**
- * Represents a citation for export
- */
+export interface Paragraph {
+  id: string;
+  document_id: string;
+  content: string;
+  position: number;
+  created_at: string;
+}
+
+export interface Sentence {
+  id: string;
+  paragraph_id: string;
+  content: string;
+  position: number;
+  created_at: string;
+}
+
+export type AnnotationType = 'highlight' | 'note' | 'main_idea' | 'citation';
+
+export interface Annotation {
+  id: string;
+  document_id: string;
+  paragraph_id: string;
+  user_id: string;
+  type: AnnotationType;
+  content: string;
+  note_text?: string;
+  citation_text?: string;
+  color?: string;
+  start_offset: number;
+  end_offset: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export type RelationshipType = 'related' | 'contrasts' | 'supports' | 'elaborates' | 'quotes';
+
+export interface ParagraphLink {
+  id: string;
+  source_paragraph_id: string;
+  target_paragraph_id: string;
+  relationship_type: RelationshipType;
+  note?: string;
+  created_at: string;
+  updated_at?: string;
+}
+
+export type CitationType = 'bibtex' | 'ris' | 'json';
+
 export interface Citation {
   id: string;
-  text: string;
-  note: string;
-  pageNumber?: number;
-  documentTitle: string;
-  format: CitationFormat;
+  document_id: string;
+  citation_type: CitationType;
+  citation_text: string;
+  metadata: Record<string, any>;
+  created_at: string;
+  updated_at?: string;
 }
 
-/**
- * Share link configuration
- */
-export interface ShareLink {
-  id: string;
-  documentId: string;
-  token: string;
-  expiresAt?: Date;
-  createdAt: Date;
+export interface ViewMode {
+  type: 'original' | 'sentence';
 }
 
-/**
- * User profile
- */
-export interface User {
-  id: string;
-  email: string;
-  name?: string;
-  createdAt: Date;
+export interface AppError {
+  code: string;
+  message: string;
+  details?: any;
 }

@@ -20,14 +20,16 @@
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
 
-    /* Path mapping */
+    /* Path aliases */
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./src/*"]
-    },
-
-    /* Testing */
-    "types": ["vitest/globals", "@testing-library/jest-dom"]
+      "@/*": ["./src/*"],
+      "@components/*": ["./src/components/*"],
+      "@stores/*": ["./src/stores/*"],
+      "@types/*": ["./src/types/*"],
+      "@utils/*": ["./src/utils/*"],
+      "@tests/*": ["./tests/*"]
+    }
   },
   "include": ["src", "tests"],
   "references": [{ "path": "./tsconfig.node.json" }]
