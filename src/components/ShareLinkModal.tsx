@@ -3,7 +3,7 @@
  *
  * Modal for generating and managing shareable links for documents.
  */
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Modal,
   ModalOverlay,
@@ -28,6 +28,7 @@ import {
   Box,
 } from '@chakra-ui/react';
 import { FiCopy, FiRefreshCw } from 'react-icons/fi';
+import { useSharing } from '../hooks/useSharing';
 
 interface ShareLinkModalProps {
   isOpen: boolean;
@@ -43,41 +44,52 @@ export const ShareLinkModal: React.FC<ShareLinkModalProps> = ({
   documentTitle,
 }) => {
   const [shareLink, setShareLink] = useState('');
-  const [hasExpiry, setHasExpiry] = useState(false);
-  const [isGenerating, setIsGenerating] = useState(false);
+  const [hasExpiry, setHasExpiry] = useState(true); // Default to 7 days
+  const { generateShareLink: generateLink, loading, error: sharingError, getShareLinkInfo } = useSharing();
   const toast = useToast();
 
-  const generateShareLink = async () => {
-    setIsGenerating(true);
+  // Load existing share link on modal open
+  useEffect(() => {
+    if (isOpen && documentId) {
+      loadExistingShareLink();
+    }
+  }, [isOpen, documentId]);
 
-    try {
-      // TODO: Implement actual share link generation with Supabase
-      // This is a placeholder for the API call
-
-      // Generate a unique token
-      const token = Math.random().toString(36).substring(2, 15);
+  const loadExistingShareLink = async () => {
+    const info = await getShareLinkInfo(documentId);
+    if (info) {
       const baseUrl = window.location.origin;
-      const link = `${baseUrl}/shared/${token}`;
-
+      const link = `${baseUrl}/shared/${info.token}`;
       setShareLink(link);
+      setHasExpiry(!!info.expires_at);
+    }
+  };
 
-      toast({
-        title: 'Share link generated',
-        description: 'Your document share link has been created.',
-        status: 'success',
-        duration: 3000,
-        isClosable: true,
-      });
+  const generateShareLink = async () => {
+    try {
+      const expiresInDays = hasExpiry ? 7 : undefined;
+      const link = await generateLink(documentId, expiresInDays);
+
+      if (link) {
+        setShareLink(link);
+        toast({
+          title: 'Share link generated',
+          description: 'Your document share link has been created.',
+          status: 'success',
+          duration: 3000,
+          isClosable: true,
+        });
+      } else {
+        throw new Error('Failed to generate link');
+      }
     } catch (error) {
       toast({
         title: 'Failed to generate link',
-        description: 'An error occurred while creating the share link.',
+        description: sharingError || 'An error occurred while creating the share link.',
         status: 'error',
         duration: 3000,
         isClosable: true,
       });
-    } finally {
-      setIsGenerating(false);
     }
   };
 
@@ -148,7 +160,7 @@ export const ShareLinkModal: React.FC<ShareLinkModalProps> = ({
               <Button
                 colorScheme="blue"
                 onClick={generateShareLink}
-                isLoading={isGenerating}
+                isLoading={loading}
                 loadingText="Generating..."
               >
                 Generate Share Link

@@ -7,3 +7,4 @@ export { LoginPage } from './LoginPage';
 export { DashboardPage } from './DashboardPage';
 export { ProjectPage } from './ProjectPage';
 export { DocumentPage } from './DocumentPage';
+export { SharedDocumentPage } from './SharedDocumentPage';

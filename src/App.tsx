@@ -8,6 +8,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { ChakraProvider } from '@chakra-ui/react';
 import { useAuth } from './hooks/useAuth';
 import { LoginPage, DashboardPage, ProjectPage, DocumentPage } from './pages';
+import { SharedDocumentPage } from './pages/SharedDocumentPage';
 import { Box, Spinner } from '@chakra-ui/react';
 
 /**
@@ -47,6 +48,7 @@ function App() {
         <Routes>
           {/* Public Routes */}
           <Route path="/login" element={<LoginPage />} />
+          <Route path="/shared/:token" element={<SharedDocumentPage />} />
 
           {/* Protected Routes */}
           <Route
