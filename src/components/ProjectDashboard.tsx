@@ -3,7 +3,8 @@
  *
  * Displays all projects and their documents with management capabilities.
  */
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Box,
   VStack,
@@ -26,6 +27,7 @@ import {
   Textarea,
   Grid,
   useToast,
+  Spinner,
 } from '@chakra-ui/react';
 import {
   FiPlus,
@@ -33,20 +35,29 @@ import {
   FiFile,
   FiEdit2,
   FiTrash2,
+  FiLogOut,
 } from 'react-icons/fi';
 import { useProjectStore } from '../stores/projectStore';
-import { Project } from '../types';
+import { useProjects } from '../hooks/useProjects';
+import { useAuth } from '../hooks/useAuth';
+import type { Database } from '../types/database';
+
+type Project = Database['public']['Tables']['projects']['Row'];
 
 export const ProjectDashboard: React.FC = () => {
-  const { projects, addProject, updateProject, deleteProject, setCurrentProject } =
-    useProjectStore();
+  const navigate = useNavigate();
+  const { user, signOut } = useAuth();
+  const { projects, setCurrentProject } = useProjectStore();
+  const { isLoading, createProject, updateProject, deleteProject } = useProjects(
+    user?.id
+  );
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [projectName, setProjectName] = useState('');
   const [projectDescription, setProjectDescription] = useState('');
   const [editingProject, setEditingProject] = useState<Project | null>(null);
   const toast = useToast();
 
-  const handleCreateProject = () => {
+  const handleCreateProject = async () => {
     if (!projectName.trim()) {
       toast({
         title: 'Project name required',
@@ -58,70 +69,79 @@ export const ProjectDashboard: React.FC = () => {
       return;
     }
 
-    const newProject: Project = {
-      id: `project_${Date.now()}`,
-      name: projectName,
-      description: projectDescription,
-      documents: [],
-      userId: 'user_1', // TODO: Get from auth context
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
+    try {
+      await createProject({
+        title: projectName,
+        description: projectDescription || null,
+      });
 
-    addProject(newProject);
-
-    toast({
-      title: 'Project created',
-      description: `Project "${projectName}" has been created.`,
-      status: 'success',
-      duration: 3000,
-      isClosable: true,
-    });
-
-    handleCloseModal();
-  };
-
-  const handleUpdateProject = () => {
-    if (!editingProject || !projectName.trim()) return;
-
-    updateProject(editingProject.id, {
-      name: projectName,
-      description: projectDescription,
-      updatedAt: new Date(),
-    });
-
-    toast({
-      title: 'Project updated',
-      description: `Project "${projectName}" has been updated.`,
-      status: 'success',
-      duration: 3000,
-      isClosable: true,
-    });
-
-    handleCloseModal();
-  };
-
-  const handleDeleteProject = (projectId: string, projectName: string) => {
-    if (window.confirm(`Are you sure you want to delete "${projectName}"?`)) {
-      deleteProject(projectId);
       toast({
-        title: 'Project deleted',
-        description: `Project "${projectName}" has been deleted.`,
-        status: 'info',
+        title: 'Project created',
+        description: `Project "${projectName}" has been created.`,
+        status: 'success',
         duration: 3000,
         isClosable: true,
       });
+
+      handleCloseModal();
+    } catch (error) {
+      // Error already handled by hook
+    }
+  };
+
+  const handleUpdateProject = async () => {
+    if (!editingProject || !projectName.trim()) return;
+
+    try {
+      await updateProject(editingProject.id, {
+        title: projectName,
+        description: projectDescription || null,
+      });
+
+      toast({
+        title: 'Project updated',
+        description: `Project "${projectName}" has been updated.`,
+        status: 'success',
+        duration: 3000,
+        isClosable: true,
+      });
+
+      handleCloseModal();
+    } catch (error) {
+      // Error already handled by hook
+    }
+  };
+
+  const handleDeleteProject = async (projectId: string, projectTitle: string) => {
+    if (window.confirm(`Are you sure you want to delete "${projectTitle}"?`)) {
+      try {
+        await deleteProject(projectId);
+        toast({
+          title: 'Project deleted',
+          description: `Project "${projectTitle}" has been deleted.`,
+          status: 'info',
+          duration: 3000,
+          isClosable: true,
+        });
+      } catch (error) {
+        // Error already handled by hook
+      }
     }
   };
 
   const handleOpenProject = (project: Project) => {
-    setCurrentProject(project);
-    // TODO: Navigate to project view
+    setCurrentProject(project as any);
+    navigate(`/project/${project.id}`);
+  };
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate('/login');
   };
 
   const handleEditProject = (project: Project) => {
     setEditingProject(project);
-    setProjectName(project.name);
+    setProjectName(project.title);
     setProjectDescription(project.description || '');
     onOpen();
   };
@@ -146,17 +166,29 @@ export const ProjectDashboard: React.FC = () => {
               Organize your documents into projects
             </Text>
           </VStack>
-          <Button
-            colorScheme="blue"
-            leftIcon={<FiPlus />}
-            onClick={onOpen}
-          >
-            New Project
-          </Button>
+          <HStack>
+            <Button
+              colorScheme="blue"
+              leftIcon={<FiPlus />}
+              onClick={onOpen}
+            >
+              New Project
+            </Button>
+            <IconButton
+              aria-label="Sign out"
+              icon={<FiLogOut />}
+              variant="ghost"
+              onClick={handleSignOut}
+            />
+          </HStack>
         </HStack>
 
         {/* Projects Grid */}
-        {projects.length === 0 ? (
+        {isLoading ? (
+          <Box textAlign="center" py={12}>
+            <Spinner size="xl" />
+          </Box>
+        ) : projects.length === 0 ? (
           <Box
             p={12}
             textAlign="center"
@@ -192,7 +224,7 @@ export const ProjectDashboard: React.FC = () => {
                       <HStack>
                         <FiFolder color="#3182CE" />
                         <Text fontWeight="bold" fontSize="lg">
-                          {project.name}
+                          {project.title}
                         </Text>
                       </HStack>
                       <HStack
@@ -213,7 +245,7 @@ export const ProjectDashboard: React.FC = () => {
                           variant="ghost"
                           colorScheme="red"
                           onClick={() =>
-                            handleDeleteProject(project.id, project.name)
+                            handleDeleteProject(project.id, project.title)
                           }
                         />
                       </HStack>
@@ -225,17 +257,8 @@ export const ProjectDashboard: React.FC = () => {
                       </Text>
                     )}
 
-                    <HStack>
-                      <Badge colorScheme="blue">
-                        <HStack spacing={1}>
-                          <FiFile size={12} />
-                          <Text>{project.documents.length} documents</Text>
-                        </HStack>
-                      </Badge>
-                    </HStack>
-
                     <Text fontSize="xs" color="gray.500">
-                      Updated {project.updatedAt.toLocaleDateString()}
+                      Updated {new Date(project.updated_at).toLocaleDateString()}
                     </Text>
                   </VStack>
                 </CardBody>

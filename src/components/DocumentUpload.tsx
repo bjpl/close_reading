@@ -15,6 +15,9 @@ import {
   Progress,
 } from '@chakra-ui/react';
 import { FiUploadCloud, FiFile } from 'react-icons/fi';
+import { useAuth } from '../hooks/useAuth';
+import { useDocuments } from '../hooks/useDocuments';
+import { processDocument } from '../services/documentProcessor';
 
 interface DocumentUploadProps {
   onUploadComplete: (documentId: string) => void;
@@ -25,6 +28,8 @@ export const DocumentUpload: React.FC<DocumentUploadProps> = ({
   onUploadComplete,
   projectId,
 }) => {
+  const { user } = useAuth();
+  const { createDocument } = useDocuments(projectId, user?.id);
   const [isDragging, setIsDragging] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
@@ -41,6 +46,17 @@ export const DocumentUpload: React.FC<DocumentUploadProps> = ({
   }, []);
 
   const processFile = async (file: File) => {
+    if (!user) {
+      toast({
+        title: 'Not authenticated',
+        description: 'Please log in to upload documents.',
+        status: 'error',
+        duration: 5000,
+        isClosable: true,
+      });
+      return;
+    }
+
     // Validate file type
     const validTypes = [
       'application/pdf',
@@ -75,16 +91,10 @@ export const DocumentUpload: React.FC<DocumentUploadProps> = ({
     setUploadProgress(0);
 
     try {
-      // TODO: Implement actual upload to Supabase Storage
-      // This is a placeholder for the upload logic
-      const formData = new FormData();
-      formData.append('file', file);
-      formData.append('projectId', projectId);
-
       // Simulate upload progress
       const progressInterval = setInterval(() => {
         setUploadProgress((prev) => {
-          if (prev >= 90) {
+          if (prev >= 80) {
             clearInterval(progressInterval);
             return prev;
           }
@@ -92,19 +102,20 @@ export const DocumentUpload: React.FC<DocumentUploadProps> = ({
         });
       }, 200);
 
-      // TODO: Replace with actual API call
-      // const response = await fetch('/api/documents/upload', {
-      //   method: 'POST',
-      //   body: formData,
-      // });
-      // const data = await response.json();
+      // Upload document to Supabase Storage and create database record
+      const document = await createDocument(file, projectId, user.id, file.name);
 
-      // Simulated success
-      await new Promise((resolve) => setTimeout(resolve, 2000));
       clearInterval(progressInterval);
-      setUploadProgress(100);
+      setUploadProgress(90);
 
-      const mockDocumentId = 'doc_' + Date.now();
+      // Trigger background processing
+      if (document) {
+        processDocument(document.id, user.id, document.file_url, document.file_type).catch(
+          (err) => console.error('Background processing error:', err)
+        );
+      }
+
+      setUploadProgress(100);
 
       toast({
         title: 'Upload successful',
@@ -114,18 +125,20 @@ export const DocumentUpload: React.FC<DocumentUploadProps> = ({
         isClosable: true,
       });
 
-      onUploadComplete(mockDocumentId);
+      if (document) {
+        onUploadComplete(document.id);
+      }
     } catch (error) {
       toast({
         title: 'Upload failed',
-        description: 'An error occurred while uploading your document.',
+        description: error instanceof Error ? error.message : 'An error occurred while uploading your document.',
         status: 'error',
         duration: 5000,
         isClosable: true,
       });
     } finally {
       setIsUploading(false);
-      setUploadProgress(0);
+      setTimeout(() => setUploadProgress(0), 1000);
     }
   };
 
