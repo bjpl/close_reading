@@ -25,7 +25,12 @@ import {
 } from '@chakra-ui/react';
 import { FiCopy, FiDownload } from 'react-icons/fi';
 import { useDocumentStore } from '../stores/documentStore';
-import { CitationFormat } from '../types';
+import { CitationExportFormat, CitationMetadata } from '../types/citation';
+import {
+  exportCitations,
+  getMimeType,
+  getFileExtension,
+} from '../services/citationExport';
 
 interface CitationExportModalProps {
   isOpen: boolean;
@@ -37,7 +42,7 @@ export const CitationExportModal: React.FC<CitationExportModalProps> = ({
   onClose,
 }) => {
   const { currentDocument } = useDocumentStore();
-  const [format, setFormat] = useState<CitationFormat>('mla');
+  const [format, setFormat] = useState<CitationExportFormat>('mla');
   const toast = useToast();
 
   const citations = useMemo(() => {
@@ -47,31 +52,34 @@ export const CitationExportModal: React.FC<CitationExportModalProps> = ({
       p.annotations.filter((a) => a.type === 'citation')
     );
 
-    return allCitations;
+    return allCitations.map((a) => ({
+      text: a.text,
+      note: a.note,
+    }));
   }, [currentDocument]);
 
-  const formatCitation = (text: string, note: string, index: number) => {
-    const docTitle = currentDocument?.title || 'Untitled Document';
-
-    switch (format) {
-      case 'mla':
-        return `"${text}" (${docTitle}${note ? `. ${note}` : ''})`;
-      case 'apa':
-        return `${docTitle}. "${text}"${note ? `. ${note}` : ''}.`;
-      case 'chicago':
-        return `${index + 1}. ${docTitle}, "${text}"${note ? `, ${note}` : ''}.`;
-      default:
-        return text;
-    }
-  };
+  // Generate metadata for each citation
+  const citationMetadata = useMemo((): CitationMetadata[] => {
+    return citations.map((citation) => ({
+      title: currentDocument?.title || 'Untitled Document',
+      author: currentDocument?.author,
+      year: new Date().getFullYear(),
+      type: 'article',
+      note: citation.note,
+    }));
+  }, [citations, currentDocument]);
 
   const formattedCitations = useMemo(() => {
-    return citations
-      .map((citation, index) =>
-        formatCitation(citation.text, citation.note || '', index)
-      )
-      .join('\n\n');
-  }, [citations, format, currentDocument]);
+    if (citations.length === 0) return '';
+
+    const documentInfo = {
+      title: currentDocument?.title || 'Untitled Document',
+      author: currentDocument?.author,
+      date: new Date().toISOString(),
+    };
+
+    return exportCitations(citations, citationMetadata, format, documentInfo);
+  }, [citations, citationMetadata, format, currentDocument]);
 
   const handleCopy = async () => {
     try {
@@ -95,11 +103,14 @@ export const CitationExportModal: React.FC<CitationExportModalProps> = ({
   };
 
   const handleDownload = () => {
-    const blob = new Blob([formattedCitations], { type: 'text/plain' });
+    const mimeType = getMimeType(format);
+    const fileExtension = getFileExtension(format);
+
+    const blob = new Blob([formattedCitations], { type: mimeType });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `citations-${format}-${Date.now()}.txt`;
+    a.download = `citations-${format}-${Date.now()}.${fileExtension}`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -107,7 +118,7 @@ export const CitationExportModal: React.FC<CitationExportModalProps> = ({
 
     toast({
       title: 'Downloaded',
-      description: 'Citations have been downloaded as a text file.',
+      description: `Citations have been downloaded as ${format.toUpperCase()} format.`,
       status: 'success',
       duration: 2000,
       isClosable: true,
@@ -129,13 +140,16 @@ export const CitationExportModal: React.FC<CitationExportModalProps> = ({
               </Text>
               <Select
                 value={format}
-                onChange={(e) => setFormat(e.target.value as CitationFormat)}
+                onChange={(e) => setFormat(e.target.value as CitationExportFormat)}
                 size="sm"
                 maxW="200px"
               >
                 <option value="mla">MLA</option>
                 <option value="apa">APA</option>
                 <option value="chicago">Chicago</option>
+                <option value="bibtex">BibTeX</option>
+                <option value="ris">RIS</option>
+                <option value="json">JSON</option>
               </Select>
             </HStack>
 
@@ -204,6 +218,12 @@ export const CitationExportModal: React.FC<CitationExportModalProps> = ({
                   'APA: Author-date citation system with reference list'}
                 {format === 'chicago' &&
                   'Chicago: Numbered notes with full citation details'}
+                {format === 'bibtex' &&
+                  'BibTeX: LaTeX bibliography format for academic papers'}
+                {format === 'ris' &&
+                  'RIS: Standard format for reference management software (EndNote, Mendeley, Zotero)'}
+                {format === 'json' &&
+                  'JSON: Structured data format for programmatic access and data interchange'}
               </Text>
             </Box>
           </VStack>

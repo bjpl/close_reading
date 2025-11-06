@@ -74,6 +74,7 @@ export interface ParagraphLink {
   updated_at?: string;
 }
 
+// Legacy citation type - kept for database compatibility
 export type CitationType = 'bibtex' | 'ris' | 'json';
 
 export interface Citation {
@@ -85,6 +86,9 @@ export interface Citation {
   created_at: string;
   updated_at?: string;
 }
+
+// Export new citation types
+export * from './citation';
 
 export interface ViewMode {
   type: 'original' | 'sentence';
