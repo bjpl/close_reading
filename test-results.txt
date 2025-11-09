@@ -1,0 +1,155 @@
+
+> close-reading-platform@0.1.0 test
+> vitest
+
+
+ DEV  v1.6.1 /mnt/c/Users/brand/Development/Project_Workspace/active-development/close_reading
+
+ ✓ tests/unit/paragraph-linking.test.ts  (13 tests) 17ms
+ ✓ tests/unit/annotation-system.test.ts  (11 tests) 17ms
+ ✓ tests/unit/document-upload.test.ts  (13 tests) 80ms
+ ❯ tests/unit/citation-export.test.ts  (19 tests | 1 failed) 66ms
+   ❯ tests/unit/citation-export.test.ts > Citation Export System > Citation Metadata Extraction > should extract year from text
+     → expected null not to be null
+ ✓ tests/unit/project-management.test.ts  (19 tests) 17ms
+ ❯ tests/unit/sharing.test.ts  (22 tests | 3 failed) 54ms
+   ❯ tests/unit/sharing.test.ts > Sharing Service > generateShareLink > should delete existing share links before creating new one
+     → supabase.from(...).insert(...).select is not a function
+   ❯ tests/unit/sharing.test.ts > Sharing Service > getSharedDocument > should return document with annotations for valid token
+     → supabase.from(...).update is not a function
+   ❯ tests/unit/sharing.test.ts > Sharing Service > getSharedDocument > should increment access count when document is accessed
+     → Cannot read properties of undefined (reading 'select')
+ ❯ tests/integration/sharing-flow.test.ts  (9 tests | 4 failed) 61ms
+   ❯ tests/integration/sharing-flow.test.ts > Sharing Flow Integration Tests > Complete Sharing Workflow > should complete full workflow: generate → validate → access → revoke
+     → supabase.from(...).update is not a function
+   ❯ tests/integration/sharing-flow.test.ts > Sharing Flow Integration Tests > Public Access Scenarios > should allow anonymous users to access shared documents
+     → supabase.from(...).update is not a function
+   ❯ tests/integration/sharing-flow.test.ts > Sharing Flow Integration Tests > Public Access Scenarios > should track access count for shared documents
+     → supabase.from(...).update is not a function
+   ❯ tests/integration/sharing-flow.test.ts > Sharing Flow Integration Tests > Link Management > should regenerate link and invalidate old one
+     → expected '144l18190p5d4x0s315w0d261l3r3t0q5x6w4…' to be 'first-token' // Object.is equality
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 8 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/integration/sharing-flow.test.ts > Sharing Flow Integration Tests > Complete Sharing Workflow > should complete full workflow: generate → validate → access → revoke
+TypeError: supabase.from(...).update is not a function
+ ❯ incrementAccessCount src/services/sharing.ts:249:6
+    247|   const { error: updateError } = await supabase
+    248|     .from('share_links')
+    249|     .update({ access_count: shareLink.access_count + 1 })
+       |      ^
+    250|     .eq('token', token);
+    251| 
+ ❯ Module.getSharedDocument src/services/sharing.ts:166:3
+ ❯ tests/integration/sharing-flow.test.ts:190:25
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/8]⎯
+
+ FAIL  tests/integration/sharing-flow.test.ts > Sharing Flow Integration Tests > Public Access Scenarios > should allow anonymous users to access shared documents
+TypeError: supabase.from(...).update is not a function
+ ❯ incrementAccessCount src/services/sharing.ts:249:6
+    247|   const { error: updateError } = await supabase
+    248|     .from('share_links')
+    249|     .update({ access_count: shareLink.access_count + 1 })
+       |      ^
+    250|     .eq('token', token);
+    251| 
+ ❯ Module.getSharedDocument src/services/sharing.ts:166:3
+ ❯ tests/integration/sharing-flow.test.ts:367:25
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/8]⎯
+
+ FAIL  tests/integration/sharing-flow.test.ts > Sharing Flow Integration Tests > Public Access Scenarios > should track access count for shared documents
+TypeError: supabase.from(...).update is not a function
+ ❯ incrementAccessCount src/services/sharing.ts:249:6
+    247|   const { error: updateError } = await supabase
+    248|     .from('share_links')
+    249|     .update({ access_count: shareLink.access_count + 1 })
+       |      ^
+    250|     .eq('token', token);
+    251| 
+ ❯ Module.getSharedDocument src/services/sharing.ts:166:3
+ ❯ tests/integration/sharing-flow.test.ts:413:7
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/8]⎯
+
+ FAIL  tests/integration/sharing-flow.test.ts > Sharing Flow Integration Tests > Link Management > should regenerate link and invalidate old one
+AssertionError: expected '144l18190p5d4x0s315w0d261l3r3t0q5x6w4…' to be 'first-token' // Object.is equality
+
+- Expected
++ Received
+
+- first-token
++ 144l18190p5d4x0s315w0d261l3r3t0q5x6w4f3g1g4n3i0u2t6f0u2q3y201n2q
+
+ ❯ tests/integration/sharing-flow.test.ts:457:31
+    455| 
+    456|       const firstLink = await generateShareLink('doc-123');
+    457|       expect(firstLink.token).toBe('first-token');
+       |                               ^
+    458| 
+    459|       // Second link generation (should delete first)
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/8]⎯
+
+ FAIL  tests/unit/citation-export.test.ts > Citation Export System > Citation Metadata Extraction > should extract year from text
+AssertionError: expected null not to be null
+ ❯ tests/unit/citation-export.test.ts:204:29
+    202|       const yearMatch = text.match(/\((\d{4})\)/);
+    203| 
+    204|       expect(yearMatch).not.toBeNull();
+       |                             ^
+    205|       expect(yearMatch?.[1]).toBe('2024');
+    206|     });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/8]⎯
+
+ FAIL  tests/unit/sharing.test.ts > Sharing Service > generateShareLink > should delete existing share links before creating new one
+TypeError: supabase.from(...).insert(...).select is not a function
+ ❯ Module.generateShareLink src/services/sharing.ts:100:6
+     98|       expires_at: expiresAt,
+     99|     })
+    100|     .select()
+       |      ^
+    101|     .single();
+    102| 
+ ❯ tests/unit/sharing.test.ts:233:7
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/8]⎯
+
+ FAIL  tests/unit/sharing.test.ts > Sharing Service > getSharedDocument > should return document with annotations for valid token
+TypeError: supabase.from(...).update is not a function
+ ❯ incrementAccessCount src/services/sharing.ts:249:6
+    247|   const { error: updateError } = await supabase
+    248|     .from('share_links')
+    249|     .update({ access_count: shareLink.access_count + 1 })
+       |      ^
+    250|     .eq('token', token);
+    251| 
+ ❯ Module.getSharedDocument src/services/sharing.ts:166:3
+ ❯ tests/unit/sharing.test.ts:354:22
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/8]⎯
+
+ FAIL  tests/unit/sharing.test.ts > Sharing Service > getSharedDocument > should increment access count when document is accessed
+TypeError: Cannot read properties of undefined (reading 'select')
+ ❯ incrementAccessCount src/services/sharing.ts:237:24
+    235|   // Get current count
+    236|   const { data: shareLink, error: fetchError } = await supabase
+    237|     .from('share_links')
+       |                        ^
+    238|     .select('access_count')
+    239|     .eq('token', token)
+ ❯ Module.getSharedDocument src/services/sharing.ts:166:9
+ ❯ tests/unit/sharing.test.ts:398:7
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/8]⎯
+
+ Test Files  3 failed | 4 passed (7)
+      Tests  8 failed | 98 passed (106)
+   Start at  22:56:39
+   Duration  47.71s (transform 1.16s, setup 71.15s, collect 1.33s, tests 312ms, environment 48.24s, prepare 121.83s)
+
+
+ FAIL  Tests failed. Watching for file changes...
+       press h to show help, press q to quit
