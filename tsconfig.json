@@ -31,6 +31,7 @@
       "@tests/*": ["./tests/*"]
     }
   },
-  "include": ["src", "tests"],
+  "include": ["src"],
+  "exclude": ["tests", "**/*.test.ts", "**/*.test.tsx", "node_modules"],
   "references": [{ "path": "./tsconfig.node.json" }]
 }

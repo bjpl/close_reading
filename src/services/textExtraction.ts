@@ -1,7 +1,9 @@
 import mammoth from 'mammoth';
-// @ts-ignore - pdf-parse has no proper TypeScript definitions
-import pdfParse from 'pdf-parse';
 import { createWorker } from 'tesseract.js';
+
+// Import pdf-parse using namespace import for CommonJS compatibility
+import * as PdfParseModule from 'pdf-parse';
+const PdfParse = (PdfParseModule as any).default || PdfParseModule;
 
 export interface ExtractionResult {
   success: boolean;
@@ -57,7 +59,7 @@ export async function extractPdfText(file: File): Promise<ExtractionResult> {
   try {
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
-    const data = await pdfParse(buffer);
+    const data = await PdfParse(buffer);
 
     if (data.text && data.text.trim().length > 0) {
       return {
@@ -153,7 +155,7 @@ export async function extractTextFromBuffer(
 
       case 'pdf': {
         const pdfBuffer = Buffer.from(buffer);
-        const data = await pdfParse(pdfBuffer);
+        const data = await PdfParse(pdfBuffer);
         return { success: true, text: data.text, method: 'pdf-parse' };
       }
 
