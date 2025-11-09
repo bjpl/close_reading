@@ -24,6 +24,7 @@ import {
   Button,
 } from '@chakra-ui/react';
 import { FiExternalLink, FiLock } from 'react-icons/fi';
+import DOMPurify from 'dompurify';
 import { useSharing } from '../hooks/useSharing';
 import { SharedDocument } from '../services/sharing';
 
@@ -151,7 +152,13 @@ export const SharedDocumentPage: React.FC = () => {
           <Box bg="white" p={8} borderRadius="lg" shadow="sm" minH="500px">
             <Box
               className="document-content"
-              dangerouslySetInnerHTML={{ __html: document.content }}
+              dangerouslySetInnerHTML={{
+                __html: DOMPurify.sanitize(document.content, {
+                  ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'u', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'ul', 'ol', 'li', 'blockquote', 'code', 'pre'],
+                  ALLOWED_ATTR: [],
+                  KEEP_CONTENT: true
+                })
+              }}
               sx={{
                 '& p': { mb: 4 },
                 '& h1, & h2, & h3': { mt: 6, mb: 3 },
