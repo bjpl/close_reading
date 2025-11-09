@@ -26,7 +26,7 @@ interface DocumentState {
 
 export const useDocumentStore = create<DocumentState>((set) => ({
   currentDocument: null,
-  viewMode: 'original',
+  viewMode: 'original' as const,
   selectedParagraphs: [],
   hoveredParagraph: null,
 

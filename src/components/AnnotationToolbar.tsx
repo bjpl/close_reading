@@ -21,14 +21,14 @@ import {
   useToast,
 } from '@chakra-ui/react';
 import {
-  FiHighlight,
   FiFileText,
   FiStar,
   FiBookmark,
 } from 'react-icons/fi';
+import { HiOutlineColorSwatch } from 'react-icons/hi';
 import { useAnnotationStore } from '../stores/annotationStore';
 import { useDocumentStore } from '../stores/documentStore';
-import { AnnotationType, AnnotationColor, Annotation } from '../types';
+import type { AnnotationType, Annotation, AnnotationColor } from '../types';
 
 const COLOR_OPTIONS: AnnotationColor[] = ['yellow', 'green', 'blue', 'pink', 'purple'];
 
@@ -86,19 +86,21 @@ export const AnnotationToolbar: React.FC = () => {
 
     // Find which paragraph contains this selection
     // This is a simplified version - real implementation would need more sophisticated logic
-    const paragraphId = currentDocument.paragraphs[0]?.id || '';
+    const paragraphId = currentDocument.id; // Using document ID as fallback
 
     const newAnnotation: Annotation = {
       id: `annotation_${Date.now()}`,
+      document_id: currentDocument.id,
+      paragraph_id: paragraphId,
+      user_id: 'current-user', // TODO: Get from auth context
       type,
-      text: selectedText,
-      note: note || undefined,
+      content: selectedText,
+      note_text: note || undefined,
       color: activeColor,
-      startOffset: selectionRange.start,
-      endOffset: selectionRange.end,
-      paragraphId,
-      createdAt: new Date(),
-      updatedAt: new Date(),
+      start_offset: selectionRange.start,
+      end_offset: selectionRange.end,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
     };
 
     addAnnotation(paragraphId, newAnnotation);
@@ -153,7 +155,7 @@ export const AnnotationToolbar: React.FC = () => {
           <Tooltip label="Highlight" placement="bottom">
             <IconButton
               aria-label="Highlight"
-              icon={<FiHighlight />}
+              icon={<HiOutlineColorSwatch />}
               colorScheme={activeToolType === 'highlight' ? 'blue' : 'gray'}
               variant={activeToolType === 'highlight' ? 'solid' : 'outline'}
               onClick={() => handleToolClick('highlight')}
@@ -267,7 +269,7 @@ export const AnnotationToolbar: React.FC = () => {
               w={6}
               h={6}
               borderRadius="md"
-              bg={COLOR_MAP[color]}
+              bg={COLOR_MAP[color as AnnotationColor]}
               borderWidth={2}
               borderColor={activeColor === color ? 'blue.500' : 'gray.300'}
               onClick={() => setActiveColor(color)}

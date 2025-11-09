@@ -8,13 +8,12 @@ import { supabase } from '../lib/supabase';
 import type { Database } from '../types/database';
 import { useDocumentStore } from '../stores/documentStore';
 
-type Document = Database['public']['Tables']['documents']['Row'];
-type DocumentInsert = Database['public']['Tables']['documents']['Insert'];
+type DocumentRow = Database['public']['Tables']['documents']['Row'];
 type DocumentUpdate = Database['public']['Tables']['documents']['Update'];
 
 export const useDocuments = (projectId?: string, userId?: string) => {
   const { setDocument } = useDocumentStore();
-  const [documents, setDocuments] = useState<Document[]>([]);
+  const [documents, setDocuments] = useState<DocumentRow[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 

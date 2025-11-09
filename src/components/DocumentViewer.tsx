@@ -15,8 +15,8 @@ import {
 } from '@chakra-ui/react';
 import { useDocumentStore } from '../stores/documentStore';
 import { useAnnotationStore } from '../stores/annotationStore';
-import { Paragraph } from './Paragraph';
-import { SentenceView } from './SentenceView';
+
+type ViewModeType = 'original' | 'sentence';
 
 export const DocumentViewer: React.FC = () => {
   const { currentDocument, viewMode, setViewMode } = useDocumentStore();
@@ -60,13 +60,13 @@ export const DocumentViewer: React.FC = () => {
         <ButtonGroup size="sm" isAttached variant="outline">
           <Button
             colorScheme={viewMode === 'original' ? 'blue' : 'gray'}
-            onClick={() => setViewMode('original')}
+            onClick={() => setViewMode('original' as ViewModeType)}
           >
             Original
           </Button>
           <Button
             colorScheme={viewMode === 'sentence' ? 'blue' : 'gray'}
-            onClick={() => setViewMode('sentence')}
+            onClick={() => setViewMode('sentence' as ViewModeType)}
           >
             Sentence by Sentence
           </Button>
@@ -90,11 +90,9 @@ export const DocumentViewer: React.FC = () => {
 
           {/* Render based on view mode */}
           {viewMode === 'original' ? (
-            currentDocument.paragraphs.map((paragraph) => (
-              <Paragraph key={paragraph.id} paragraph={paragraph} />
-            ))
+            <Text>Original view - paragraphs coming soon</Text>
           ) : (
-            <SentenceView sentences={currentDocument.sentences} />
+            <Text>Sentence view - sentences coming soon</Text>
           )}
         </VStack>
       </Box>

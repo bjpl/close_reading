@@ -110,7 +110,7 @@ export const DocumentUpload: React.FC<DocumentUploadProps> = ({
 
       // Trigger background processing
       if (document) {
-        processDocument(document.id, user.id, document.file_url, document.file_type).catch(
+        processDocument(file, projectId).catch(
           (err) => console.error('Background processing error:', err)
         );
       }

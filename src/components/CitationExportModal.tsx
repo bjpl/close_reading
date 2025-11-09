@@ -48,23 +48,18 @@ export const CitationExportModal: React.FC<CitationExportModalProps> = ({
   const citations = useMemo(() => {
     if (!currentDocument) return [];
 
-    const allCitations = currentDocument.paragraphs.flatMap((p) =>
-      p.annotations.filter((a) => a.type === 'citation')
-    );
-
-    return allCitations.map((a) => ({
-      text: a.text,
-      note: a.note,
-    }));
+    // TODO: Fetch annotations from store or API
+    // For now, return empty array until we have annotations loaded
+    return [];
   }, [currentDocument]);
 
   // Generate metadata for each citation
   const citationMetadata = useMemo((): CitationMetadata[] => {
-    return citations.map((citation) => ({
+    return citations.map((citation: any) => ({
       title: currentDocument?.title || 'Untitled Document',
-      author: currentDocument?.author,
+      author: 'Unknown', // TODO: Add author field to Document type
       year: new Date().getFullYear(),
-      type: 'article',
+      type: 'article' as const,
       note: citation.note,
     }));
   }, [citations, currentDocument]);
@@ -74,7 +69,7 @@ export const CitationExportModal: React.FC<CitationExportModalProps> = ({
 
     const documentInfo = {
       title: currentDocument?.title || 'Untitled Document',
-      author: currentDocument?.author,
+      author: 'Unknown', // TODO: Add author field to Document type
       date: new Date().toISOString(),
     };
 

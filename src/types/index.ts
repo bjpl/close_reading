@@ -10,20 +10,28 @@ export interface User {
 export interface Project {
   id: string;
   name: string;
-  description?: string;
+  title: string;
+  description?: string | null;
   user_id: string;
+  color: string;
+  archived: boolean;
   created_at: string;
   updated_at: string;
-  is_public: boolean;
+  is_public?: boolean;
 }
 
 export interface Document {
   id: string;
   project_id: string;
+  user_id: string;
   title: string;
+  author?: string;
   content: string;
   file_type: 'txt' | 'md' | 'docx' | 'pdf';
   file_url: string;
+  paragraphs?: Paragraph[];
+  sentences?: Sentence[];
+  processing_status: 'pending' | 'processing' | 'completed' | 'failed';
   created_at: string;
   updated_at: string;
 }
@@ -33,6 +41,9 @@ export interface Paragraph {
   document_id: string;
   content: string;
   position: number;
+  order?: number;
+  annotations?: Annotation[];
+  linkedParagraphs?: string[];
   created_at: string;
 }
 
@@ -41,10 +52,14 @@ export interface Sentence {
   paragraph_id: string;
   content: string;
   position: number;
+  order: number;
+  annotations?: Annotation[];
   created_at: string;
 }
 
 export type AnnotationType = 'highlight' | 'note' | 'main_idea' | 'citation';
+
+export type AnnotationColor = 'yellow' | 'green' | 'blue' | 'pink' | 'purple';
 
 export interface Annotation {
   id: string;
@@ -53,9 +68,10 @@ export interface Annotation {
   user_id: string;
   type: AnnotationType;
   content: string;
+  text?: string;
   note_text?: string;
   citation_text?: string;
-  color?: string;
+  color?: AnnotationColor;
   start_offset: number;
   end_offset: number;
   created_at: string;
@@ -90,9 +106,7 @@ export interface Citation {
 // Export new citation types
 export * from './citation';
 
-export interface ViewMode {
-  type: 'original' | 'sentence';
-}
+export type ViewMode = 'original' | 'sentence';
 
 export interface AppError {
   code: string;

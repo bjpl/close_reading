@@ -3,7 +3,7 @@
  *
  * Displays all projects and their documents with management capabilities.
  */
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Box,

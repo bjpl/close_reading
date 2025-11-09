@@ -7,7 +7,7 @@ import { useEffect, useState } from 'react';
 import { User, Session, AuthError } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
 
-interface UseAuthReturn {
+export interface UseAuthReturn {
   user: User | null;
   session: Session | null;
   loading: boolean;
