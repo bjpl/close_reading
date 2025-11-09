@@ -96,9 +96,12 @@ export const AnnotationToolbar: React.FC = () => {
       type,
       content: selectedText,
       note_text: note || undefined,
+      note: note || undefined,
       color: activeColor,
       start_offset: selectionRange.start,
+      startOffset: selectionRange.start,
       end_offset: selectionRange.end,
+      endOffset: selectionRange.end,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     };

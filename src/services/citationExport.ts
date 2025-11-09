@@ -11,13 +11,10 @@
 import {
   CitationMetadata,
   CitationExportFormat,
-  BibTeXEntry,
-  RISEntry,
   JSONCitation,
   CitationExport,
   RIS_TYPES,
   BIBTEX_TYPES,
-  CitationType,
 } from '../types/citation';
 
 /**

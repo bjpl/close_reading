@@ -13,11 +13,11 @@ interface SentenceViewProps {
 
 export const SentenceView: React.FC<SentenceViewProps> = ({ sentences }) => {
   const renderAnnotatedSentence = (sentence: Sentence) => {
-    if (sentence.annotations.length === 0) {
+    if ((sentence.annotations || []).length === 0) {
       return <Text>{sentence.content}</Text>;
     }
 
-    const sortedAnnotations = [...sentence.annotations].sort(
+    const sortedAnnotations = [...(sentence.annotations || [])].sort(
       (a, b) => a.startOffset - b.startOffset
     );
 
@@ -44,7 +44,7 @@ export const SentenceView: React.FC<SentenceViewProps> = ({ sentences }) => {
         blue: 'blue.100',
         pink: 'pink.100',
         purple: 'purple.100',
-      }[annotation.color];
+      }[annotation.color || 'yellow'];
 
       parts.push(
         <Box

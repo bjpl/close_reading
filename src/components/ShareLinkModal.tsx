@@ -24,7 +24,6 @@ import {
   FormControl,
   FormLabel,
   useToast,
-  Code,
   Box,
 } from '@chakra-ui/react';
 import { FiCopy, FiRefreshCw } from 'react-icons/fi';

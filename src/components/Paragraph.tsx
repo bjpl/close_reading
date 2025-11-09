@@ -24,7 +24,7 @@ export const Paragraph: React.FC<ParagraphProps> = ({ paragraph }) => {
 
   const isSelected = selectedParagraphs.includes(paragraph.id);
   const isHovered = hoveredParagraph === paragraph.id;
-  const hasLinks = paragraph.linkedParagraphs.length > 0;
+  const hasLinks = (paragraph.linkedParagraphs || []).length > 0;
 
   const handleClick = (e: React.MouseEvent) => {
     if (e.shiftKey) {
@@ -38,12 +38,12 @@ export const Paragraph: React.FC<ParagraphProps> = ({ paragraph }) => {
 
   // Render text with annotations
   const renderAnnotatedText = () => {
-    if (paragraph.annotations.length === 0) {
+    if ((paragraph.annotations || []).length === 0) {
       return <Text>{paragraph.content}</Text>;
     }
 
     // Sort annotations by start offset
-    const sortedAnnotations = [...paragraph.annotations].sort(
+    const sortedAnnotations = [...(paragraph.annotations || [])].sort(
       (a, b) => a.startOffset - b.startOffset
     );
 
@@ -72,7 +72,7 @@ export const Paragraph: React.FC<ParagraphProps> = ({ paragraph }) => {
         blue: 'blue.100',
         pink: 'pink.100',
         purple: 'purple.100',
-      }[annotation.color];
+      }[annotation.color || 'yellow'];
 
       parts.push(
         <Box
@@ -120,7 +120,7 @@ export const Paragraph: React.FC<ParagraphProps> = ({ paragraph }) => {
         <HStack position="absolute" top={2} right={2} spacing={1}>
           <FiLink size={14} />
           <Badge colorScheme="blue" fontSize="xs">
-            {paragraph.linkedParagraphs.length}
+            {(paragraph.linkedParagraphs || []).length}
           </Badge>
         </HStack>
       )}

@@ -89,7 +89,7 @@ export async function generateShareLink(
   }
 
   // Create share link in database
-  const { data: shareLink, error } = await supabase
+  const { error } = await supabase
     .from('share_links')
     .insert({
       document_id: documentId,
@@ -186,11 +186,15 @@ export async function getSharedDocument(token: string): Promise<SharedDocument |
   }
 
   // Get annotations for the document
-  const { data: annotations, error: annotError } = await supabase
+  const { data: annotations } = await supabase
     .from('annotations')
     .select('*')
     .eq('document_id', shareLink.document_id)
     .order('created_at', { ascending: true });
+
+  const projectTitle = document.projects
+    ? (Array.isArray(document.projects) ? document.projects[0]?.title : (document.projects as any)?.title)
+    : undefined;
 
   return {
     id: document.id,
@@ -199,7 +203,7 @@ export async function getSharedDocument(token: string): Promise<SharedDocument |
     project_id: document.project_id,
     created_at: document.created_at,
     annotations: annotations || [],
-    project_title: document.projects?.title,
+    project_title: projectTitle,
   };
 }
 

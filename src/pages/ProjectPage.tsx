@@ -3,7 +3,7 @@
  *
  * Shows all documents within a project with upload capability.
  */
-import React, { useEffect } from 'react';
+import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
   Box,
@@ -52,7 +52,7 @@ export const ProjectPage: React.FC = () => {
     navigate(`/document/${documentId}`);
   };
 
-  const handleUploadComplete = (documentId: string) => {
+  const handleUploadComplete = () => {
     setShowUpload(false);
     // Document list will refresh automatically via subscription
   };

@@ -55,8 +55,8 @@ export const ParagraphLinkingPanel: React.FC = () => {
   const getLinkedParagraphs = () => {
     if (!currentDocument) return [];
 
-    return currentDocument.paragraphs.filter(
-      (p) => p.linkedParagraphs.length > 0
+    return (currentDocument.paragraphs || []).filter(
+      (p) => (p.linkedParagraphs || []).length > 0
     );
   };
 
@@ -138,8 +138,8 @@ export const ParagraphLinkingPanel: React.FC = () => {
                     {paragraph.content}
                   </Text>
                   <HStack spacing={1} flexWrap="wrap">
-                    {paragraph.linkedParagraphs.map((linkedId) => {
-                      const linkedPara = currentDocument?.paragraphs.find(
+                    {(paragraph.linkedParagraphs || []).map((linkedId) => {
+                      const linkedPara = (currentDocument?.paragraphs || []).find(
                         (p) => p.id === linkedId
                       );
                       return (

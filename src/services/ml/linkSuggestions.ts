@@ -13,7 +13,7 @@
  */
 
 import { getEmbeddingService, EmbeddingVector } from './embeddings';
-import { findSimilarParagraphs, SimilarityResult, SimilarityOptions } from './similarity';
+import { findSimilarParagraphs, SimilarityOptions } from './similarity';
 
 export interface LinkSuggestion {
   sourceParagraphId: string;

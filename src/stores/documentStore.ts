@@ -2,7 +2,7 @@
  * Zustand store for document management
  */
 import { create } from 'zustand';
-import { Document, Paragraph, Sentence, ViewMode, Annotation } from '../types';
+import { Document, ViewMode, Annotation } from '../types';
 
 interface DocumentState {
   currentDocument: Document | null;
@@ -54,9 +54,9 @@ export const useDocumentStore = create<DocumentState>((set) => ({
     set((state) => {
       if (!state.currentDocument) return state;
 
-      const updatedParagraphs = state.currentDocument.paragraphs.map((p) =>
+      const updatedParagraphs = (state.currentDocument.paragraphs || []).map((p) =>
         p.id === paragraphId
-          ? { ...p, annotations: [...p.annotations, annotation] }
+          ? { ...p, annotations: [...(p.annotations || []), annotation] }
           : p
       );
 
@@ -72,9 +72,9 @@ export const useDocumentStore = create<DocumentState>((set) => ({
     set((state) => {
       if (!state.currentDocument) return state;
 
-      const updatedParagraphs = state.currentDocument.paragraphs.map((p) => ({
+      const updatedParagraphs = (state.currentDocument.paragraphs || []).map((p) => ({
         ...p,
-        annotations: p.annotations.map((a) =>
+        annotations: (p.annotations || []).map((a) =>
           a.id === annotationId ? { ...a, ...updates } : a
         ),
       }));
@@ -91,9 +91,9 @@ export const useDocumentStore = create<DocumentState>((set) => ({
     set((state) => {
       if (!state.currentDocument) return state;
 
-      const updatedParagraphs = state.currentDocument.paragraphs.map((p) => ({
+      const updatedParagraphs = (state.currentDocument.paragraphs || []).map((p) => ({
         ...p,
-        annotations: p.annotations.filter((a) => a.id !== annotationId),
+        annotations: (p.annotations || []).filter((a) => a.id !== annotationId),
       }));
 
       return {
@@ -108,10 +108,10 @@ export const useDocumentStore = create<DocumentState>((set) => ({
     set((state) => {
       if (!state.currentDocument) return state;
 
-      const updatedParagraphs = state.currentDocument.paragraphs.map((p) => {
+      const updatedParagraphs = (state.currentDocument.paragraphs || []).map((p) => {
         if (paragraphIds.includes(p.id)) {
           const newLinks = paragraphIds.filter((id) => id !== p.id);
-          const uniqueLinks = Array.from(new Set([...p.linkedParagraphs, ...newLinks]));
+          const uniqueLinks = Array.from(new Set([...(p.linkedParagraphs || []), ...newLinks]));
           return { ...p, linkedParagraphs: uniqueLinks };
         }
         return p;
@@ -129,17 +129,17 @@ export const useDocumentStore = create<DocumentState>((set) => ({
     set((state) => {
       if (!state.currentDocument) return state;
 
-      const updatedParagraphs = state.currentDocument.paragraphs.map((p) => {
+      const updatedParagraphs = (state.currentDocument.paragraphs || []).map((p) => {
         if (p.id === paragraphId) {
           return {
             ...p,
-            linkedParagraphs: p.linkedParagraphs.filter((id) => id !== linkedId),
+            linkedParagraphs: (p.linkedParagraphs || []).filter((id) => id !== linkedId),
           };
         }
         if (p.id === linkedId) {
           return {
             ...p,
-            linkedParagraphs: p.linkedParagraphs.filter((id) => id !== paragraphId),
+            linkedParagraphs: (p.linkedParagraphs || []).filter((id) => id !== paragraphId),
           };
         }
         return p;

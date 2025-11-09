@@ -7,7 +7,6 @@ import { useState } from 'react';
 import { supabase } from '../lib/supabase';
 import type { Database } from '../types/database';
 
-type Annotation = Database['public']['Tables']['annotations']['Row'];
 type AnnotationInsert = Database['public']['Tables']['annotations']['Insert'];
 type AnnotationUpdate = Database['public']['Tables']['annotations']['Update'];
 

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { mockDocument, mockCitation } from '../utils/mockData';
+import { mockCitation } from '../utils/mockData';
 
 describe('Citation Export System', () => {
   describe('BibTeX Export', () => {

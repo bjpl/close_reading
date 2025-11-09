@@ -8,7 +8,6 @@ import { supabase } from '../lib/supabase';
 import type { Database } from '../types/database';
 import { useProjectStore } from '../stores/projectStore';
 
-type Project = Database['public']['Tables']['projects']['Row'];
 type ProjectInsert = Database['public']['Tables']['projects']['Insert'];
 type ProjectUpdate = Database['public']['Tables']['projects']['Update'];
 

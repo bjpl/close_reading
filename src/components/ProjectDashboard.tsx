@@ -23,7 +23,6 @@ import {
   Card,
   CardBody,
   IconButton,
-  Badge,
   Textarea,
   Grid,
   useToast,
@@ -32,7 +31,6 @@ import {
 import {
   FiPlus,
   FiFolder,
-  FiFile,
   FiEdit2,
   FiTrash2,
   FiLogOut,

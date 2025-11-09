@@ -14,7 +14,7 @@
  */
 
 import { openDB, DBSchema, IDBPDatabase } from 'idb';
-import { supabase } from '../supabase';
+import { supabase } from '../../lib/supabase';
 import { EmbeddingVector } from './embeddings';
 
 interface EmbeddingCacheDB extends DBSchema {

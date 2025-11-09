@@ -11,7 +11,7 @@ export interface Project {
   id: string;
   name: string;
   title: string;
-  description?: string | null;
+  description: string | null;
   user_id: string;
   color: string;
   archived: boolean;
@@ -70,10 +70,13 @@ export interface Annotation {
   content: string;
   text?: string;
   note_text?: string;
+  note?: string; // UI alias for note_text
   citation_text?: string;
   color?: AnnotationColor;
   start_offset: number;
+  startOffset: number; // UI alias for start_offset
   end_offset: number;
+  endOffset: number; // UI alias for end_offset
   created_at: string;
   updated_at: string;
 }

@@ -1,4 +1,5 @@
 import mammoth from 'mammoth';
+// @ts-ignore - pdf-parse has no proper TypeScript definitions
 import pdfParse from 'pdf-parse';
 import { createWorker } from 'tesseract.js';
 
