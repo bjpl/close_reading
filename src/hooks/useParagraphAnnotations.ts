@@ -5,7 +5,7 @@
  * Handles both local state updates and database persistence.
  */
 import { useState } from 'react';
-import { useToast } from '@chakra-ui/react';
+import { toaster } from '@chakra-ui/react';
 import { useDocumentStore } from '../stores/documentStore';
 import { useAnnotations } from './useAnnotations';
 import { useAuth } from './useAuth';
@@ -22,7 +22,6 @@ interface UseParagraphAnnotationsReturn {
  */
 export const useParagraphAnnotations = (): UseParagraphAnnotationsReturn => {
   const { user } = useAuth();
-  const toast = useToast();
   const { deleteAnnotation, updateAnnotation, currentDocument } = useDocumentStore();
   const { deleteAnnotation: deleteAnnotationDB, updateAnnotation: updateAnnotationDB } =
     useAnnotations(currentDocument?.id, user?.id);
@@ -44,20 +43,18 @@ export const useParagraphAnnotations = (): UseParagraphAnnotationsReturn => {
       // Delete from database (persistence)
       await deleteAnnotationDB(annotationId);
 
-      toast({
+      toaster.create({
         title: 'Annotation deleted',
-        status: 'success',
+        type: 'success',
         duration: 2000,
-        isClosable: true,
       });
     } catch (error) {
       console.error('❌ Failed to delete annotation:', error);
-      toast({
+      toaster.create({
         title: 'Failed to delete annotation',
         description: error instanceof Error ? error.message : 'Unknown error',
-        status: 'error',
+        type: 'error',
         duration: 3000,
-        isClosable: true,
       });
       throw error;
     } finally {
@@ -84,20 +81,18 @@ export const useParagraphAnnotations = (): UseParagraphAnnotationsReturn => {
       // Update in database (persistence)
       await updateAnnotationDB(annotationId, updates);
 
-      toast({
+      toaster.create({
         title: 'Note updated',
-        status: 'success',
+        type: 'success',
         duration: 2000,
-        isClosable: true,
       });
     } catch (error) {
       console.error('❌ Failed to update annotation:', error);
-      toast({
+      toaster.create({
         title: 'Failed to update note',
         description: error instanceof Error ? error.message : 'Unknown error',
-        status: 'error',
+        type: 'error',
         duration: 3000,
-        isClosable: true,
       });
       throw error;
     } finally {

@@ -13,7 +13,7 @@ import {
   Button,
   FormControl,
   FormLabel,
-  useToast,
+  toaster,
 } from '@chakra-ui/react';
 import { FiEdit2, FiSave, FiX } from 'react-icons/fi';
 
@@ -34,16 +34,14 @@ export const DocumentMetadataEditor: React.FC<DocumentMetadataEditorProps> = ({
   const [title, setTitle] = useState(currentTitle);
   const [author, setAuthor] = useState(currentAuthor);
   const [isSaving, setIsSaving] = useState(false);
-  const toast = useToast();
 
   const handleSave = async () => {
     if (!title.trim()) {
-      toast({
+      toaster.create({
         title: 'Title required',
         description: 'Please enter a document title.',
-        status: 'warning',
+        type: 'warning',
         duration: 3000,
-        isClosable: true,
       });
       return;
     }
@@ -52,20 +50,18 @@ export const DocumentMetadataEditor: React.FC<DocumentMetadataEditorProps> = ({
       setIsSaving(true);
       await onSave(title, author);
       setIsEditing(false);
-      toast({
+      toaster.create({
         title: 'Metadata updated',
         description: 'Document information has been saved.',
-        status: 'success',
+        type: 'success',
         duration: 2000,
-        isClosable: true,
       });
     } catch (error) {
-      toast({
+      toaster.create({
         title: 'Save failed',
         description: error instanceof Error ? error.message : 'Failed to save metadata.',
-        status: 'error',
+        type: 'error',
         duration: 3000,
-        isClosable: true,
       });
     } finally {
       setIsSaving(false);

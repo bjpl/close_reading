@@ -71,10 +71,11 @@ export const DocumentPage: React.FC = () => {
       >
         <IconButton
           aria-label="Back"
-          icon={<FiArrowLeft />}
           variant="ghost"
           onClick={() => navigate(-1)}
-        />
+        >
+          <FiArrowLeft />
+        </IconButton>
         {currentDocument && (
           <Box flex={1}>
             <DocumentMetadataEditor
@@ -88,7 +89,7 @@ export const DocumentPage: React.FC = () => {
       </HStack>
 
       {/* Main Content */}
-      <HStack flex={1} spacing={0} align="stretch" overflow="hidden">
+      <HStack flex={1} gap={0} align="stretch" overflow="hidden">
         {/* Left: Paragraph Linking Panel */}
         <ParagraphLinkingPanel />
 

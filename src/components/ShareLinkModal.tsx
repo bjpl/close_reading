@@ -23,7 +23,7 @@ import {
   Switch,
   FormControl,
   FormLabel,
-  useToast,
+  toaster,
   Box,
 } from '@chakra-ui/react';
 import { FiCopy, FiRefreshCw } from 'react-icons/fi';
@@ -45,7 +45,6 @@ export const ShareLinkModal: React.FC<ShareLinkModalProps> = ({
   const [shareLink, setShareLink] = useState('');
   const [hasExpiry, setHasExpiry] = useState(true); // Default to 7 days
   const { generateShareLink: generateLink, loading, error: sharingError, getShareLinkInfo } = useSharing();
-  const toast = useToast();
 
   // Load existing share link on modal open
   useEffect(() => {
@@ -71,23 +70,21 @@ export const ShareLinkModal: React.FC<ShareLinkModalProps> = ({
 
       if (link) {
         setShareLink(link);
-        toast({
+        toaster.create({
           title: 'Share link generated',
           description: 'Your document share link has been created.',
-          status: 'success',
+          type: 'success',
           duration: 3000,
-          isClosable: true,
         });
       } else {
         throw new Error('Failed to generate link');
       }
     } catch (error) {
-      toast({
+      toaster.create({
         title: 'Failed to generate link',
         description: sharingError || 'An error occurred while creating the share link.',
-        status: 'error',
+        type: 'error',
         duration: 3000,
-        isClosable: true,
       });
     }
   };
@@ -97,20 +94,18 @@ export const ShareLinkModal: React.FC<ShareLinkModalProps> = ({
 
     try {
       await navigator.clipboard.writeText(shareLink);
-      toast({
+      toaster.create({
         title: 'Link copied',
         description: 'Share link has been copied to your clipboard.',
-        status: 'success',
+        type: 'success',
         duration: 2000,
-        isClosable: true,
       });
     } catch (error) {
-      toast({
+      toaster.create({
         title: 'Failed to copy',
         description: 'Could not copy link to clipboard.',
-        status: 'error',
+        type: 'error',
         duration: 3000,
-        isClosable: true,
       });
     }
   };
@@ -133,7 +128,7 @@ export const ShareLinkModal: React.FC<ShareLinkModalProps> = ({
         <ModalHeader>Share Document</ModalHeader>
         <ModalCloseButton />
         <ModalBody>
-          <VStack spacing={4} align="stretch">
+          <VStack gap={4} align="stretch">
             {/* Document Info */}
             <Box p={3} bg="gray.50" borderRadius="md">
               <Text fontSize="sm" fontWeight="medium" color="gray.600">
@@ -165,7 +160,7 @@ export const ShareLinkModal: React.FC<ShareLinkModalProps> = ({
                 Generate Share Link
               </Button>
             ) : (
-              <VStack spacing={3} align="stretch">
+              <VStack gap={3} align="stretch">
                 <Text fontSize="sm" fontWeight="medium">
                   Share Link:
                 </Text>
@@ -178,19 +173,21 @@ export const ShareLinkModal: React.FC<ShareLinkModalProps> = ({
                     fontSize="xs"
                   />
                   <InputRightElement width="80px">
-                    <HStack spacing={1}>
+                    <HStack gap={1}>
                       <IconButton
                         aria-label="Copy link"
-                        icon={<FiCopy />}
                         size="xs"
                         onClick={handleCopyLink}
-                      />
+                      >
+                        <FiCopy />
+                      </IconButton>
                       <IconButton
                         aria-label="Refresh link"
-                        icon={<FiRefreshCw />}
                         size="xs"
                         onClick={handleRefreshLink}
-                      />
+                      >
+                        <FiRefreshCw />
+                      </IconButton>
                     </HStack>
                   </InputRightElement>
                 </InputGroup>

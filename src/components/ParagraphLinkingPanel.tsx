@@ -13,7 +13,7 @@ import {
   IconButton,
   Badge,
   Divider,
-  useToast,
+  toaster,
 } from '@chakra-ui/react';
 import { FiLink, FiX } from 'react-icons/fi';
 import { useDocumentStore } from '../stores/documentStore';
@@ -26,16 +26,14 @@ export const ParagraphLinkingPanel: React.FC = () => {
     unlinkParagraph,
     clearSelection,
   } = useDocumentStore();
-  const toast = useToast();
 
   const handleLinkParagraphs = () => {
     if (selectedParagraphs.length < 2) {
-      toast({
+      toaster.create({
         title: 'Select paragraphs',
         description: 'Please select at least 2 paragraphs to link (Shift+Click).',
-        status: 'warning',
+        type: 'warning',
         duration: 3000,
-        isClosable: true,
       });
       return;
     }
@@ -43,12 +41,11 @@ export const ParagraphLinkingPanel: React.FC = () => {
     linkParagraphs(selectedParagraphs);
     clearSelection();
 
-    toast({
+    toaster.create({
       title: 'Paragraphs linked',
       description: `${selectedParagraphs.length} paragraphs have been linked together.`,
-      status: 'success',
+      type: 'success',
       duration: 3000,
-      isClosable: true,
     });
   };
 
@@ -71,7 +68,7 @@ export const ParagraphLinkingPanel: React.FC = () => {
       bg="white"
       overflow="auto"
     >
-      <VStack spacing={4} p={4} align="stretch">
+      <VStack gap={4} p={4} align="stretch">
         {/* Header */}
         <Text fontSize="lg" fontWeight="bold">
           Paragraph Links
@@ -85,7 +82,7 @@ export const ParagraphLinkingPanel: React.FC = () => {
           borderColor="blue.200"
           bg="blue.50"
         >
-          <VStack spacing={2} align="stretch">
+          <VStack gap={2} align="stretch">
             <HStack justify="space-between">
               <Text fontSize="sm" fontWeight="medium">
                 Selected:
@@ -100,11 +97,10 @@ export const ParagraphLinkingPanel: React.FC = () => {
             <Button
               colorScheme="blue"
               size="sm"
-              leftIcon={<FiLink />}
               onClick={handleLinkParagraphs}
               isDisabled={selectedParagraphs.length < 2}
             >
-              Link Selected
+              <FiLink /> Link Selected
             </Button>
           </VStack>
         </Box>
@@ -123,7 +119,7 @@ export const ParagraphLinkingPanel: React.FC = () => {
             </Text>
           </Box>
         ) : (
-          <VStack spacing={3} align="stretch">
+          <VStack gap={3} align="stretch">
             {linkedParagraphs.map((paragraph) => (
               <Box
                 key={paragraph.id}
@@ -133,11 +129,11 @@ export const ParagraphLinkingPanel: React.FC = () => {
                 borderColor="gray.200"
                 bg="white"
               >
-                <VStack spacing={2} align="stretch">
-                  <Text fontSize="sm" noOfLines={2}>
+                <VStack gap={2} align="stretch">
+                  <Text fontSize="sm" lineClamp={2}>
                     {paragraph.content}
                   </Text>
-                  <HStack spacing={1} flexWrap="wrap">
+                  <HStack gap={1} flexWrap="wrap">
                     {(paragraph.linkedParagraphs || []).map((linkedId) => {
                       const linkedPara = (currentDocument?.paragraphs || []).find(
                         (p) => p.id === linkedId
@@ -155,13 +151,14 @@ export const ParagraphLinkingPanel: React.FC = () => {
                           Para {linkedPara?.order || '?'}
                           <IconButton
                             aria-label="Unlink"
-                            icon={<FiX />}
                             size="xs"
                             variant="ghost"
                             minW="auto"
                             h="auto"
                             onClick={() => unlinkParagraph(paragraph.id, linkedId)}
-                          />
+                          >
+                            <FiX />
+                          </IconButton>
                         </Badge>
                       );
                     })}

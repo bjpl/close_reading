@@ -11,7 +11,7 @@ import {
   VStack,
   Text,
   Icon,
-  useToast,
+  toaster,
   Progress,
 } from '@chakra-ui/react';
 import { FiUploadCloud, FiFile } from 'react-icons/fi';
@@ -34,7 +34,6 @@ export const DocumentUpload: React.FC<DocumentUploadProps> = ({
   const [isDragging, setIsDragging] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
-  const toast = useToast();
 
   // Use refs to always get the latest auth state
   const userRef = useRef(user);
@@ -76,24 +75,22 @@ export const DocumentUpload: React.FC<DocumentUploadProps> = ({
 
     // Wait for auth to finish loading
     if (currentAuthLoading) {
-      toast({
+      toaster.create({
         title: 'Loading',
         description: 'Please wait while we verify your session...',
-        status: 'info',
+        type: 'info',
         duration: 2000,
-        isClosable: true,
       });
       return;
     }
 
     if (!currentUser) {
       logger.error({ message: 'Upload blocked: No user found after auth loaded' });
-      toast({
+      toaster.create({
         title: 'Not authenticated',
         description: 'Please log in to upload documents.',
-        status: 'error',
+        type: 'error',
         duration: 5000,
-        isClosable: true,
       });
       return;
     }
@@ -107,24 +104,22 @@ export const DocumentUpload: React.FC<DocumentUploadProps> = ({
     ];
 
     if (!validTypes.includes(file.type)) {
-      toast({
+      toaster.create({
         title: 'Invalid file type',
         description: 'Please upload a PDF, DOCX, or TXT file.',
-        status: 'error',
+        type: 'error',
         duration: 5000,
-        isClosable: true,
       });
       return;
     }
 
     // Validate file size (max 10MB)
     if (file.size > 10 * 1024 * 1024) {
-      toast({
+      toaster.create({
         title: 'File too large',
         description: 'Please upload a file smaller than 10MB.',
-        status: 'error',
+        type: 'error',
         duration: 5000,
-        isClosable: true,
       });
       return;
     }
@@ -159,24 +154,22 @@ export const DocumentUpload: React.FC<DocumentUploadProps> = ({
 
       setUploadProgress(100);
 
-      toast({
+      toaster.create({
         title: 'Upload successful',
         description: 'Your document has been uploaded and is being processed.',
-        status: 'success',
+        type: 'success',
         duration: 5000,
-        isClosable: true,
       });
 
       if (document) {
         onUploadComplete(document.id);
       }
     } catch (error) {
-      toast({
+      toaster.create({
         title: 'Upload failed',
         description: error instanceof Error ? error.message : 'An error occurred while uploading your document.',
-        status: 'error',
+        type: 'error',
         duration: 5000,
-        isClosable: true,
       });
     } finally {
       setIsUploading(false);
@@ -221,7 +214,7 @@ export const DocumentUpload: React.FC<DocumentUploadProps> = ({
       onDrop={handleDrop}
       opacity={authLoading ? 0.5 : 1}
     >
-      <VStack spacing={4}>
+      <VStack gap={4}>
         <Icon
           as={isUploading ? FiFile : FiUploadCloud}
           boxSize={12}

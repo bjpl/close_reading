@@ -18,7 +18,7 @@ import {
   PopoverArrow,
   Text,
   Textarea,
-  useToast,
+  toaster,
 } from '@chakra-ui/react';
 import {
   FiFileText,
@@ -60,16 +60,14 @@ export const AnnotationToolbar: React.FC = () => {
   const { createAnnotation } = useAnnotations(currentDocument?.id, user?.id);
   const [noteText, setNoteText] = useState('');
   const [isNotePopoverOpen, setIsNotePopoverOpen] = useState(false);
-  const toast = useToast();
 
   const handleToolClick = (type: AnnotationType) => {
     if (!selectedText) {
-      toast({
+      toaster.create({
         title: 'No text selected',
         description: 'Please select text in the document first.',
-        status: 'warning',
+        type: 'warning',
         duration: 3000,
-        isClosable: true,
       });
       return;
     }
@@ -157,12 +155,11 @@ export const AnnotationToolbar: React.FC = () => {
       logError(err, { context: 'Failed to save annotation to database', annotationId: newAnnotation.id });
     });
 
-    toast({
+    toaster.create({
       title: 'Annotation added',
       description: `${type.charAt(0).toUpperCase() + type.slice(1)} annotation created.`,
-      status: 'success',
+      type: 'success',
       duration: 2000,
-      isClosable: true,
     });
 
     // Clear selection
@@ -174,12 +171,11 @@ export const AnnotationToolbar: React.FC = () => {
 
   const handleNoteSave = () => {
     if (!noteText.trim()) {
-      toast({
+      toaster.create({
         title: 'Note required',
         description: 'Please enter a note before saving.',
-        status: 'warning',
+        type: 'warning',
         duration: 3000,
-        isClosable: true,
       });
       return;
     }
@@ -197,9 +193,9 @@ export const AnnotationToolbar: React.FC = () => {
       top={0}
       zIndex={10}
     >
-      <VStack spacing={4} align="stretch">
+      <VStack gap={4} align="stretch">
         {/* Annotation Tools */}
-        <HStack spacing={2}>
+        <HStack gap={2}>
           <Text fontSize="sm" fontWeight="medium" mr={2}>
             Annotate:
           </Text>
@@ -207,7 +203,6 @@ export const AnnotationToolbar: React.FC = () => {
           <Tooltip label={activeToolType === 'highlight' ? 'Highlight mode ON (click color to turn off)' : 'Click a color to enable highlight mode'} placement="bottom">
             <IconButton
               aria-label="Highlight"
-              icon={<HiOutlineColorSwatch />}
               colorScheme={activeToolType === 'highlight' ? 'blue' : 'gray'}
               variant={activeToolType === 'highlight' ? 'solid' : 'outline'}
               onClick={() => {
@@ -220,7 +215,9 @@ export const AnnotationToolbar: React.FC = () => {
                 }
               }}
               size="sm"
-            />
+            >
+              <HiOutlineColorSwatch />
+            </IconButton>
           </Tooltip>
 
           <Popover
@@ -232,19 +229,20 @@ export const AnnotationToolbar: React.FC = () => {
               <Tooltip label="Add Note" placement="bottom">
                 <IconButton
                   aria-label="Add Note"
-                  icon={<FiFileText />}
                   colorScheme={activeToolType === 'note' ? 'blue' : 'gray'}
                   variant={activeToolType === 'note' ? 'solid' : 'outline'}
                   onClick={() => handleToolClick('note')}
                   size="sm"
                   isDisabled={!selectedText}
-                />
+                >
+                  <FiFileText />
+                </IconButton>
               </Tooltip>
             </PopoverTrigger>
             <PopoverContent>
               <PopoverArrow />
               <PopoverBody>
-                <VStack spacing={3}>
+                <VStack gap={3}>
                   <Textarea
                     placeholder="Enter your note..."
                     value={noteText}
@@ -268,7 +266,6 @@ export const AnnotationToolbar: React.FC = () => {
           <Tooltip label={activeToolType === 'main_idea' ? 'Main Idea mode ON (click to turn off)' : 'Main Idea mode OFF'} placement="bottom">
             <IconButton
               aria-label="Main Idea"
-              icon={<FiStar />}
               colorScheme={activeToolType === 'main_idea' ? 'orange' : 'gray'}
               variant={activeToolType === 'main_idea' ? 'solid' : 'outline'}
               onClick={() => {
@@ -281,13 +278,14 @@ export const AnnotationToolbar: React.FC = () => {
                 }
               }}
               size="sm"
-            />
+            >
+              <FiStar />
+            </IconButton>
           </Tooltip>
 
           <Tooltip label={activeToolType === 'citation' ? 'Citation mode ON (click to turn off)' : 'Citation mode OFF'} placement="bottom">
             <IconButton
               aria-label="Add Citation"
-              icon={<FiBookmark />}
               colorScheme={activeToolType === 'citation' ? 'blue' : 'gray'}
               variant={activeToolType === 'citation' ? 'solid' : 'outline'}
               onClick={() => {
@@ -300,13 +298,14 @@ export const AnnotationToolbar: React.FC = () => {
                 }
               }}
               size="sm"
-            />
+            >
+              <FiBookmark />
+            </IconButton>
           </Tooltip>
 
           <Tooltip label={activeToolType === 'question' ? 'Question mode ON (click to turn off)' : 'Question mode OFF'} placement="bottom">
             <IconButton
               aria-label="Mark as Question"
-              icon={<FiHelpCircle />}
               colorScheme={activeToolType === 'question' ? 'purple' : 'gray'}
               variant={activeToolType === 'question' ? 'solid' : 'outline'}
               onClick={() => {
@@ -319,12 +318,14 @@ export const AnnotationToolbar: React.FC = () => {
                 }
               }}
               size="sm"
-            />
+            >
+              <FiHelpCircle />
+            </IconButton>
           </Tooltip>
         </HStack>
 
         {/* Color Selection - Toggle Mode */}
-        <HStack spacing={2}>
+        <HStack gap={2}>
           <Text fontSize="sm" fontWeight="medium" mr={2}>
             Color:
           </Text>

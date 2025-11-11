@@ -70,17 +70,18 @@ export const ProjectPage: React.FC = () => {
   return (
     <Box minH="100vh" bg="gray.50" p={8}>
       <Container maxW="container.xl">
-        <VStack spacing={6} align="stretch">
+        <VStack gap={6} align="stretch">
           {/* Header */}
           <HStack justify="space-between">
             <HStack>
               <IconButton
                 aria-label="Back to dashboard"
-                icon={<FiArrowLeft />}
                 variant="ghost"
                 onClick={() => navigate('/dashboard')}
-              />
-              <VStack align="start" spacing={0}>
+              >
+                <FiArrowLeft />
+              </IconButton>
+              <VStack align="start" gap={0}>
                 <Heading size="lg">{currentProject?.name || 'Project'}</Heading>
                 {currentProject?.description && (
                   <Text color="gray.600" fontSize="sm">
@@ -91,10 +92,9 @@ export const ProjectPage: React.FC = () => {
             </HStack>
             <Button
               colorScheme="blue"
-              leftIcon={<FiUpload />}
               onClick={() => setShowUpload(!showUpload)}
             >
-              Upload Document
+              <FiUpload /> Upload Document
             </Button>
           </HStack>
 
@@ -137,17 +137,16 @@ export const ProjectPage: React.FC = () => {
                   onClick={() => handleDocumentClick(doc.id)}
                 >
                   <CardBody>
-                    <VStack align="stretch" spacing={3}>
+                    <VStack align="stretch" gap={3}>
                       <HStack justify="space-between">
                         <HStack>
                           <FiFile color="#3182CE" />
-                          <Text fontWeight="bold" noOfLines={1}>
+                          <Text fontWeight="bold" lineClamp={1}>
                             {doc.title}
                           </Text>
                         </HStack>
                         <IconButton
                           aria-label="Delete document"
-                          icon={<FiTrash2 />}
                           size="sm"
                           variant="ghost"
                           colorScheme="red"
@@ -161,7 +160,9 @@ export const ProjectPage: React.FC = () => {
                               deleteDocument(doc.id);
                             }
                           }}
-                        />
+                        >
+                          <FiTrash2 />
+                        </IconButton>
                       </HStack>
 
                       <Badge

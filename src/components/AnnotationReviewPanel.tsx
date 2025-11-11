@@ -121,7 +121,6 @@ export const AnnotationReviewPanel: React.FC<AnnotationReviewPanelProps> = ({
       {/* Toggle button */}
       <IconButton
         aria-label={isOpen ? 'Collapse panel' : 'Expand panel'}
-        icon={isOpen ? <FiChevronRight /> : <FiChevronLeft />}
         size="sm"
         position="absolute"
         left={-4}
@@ -129,14 +128,16 @@ export const AnnotationReviewPanel: React.FC<AnnotationReviewPanelProps> = ({
         zIndex={10}
         borderRadius="full"
         onClick={onToggle}
-      />
+      >
+        {isOpen ? <FiChevronRight /> : <FiChevronLeft />}
+      </IconButton>
 
       {/* Panel content */}
       <Collapse in={isOpen} animateOpacity>
-        <VStack align="stretch" h="100%" spacing={0}>
+        <VStack align="stretch" h="100%" gap={0}>
           {/* Header */}
           <Box p={4} borderBottomWidth={1} borderColor="gray.200">
-            <VStack align="stretch" spacing={3}>
+            <VStack align="stretch" gap={3}>
               <HStack justify="space-between">
                 <Text fontWeight="bold" fontSize="lg">
                   Annotations
@@ -147,33 +148,36 @@ export const AnnotationReviewPanel: React.FC<AnnotationReviewPanelProps> = ({
               </HStack>
 
               {/* Action buttons */}
-              <HStack spacing={2}>
+              <HStack gap={2}>
                 <Tooltip label="Toggle filters">
                   <IconButton
                     aria-label="Filters"
-                    icon={<FiFilter />}
                     size="sm"
                     variant={isFilterOpen ? 'solid' : 'outline'}
                     onClick={onToggleFilter}
-                  />
+                  >
+                    <FiFilter />
+                  </IconButton>
                 </Tooltip>
                 <Tooltip label="Toggle statistics">
                   <IconButton
                     aria-label="Statistics"
-                    icon={<FiBarChart2 />}
                     size="sm"
                     variant={isStatsOpen ? 'solid' : 'outline'}
                     onClick={onToggleStats}
-                  />
+                  >
+                    <FiBarChart2 />
+                  </IconButton>
                 </Tooltip>
                 <Menu>
                   <MenuButton
                     as={IconButton}
                     aria-label="Export"
-                    icon={<FiDownload />}
                     size="sm"
                     variant="outline"
-                  />
+                  >
+                    <FiDownload />
+                  </MenuButton>
                   <MenuList>
                     <MenuItem onClick={() => handleExport('json')}>
                       Export as JSON
@@ -206,7 +210,7 @@ export const AnnotationReviewPanel: React.FC<AnnotationReviewPanelProps> = ({
           {/* Statistics panel */}
           <Collapse in={isStatsOpen} animateOpacity>
             <Box p={4} bg="blue.50" borderBottomWidth={1}>
-              <VStack align="stretch" spacing={3}>
+              <VStack align="stretch" gap={3}>
                 <Text fontWeight="bold" fontSize="sm">
                   Statistics
                 </Text>
@@ -227,7 +231,7 @@ export const AnnotationReviewPanel: React.FC<AnnotationReviewPanelProps> = ({
                     Most used color: <strong>{statistics.mostUsedColor}</strong>
                   </Text>
                 )}
-                <VStack align="stretch" spacing={1}>
+                <VStack align="stretch" gap={1}>
                   <Text fontSize="xs" fontWeight="medium">
                     By Type:
                   </Text>
@@ -260,9 +264,9 @@ export const AnnotationReviewPanel: React.FC<AnnotationReviewPanelProps> = ({
                 No annotations yet
               </Text>
             ) : (
-              <VStack align="stretch" spacing={4}>
+              <VStack align="stretch" gap={4}>
                 {Object.entries(groupedAnnotations).map(([group, annotations]) => (
-                  <VStack key={group} align="stretch" spacing={2}>
+                  <VStack key={group} align="stretch" gap={2}>
                     <HStack>
                       <Text
                         fontSize="xs"

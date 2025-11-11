@@ -5,7 +5,7 @@
  * Manages both local store updates and database persistence.
  */
 import { useCallback } from 'react';
-import { useToast } from '@chakra-ui/react';
+import { toaster } from '@chakra-ui/react';
 import type { Annotation } from '../types';
 
 interface UseAnnotationActionsOptions {
@@ -26,8 +26,6 @@ export const useAnnotationActions = ({
   deleteAnnotationDB,
   updateAnnotationDB,
 }: UseAnnotationActionsOptions) => {
-  const toast = useToast();
-
   /**
    * Deletes an annotation from both store and database
    */
@@ -45,16 +43,15 @@ export const useAnnotationActions = ({
         console.log('✅ Annotation deleted successfully');
       } catch (error) {
         console.error('❌ Failed to delete annotation:', error);
-        toast({
+        toaster.create({
           title: 'Failed to delete annotation',
           description: error instanceof Error ? error.message : 'Unknown error',
-          status: 'error',
+          type: 'error',
           duration: 3000,
-          isClosable: true,
         });
       }
     },
-    [deleteAnnotation, deleteAnnotationDB, toast]
+    [deleteAnnotation, deleteAnnotationDB]
   );
 
   /**
@@ -74,16 +71,15 @@ export const useAnnotationActions = ({
         console.log('✅ Annotation updated successfully');
       } catch (error) {
         console.error('❌ Failed to update annotation:', error);
-        toast({
+        toaster.create({
           title: 'Failed to update annotation',
           description: error instanceof Error ? error.message : 'Unknown error',
-          status: 'error',
+          type: 'error',
           duration: 3000,
-          isClosable: true,
         });
       }
     },
-    [updateAnnotation, updateAnnotationDB, toast]
+    [updateAnnotation, updateAnnotationDB]
   );
 
   /**

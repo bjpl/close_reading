@@ -5,7 +5,8 @@
  */
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { ChakraProvider } from '@chakra-ui/react';
+import { ChakraProvider, Toaster } from '@chakra-ui/react';
+import { system } from './theme';
 import { useAuth } from './hooks/useAuth';
 import { LoginPage, DashboardPage, ProjectPage, DocumentPage } from './pages';
 import { SharedDocumentPage } from './pages/SharedDocumentPage';
@@ -44,7 +45,8 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
  */
 function App() {
   return (
-    <ChakraProvider>
+    <ChakraProvider value={system}>
+      <Toaster />
       <BrowserRouter>
         <Routes>
           {/* Public Routes */}

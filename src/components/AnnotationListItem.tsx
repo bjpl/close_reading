@@ -12,13 +12,14 @@ import {
   IconButton,
   Badge,
   Tooltip,
-  useToast,
-  AlertDialog,
-  AlertDialogBody,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogContent,
-  AlertDialogOverlay,
+  toaster,
+  DialogRoot,
+  DialogContent,
+  DialogHeader,
+  DialogBody,
+  DialogFooter,
+  DialogBackdrop,
+  DialogCloseTrigger,
   Button,
   Input,
   useDisclosure,
@@ -63,14 +64,12 @@ export const AnnotationListItem: React.FC<AnnotationListItemProps> = ({
   onUpdate,
   onJumpTo,
 }) => {
-  const toast = useToast();
-  const { isOpen, onOpen, onClose } = useDisclosure();
+  const { open: isOpen, onOpen, onClose } = useDisclosure();
   const {
-    isOpen: isEditOpen,
+    open: isEditOpen,
     onOpen: onEditOpen,
     onClose: onEditClose,
   } = useDisclosure();
-  const cancelRef = React.useRef<HTMLButtonElement>(null);
   const [editedNote, setEditedNote] = useState(annotation.note || '');
 
   const Icon = ANNOTATION_TYPE_ICONS[annotation.type];
@@ -85,21 +84,19 @@ export const AnnotationListItem: React.FC<AnnotationListItemProps> = ({
     try {
       console.log('🗑️ Deleting annotation:', annotation.id);
       await onDelete(annotation.id);
-      toast({
+      toaster.create({
         title: 'Annotation deleted',
-        status: 'success',
+        type: 'success',
         duration: 2000,
-        isClosable: true,
       });
       onClose();
     } catch (error) {
       console.error('❌ Failed to delete annotation:', error);
-      toast({
+      toaster.create({
         title: 'Failed to delete annotation',
         description: error instanceof Error ? error.message : 'Unknown error',
-        status: 'error',
+        type: 'error',
         duration: 3000,
-        isClosable: true,
       });
     }
   };
@@ -108,21 +105,19 @@ export const AnnotationListItem: React.FC<AnnotationListItemProps> = ({
     try {
       console.log('✏️ Updating annotation note:', annotation.id);
       await onUpdate(annotation.id, { content: editedNote });
-      toast({
+      toaster.create({
         title: 'Note updated',
-        status: 'success',
+        type: 'success',
         duration: 2000,
-        isClosable: true,
       });
       onEditClose();
     } catch (error) {
       console.error('❌ Failed to update annotation:', error);
-      toast({
+      toaster.create({
         title: 'Failed to update note',
         description: error instanceof Error ? error.message : 'Unknown error',
-        status: 'error',
+        type: 'error',
         duration: 3000,
-        isClosable: true,
       });
     }
   };
@@ -143,10 +138,10 @@ export const AnnotationListItem: React.FC<AnnotationListItemProps> = ({
         _hover={{ bg: 'gray.50', borderColor: 'gray.300' }}
         transition="all 0.2s"
       >
-        <VStack align="stretch" spacing={2}>
+        <VStack align="stretch" gap={2}>
           {/* Header with type and actions */}
           <HStack justify="space-between">
-            <HStack spacing={2}>
+            <HStack gap={2}>
               <Box as={Icon} color="gray.600" />
               <Badge colorScheme="gray" fontSize="xs">
                 {annotation.type}
@@ -162,42 +157,45 @@ export const AnnotationListItem: React.FC<AnnotationListItemProps> = ({
                 />
               )}
             </HStack>
-            <HStack spacing={1}>
+            <HStack gap={1}>
               <Tooltip label="Jump to annotation">
                 <IconButton
                   aria-label="Jump to"
-                  icon={<FiExternalLink />}
                   size="xs"
                   variant="ghost"
                   onClick={handleJumpTo}
-                />
+                >
+                  <FiExternalLink />
+                </IconButton>
               </Tooltip>
               {(annotation.type === 'note' || annotation.note) && (
                 <Tooltip label="Edit note">
                   <IconButton
                     aria-label="Edit note"
-                    icon={<FiEdit2 />}
                     size="xs"
                     variant="ghost"
                     onClick={onEditOpen}
-                  />
+                  >
+                    <FiEdit2 />
+                  </IconButton>
                 </Tooltip>
               )}
               <Tooltip label="Delete annotation">
                 <IconButton
                   aria-label="Delete"
-                  icon={<FiTrash2 />}
                   size="xs"
                   variant="ghost"
                   colorScheme="red"
                   onClick={onOpen}
-                />
+                >
+                  <FiTrash2 />
+                </IconButton>
               </Tooltip>
             </HStack>
           </HStack>
 
           {/* Highlighted text */}
-          <Text fontSize="sm" color="gray.700" noOfLines={2}>
+          <Text fontSize="sm" color="gray.700" lineClamp={2}>
             "{truncatedText}"
           </Text>
 
@@ -224,65 +222,63 @@ export const AnnotationListItem: React.FC<AnnotationListItemProps> = ({
       </Box>
 
       {/* Delete confirmation dialog */}
-      <AlertDialog
-        isOpen={isOpen}
-        leastDestructiveRef={cancelRef}
-        onClose={onClose}
+      <DialogRoot
+        open={isOpen}
+        onOpenChange={(details) => !details.open && onClose()}
       >
-        <AlertDialogOverlay>
-          <AlertDialogContent>
-            <AlertDialogHeader fontSize="lg" fontWeight="bold">
-              Delete Annotation
-            </AlertDialogHeader>
+        <DialogBackdrop />
+        <DialogContent>
+          <DialogHeader fontSize="lg" fontWeight="bold">
+            Delete Annotation
+          </DialogHeader>
+          <DialogCloseTrigger />
 
-            <AlertDialogBody>
-              Are you sure you want to delete this annotation? This action cannot be undone.
-            </AlertDialogBody>
+          <DialogBody>
+            Are you sure you want to delete this annotation? This action cannot be undone.
+          </DialogBody>
 
-            <AlertDialogFooter>
-              <Button ref={cancelRef} onClick={onClose}>
-                Cancel
-              </Button>
-              <Button colorScheme="red" onClick={handleDelete} ml={3}>
-                Delete
-              </Button>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialogOverlay>
-      </AlertDialog>
+          <DialogFooter>
+            <Button onClick={onClose}>
+              Cancel
+            </Button>
+            <Button colorScheme="red" onClick={handleDelete} ml={3}>
+              Delete
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </DialogRoot>
 
       {/* Edit note dialog */}
-      <AlertDialog
-        isOpen={isEditOpen}
-        leastDestructiveRef={cancelRef}
-        onClose={onEditClose}
+      <DialogRoot
+        open={isEditOpen}
+        onOpenChange={(details) => !details.open && onEditClose()}
       >
-        <AlertDialogOverlay>
-          <AlertDialogContent>
-            <AlertDialogHeader fontSize="lg" fontWeight="bold">
-              Edit Note
-            </AlertDialogHeader>
+        <DialogBackdrop />
+        <DialogContent>
+          <DialogHeader fontSize="lg" fontWeight="bold">
+            Edit Note
+          </DialogHeader>
+          <DialogCloseTrigger />
 
-            <AlertDialogBody>
-              <Input
-                value={editedNote}
-                onChange={(e) => setEditedNote(e.target.value)}
-                placeholder="Enter your note..."
-                autoFocus
-              />
-            </AlertDialogBody>
+          <DialogBody>
+            <Input
+              value={editedNote}
+              onChange={(e) => setEditedNote(e.target.value)}
+              placeholder="Enter your note..."
+              autoFocus
+            />
+          </DialogBody>
 
-            <AlertDialogFooter>
-              <Button ref={cancelRef} onClick={onEditClose}>
-                Cancel
-              </Button>
-              <Button colorScheme="blue" onClick={handleUpdateNote} ml={3}>
-                Save
-              </Button>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialogOverlay>
-      </AlertDialog>
+          <DialogFooter>
+            <Button onClick={onEditClose}>
+              Cancel
+            </Button>
+            <Button colorScheme="blue" onClick={handleUpdateNote} ml={3}>
+              Save
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </DialogRoot>
     </>
   );
 };

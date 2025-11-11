@@ -20,7 +20,7 @@ import {
   Box,
   Code,
   IconButton,
-  useToast,
+  toaster,
   Divider,
 } from '@chakra-ui/react';
 import { FiCopy, FiDownload } from 'react-icons/fi';
@@ -43,7 +43,6 @@ export const CitationExportModal: React.FC<CitationExportModalProps> = ({
 }) => {
   const { currentDocument } = useDocumentStore();
   const [format, setFormat] = useState<CitationExportFormat>('mla');
-  const toast = useToast();
 
   const citations = useMemo(() => {
     if (!currentDocument) return [];
@@ -79,20 +78,18 @@ export const CitationExportModal: React.FC<CitationExportModalProps> = ({
   const handleCopy = async () => {
     try {
       await navigator.clipboard.writeText(formattedCitations);
-      toast({
+      toaster.create({
         title: 'Copied to clipboard',
         description: 'Citations have been copied to your clipboard.',
-        status: 'success',
+        type: 'success',
         duration: 2000,
-        isClosable: true,
       });
     } catch (error) {
-      toast({
+      toaster.create({
         title: 'Failed to copy',
         description: 'Could not copy citations to clipboard.',
-        status: 'error',
+        type: 'error',
         duration: 3000,
-        isClosable: true,
       });
     }
   };
@@ -111,12 +108,11 @@ export const CitationExportModal: React.FC<CitationExportModalProps> = ({
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
 
-    toast({
+    toaster.create({
       title: 'Downloaded',
       description: `Citations have been downloaded as ${format.toUpperCase()} format.`,
-      status: 'success',
+      type: 'success',
       duration: 2000,
-      isClosable: true,
     });
   };
 

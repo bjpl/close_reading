@@ -59,7 +59,7 @@ export const SharedDocumentPage: React.FC = () => {
         justifyContent="center"
         bg="gray.50"
       >
-        <VStack spacing={4}>
+        <VStack gap={4}>
           <Spinner size="xl" color="blue.500" />
           <Text color="gray.600">Loading shared document...</Text>
         </VStack>
@@ -100,7 +100,7 @@ export const SharedDocumentPage: React.FC = () => {
       <Box bg="blue.500" color="white" py={2} px={4}>
         <Container maxW="container.xl">
           <HStack justify="space-between" align="center">
-            <HStack spacing={2}>
+            <HStack gap={2}>
               <FiLock />
               <Text fontSize="sm" fontWeight="medium">
                 Read-Only View - You're viewing a shared document
@@ -112,9 +112,8 @@ export const SharedDocumentPage: React.FC = () => {
               size="sm"
               variant="outline"
               colorScheme="whiteAlpha"
-              rightIcon={<FiExternalLink />}
             >
-              Sign in to edit
+              Sign in to edit <FiExternalLink />
             </Button>
           </HStack>
         </Container>
@@ -122,15 +121,15 @@ export const SharedDocumentPage: React.FC = () => {
 
       {/* Document Content */}
       <Container maxW="container.xl" py={8}>
-        <VStack spacing={6} align="stretch">
+        <VStack gap={6} align="stretch">
           {/* Document Header */}
           <Box bg="white" p={6} borderRadius="lg" shadow="sm">
-            <VStack align="stretch" spacing={3}>
+            <VStack align="stretch" gap={3}>
               <HStack justify="space-between" align="start">
-                <VStack align="start" spacing={1}>
+                <VStack align="start" gap={1}>
                   <Heading size="lg">{document.title}</Heading>
                   {document.project_title && (
-                    <HStack spacing={2}>
+                    <HStack gap={2}>
                       <Text fontSize="sm" color="gray.600">
                         Project:
                       </Text>
@@ -173,13 +172,13 @@ export const SharedDocumentPage: React.FC = () => {
           {/* Annotations Section */}
           {document.annotations && document.annotations.length > 0 && (
             <Box bg="white" p={6} borderRadius="lg" shadow="sm">
-              <VStack align="stretch" spacing={4}>
+              <VStack align="stretch" gap={4}>
                 <HStack justify="space-between">
                   <Heading size="md">Annotations</Heading>
                   <Badge colorScheme="purple">{document.annotations.length}</Badge>
                 </HStack>
                 <Divider />
-                <VStack align="stretch" spacing={4}>
+                <VStack align="stretch" gap={4}>
                   {document.annotations.map((annotation: any, index: number) => (
                     <Box
                       key={annotation.id || index}
@@ -189,7 +188,7 @@ export const SharedDocumentPage: React.FC = () => {
                       borderLeft="4px solid"
                       borderLeftColor="purple.400"
                     >
-                      <VStack align="stretch" spacing={2}>
+                      <VStack align="stretch" gap={2}>
                         {annotation.selected_text && (
                           <Box>
                             <Text fontSize="xs" color="gray.600" mb={1}>
@@ -214,7 +213,7 @@ export const SharedDocumentPage: React.FC = () => {
                           <Text fontSize="sm">{annotation.content}</Text>
                         </Box>
                         {annotation.tags && annotation.tags.length > 0 && (
-                          <HStack spacing={2}>
+                          <HStack gap={2}>
                             {annotation.tags.map((tag: string, tagIndex: number) => (
                               <Badge key={tagIndex} size="sm" colorScheme="purple">
                                 {tag}

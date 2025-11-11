@@ -5,7 +5,7 @@
  * Handles file generation and download with toast notifications.
  */
 import { useCallback } from 'react';
-import { useToast } from '@chakra-ui/react';
+import { toaster } from '@chakra-ui/react';
 import type { Annotation } from '../types';
 import type { AnnotationFilters } from './useAnnotationFilters';
 import {
@@ -33,8 +33,6 @@ export const useAnnotationExport = ({
   documentTitle,
   activeFilters,
 }: UseAnnotationExportOptions) => {
-  const toast = useToast();
-
   /**
    * Exports annotations in the specified format and triggers download
    */
@@ -63,15 +61,14 @@ export const useAnnotationExport = ({
 
       downloadFile(content, filename);
 
-      toast({
+      toaster.create({
         title: 'Annotations exported',
         description: `Exported as ${format.toUpperCase()}`,
-        status: 'success',
+        type: 'success',
         duration: 2000,
-        isClosable: true,
       });
     },
-    [annotations, documentTitle, activeFilters, toast]
+    [annotations, documentTitle, activeFilters]
   );
 
   return { handleExport };

@@ -25,7 +25,7 @@ import {
   IconButton,
   Textarea,
   Grid,
-  useToast,
+  toaster,
   Spinner,
 } from '@chakra-ui/react';
 import {
@@ -54,16 +54,14 @@ export const ProjectDashboard: React.FC = () => {
   const [projectName, setProjectName] = useState('');
   const [projectDescription, setProjectDescription] = useState('');
   const [editingProject, setEditingProject] = useState<Project | null>(null);
-  const toast = useToast();
 
   const handleCreateProject = async () => {
     if (!projectName.trim()) {
-      toast({
+      toaster.create({
         title: 'Project name required',
         description: 'Please enter a project name.',
-        status: 'warning',
+        type: 'warning',
         duration: 3000,
-        isClosable: true,
       });
       return;
     }
@@ -74,12 +72,11 @@ export const ProjectDashboard: React.FC = () => {
         description: projectDescription || null,
       });
 
-      toast({
+      toaster.create({
         title: 'Project created',
         description: `Project "${projectName}" has been created.`,
-        status: 'success',
+        type: 'success',
         duration: 3000,
-        isClosable: true,
       });
 
       handleCloseModal();
@@ -97,12 +94,11 @@ export const ProjectDashboard: React.FC = () => {
         description: projectDescription || null,
       });
 
-      toast({
+      toaster.create({
         title: 'Project updated',
         description: `Project "${projectName}" has been updated.`,
-        status: 'success',
+        type: 'success',
         duration: 3000,
-        isClosable: true,
       });
 
       handleCloseModal();
@@ -115,12 +111,11 @@ export const ProjectDashboard: React.FC = () => {
     if (window.confirm(`Are you sure you want to delete "${projectTitle}"?`)) {
       try {
         await deleteProject(projectId);
-        toast({
+        toaster.create({
           title: 'Project deleted',
           description: `Project "${projectTitle}" has been deleted.`,
-          status: 'info',
+          type: 'info',
           duration: 3000,
-          isClosable: true,
         });
       } catch (error) {
         // Error already handled by hook
@@ -154,10 +149,10 @@ export const ProjectDashboard: React.FC = () => {
 
   return (
     <Box p={8}>
-      <VStack spacing={6} align="stretch">
+      <VStack gap={6} align="stretch">
         {/* Header */}
         <HStack justify="space-between">
-          <VStack align="start" spacing={1}>
+          <VStack align="start" gap={1}>
             <Text fontSize="3xl" fontWeight="bold">
               My Projects
             </Text>
@@ -168,17 +163,17 @@ export const ProjectDashboard: React.FC = () => {
           <HStack>
             <Button
               colorScheme="blue"
-              leftIcon={<FiPlus />}
               onClick={onOpen}
             >
-              New Project
+              <FiPlus /> New Project
             </Button>
             <IconButton
               aria-label="Sign out"
-              icon={<FiLogOut />}
               variant="ghost"
               onClick={handleSignOut}
-            />
+            >
+              <FiLogOut />
+            </IconButton>
           </HStack>
         </HStack>
 
@@ -218,7 +213,7 @@ export const ProjectDashboard: React.FC = () => {
                 onClick={() => handleOpenProject(project)}
               >
                 <CardBody>
-                  <VStack align="stretch" spacing={3}>
+                  <VStack align="stretch" gap={3}>
                     <HStack justify="space-between">
                       <HStack>
                         <FiFolder color="#3182CE" />
@@ -228,30 +223,32 @@ export const ProjectDashboard: React.FC = () => {
                       </HStack>
                       <HStack
                         onClick={(e) => e.stopPropagation()}
-                        spacing={1}
+                        gap={1}
                       >
                         <IconButton
                           aria-label="Edit project"
-                          icon={<FiEdit2 />}
                           size="sm"
                           variant="ghost"
                           onClick={() => handleEditProject(project)}
-                        />
+                        >
+                          <FiEdit2 />
+                        </IconButton>
                         <IconButton
                           aria-label="Delete project"
-                          icon={<FiTrash2 />}
                           size="sm"
                           variant="ghost"
                           colorScheme="red"
                           onClick={() =>
                             handleDeleteProject(project.id, project.title)
                           }
-                        />
+                        >
+                          <FiTrash2 />
+                        </IconButton>
                       </HStack>
                     </HStack>
 
                     {project.description && (
-                      <Text fontSize="sm" color="gray.600" noOfLines={2}>
+                      <Text fontSize="sm" color="gray.600" lineClamp={2}>
                         {project.description}
                       </Text>
                     )}
@@ -276,7 +273,7 @@ export const ProjectDashboard: React.FC = () => {
           </ModalHeader>
           <ModalCloseButton />
           <ModalBody>
-            <VStack spacing={4}>
+            <VStack gap={4}>
               <Box w="100%">
                 <Text fontSize="sm" fontWeight="medium" mb={2}>
                   Project Name *

@@ -15,7 +15,7 @@ import {
   FormControl,
   FormLabel,
   FormErrorMessage,
-  useToast,
+  toaster,
   Tabs,
   TabList,
   TabPanels,
@@ -31,7 +31,6 @@ export const LoginPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const { signIn, signUp, error } = useAuth();
   const navigate = useNavigate();
-  const toast = useToast();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -39,17 +38,17 @@ export const LoginPage: React.FC = () => {
 
     try {
       await signIn(email, password);
-      toast({
+      toaster.create({
         title: 'Logged in successfully',
-        status: 'success',
+        type: 'success',
         duration: 3000,
       });
       navigate('/dashboard');
     } catch (err) {
-      toast({
+      toaster.create({
         title: 'Login failed',
         description: error?.message || 'Please check your credentials',
-        status: 'error',
+        type: 'error',
         duration: 5000,
       });
     } finally {
@@ -63,17 +62,17 @@ export const LoginPage: React.FC = () => {
 
     try {
       await signUp(email, password);
-      toast({
+      toaster.create({
         title: 'Account created',
         description: 'Please check your email for verification link',
-        status: 'success',
+        type: 'success',
         duration: 5000,
       });
     } catch (err) {
-      toast({
+      toaster.create({
         title: 'Sign up failed',
         description: error?.message,
-        status: 'error',
+        type: 'error',
         duration: 5000,
       });
     } finally {

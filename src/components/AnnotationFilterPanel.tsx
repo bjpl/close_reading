@@ -70,7 +70,7 @@ export const AnnotationFilterPanel: React.FC<AnnotationFilterPanelProps> = ({
 
   return (
     <Box p={4} bg="gray.50" borderRadius="md" borderWidth={1}>
-      <VStack align="stretch" spacing={4}>
+      <VStack align="stretch" gap={4}>
         {/* Header */}
         <HStack justify="space-between">
           <HStack>
@@ -83,10 +83,9 @@ export const AnnotationFilterPanel: React.FC<AnnotationFilterPanelProps> = ({
             <Button
               size="xs"
               variant="ghost"
-              leftIcon={<FiX />}
               onClick={clearAllFilters}
             >
-              Clear
+              <FiX /> Clear
             </Button>
           )}
         </HStack>
@@ -96,7 +95,7 @@ export const AnnotationFilterPanel: React.FC<AnnotationFilterPanelProps> = ({
           <Text fontSize="xs" fontWeight="medium" mb={2} color="gray.600">
             BY TYPE
           </Text>
-          <ButtonGroup size="xs" spacing={2} flexWrap="wrap">
+          <ButtonGroup size="xs" gap={2} flexWrap="wrap">
             {ANNOTATION_TYPES.map(({ value, label }) => (
               <Button
                 key={value}
@@ -125,7 +124,7 @@ export const AnnotationFilterPanel: React.FC<AnnotationFilterPanelProps> = ({
           <Text fontSize="xs" fontWeight="medium" mb={2} color="gray.600">
             BY COLOR
           </Text>
-          <HStack spacing={2}>
+          <HStack gap={2}>
             {COLOR_OPTIONS.map(({ value, label, bg }) => (
               <Box
                 key={value}
