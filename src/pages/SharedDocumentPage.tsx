@@ -27,6 +27,7 @@ import { FiExternalLink, FiLock } from 'react-icons/fi';
 import DOMPurify from 'dompurify';
 import { useSharing } from '../hooks/useSharing';
 import { SharedDocument } from '../services/sharing';
+import { formatSimpleDate } from '../utils/dateUtils';
 
 export const SharedDocumentPage: React.FC = () => {
   const { token } = useParams<{ token: string }>();
@@ -143,7 +144,7 @@ export const SharedDocumentPage: React.FC = () => {
               </HStack>
               <Divider />
               <Text fontSize="sm" color="gray.600">
-                Shared on {new Date(document.created_at).toLocaleDateString()}
+                Shared on {formatSimpleDate(document.created_at)}
               </Text>
             </VStack>
           </Box>

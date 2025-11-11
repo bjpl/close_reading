@@ -46,6 +46,7 @@ import {
   downloadFile,
   getAnnotationStatistics,
 } from '../services/annotationExport';
+import { formatSimpleDate } from '../utils/dateUtils';
 
 interface AnnotationReviewPanelProps {
   documentId: string;
@@ -123,8 +124,7 @@ export const AnnotationReviewPanel: React.FC<AnnotationReviewPanelProps> = ({
       } else if (groupBy === 'color') {
         key = annotation.color || 'no-color';
       } else if (groupBy === 'date') {
-        const date = new Date(annotation.created_at);
-        key = date.toLocaleDateString();
+        key = formatSimpleDate(annotation.created_at);
       }
 
       if (!groups[key]) {

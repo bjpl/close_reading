@@ -32,6 +32,7 @@ import {
   FaQuestion,
 } from 'react-icons/fa';
 import type { Annotation } from '../types';
+import { formatAnnotationDate } from '../utils/dateUtils';
 
 interface AnnotationListItemProps {
   annotation: Annotation;
@@ -217,12 +218,7 @@ export const AnnotationListItem: React.FC<AnnotationListItemProps> = ({
 
           {/* Timestamp */}
           <Text fontSize="xs" color="gray.500">
-            {new Date(annotation.created_at).toLocaleDateString(undefined, {
-              month: 'short',
-              day: 'numeric',
-              hour: '2-digit',
-              minute: '2-digit',
-            })}
+            {formatAnnotationDate(annotation.created_at)}
           </Text>
         </VStack>
       </Box>

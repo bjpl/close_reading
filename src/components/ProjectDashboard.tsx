@@ -39,6 +39,7 @@ import { useProjectStore } from '../stores/projectStore';
 import { useProjects } from '../hooks/useProjects';
 import { useAuth } from '../hooks/useAuth';
 import type { Database } from '../types/database';
+import { formatSimpleDate } from '../utils/dateUtils';
 
 type Project = Database['public']['Tables']['projects']['Row'];
 
@@ -256,7 +257,7 @@ export const ProjectDashboard: React.FC = () => {
                     )}
 
                     <Text fontSize="xs" color="gray.500">
-                      Updated {new Date(project.updated_at).toLocaleDateString()}
+                      Updated {formatSimpleDate(project.updated_at)}
                     </Text>
                   </VStack>
                 </CardBody>

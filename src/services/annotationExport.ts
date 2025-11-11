@@ -4,6 +4,7 @@
  * Handles exporting annotations in various formats.
  */
 import type { Annotation } from '../types';
+import { formatSimpleDate, formatAnnotationDate } from '../utils/dateUtils';
 
 export interface ExportOptions {
   includeTimestamps?: boolean;
@@ -54,7 +55,7 @@ export const exportAsMarkdown = (
   const filtered = filterAnnotations(annotations, options);
 
   let markdown = `# Annotations for "${documentTitle}"\n\n`;
-  markdown += `**Exported:** ${new Date().toLocaleDateString()}\n`;
+  markdown += `**Exported:** ${formatSimpleDate(new Date())}\n`;
   markdown += `**Total Annotations:** ${filtered.length}\n\n`;
 
   // Group by type
@@ -82,7 +83,7 @@ export const exportAsMarkdown = (
       }
 
       if (options.includeTimestamps) {
-        markdown += `**Created:** ${new Date(annotation.created_at).toLocaleString()}\n\n`;
+        markdown += `**Created:** ${formatAnnotationDate(annotation.created_at)}\n\n`;
       }
 
       markdown += '---\n\n';

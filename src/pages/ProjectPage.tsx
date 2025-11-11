@@ -28,6 +28,7 @@ import {
 } from 'react-icons/fi';
 import { useAuth } from '../hooks/useAuth';
 import { useDocuments } from '../hooks/useDocuments';
+import { formatSimpleDate } from '../utils/dateUtils';
 import { useProjectStore } from '../stores/projectStore';
 import { DocumentUpload } from '../components/DocumentUpload';
 
@@ -176,7 +177,7 @@ export const ProjectPage: React.FC = () => {
                       </Badge>
 
                       <Text fontSize="xs" color="gray.500">
-                        {new Date(doc.created_at).toLocaleDateString()}
+                        {formatSimpleDate(doc.created_at)}
                       </Text>
                     </VStack>
                   </CardBody>
