@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head><title>Clear Mock DB</title></head>
+<body>
+<h1>Clear Close Reading Mock Database</h1>
+<button onclick="clearDB()">Clear All Data</button>
+<div id="status"></div>
+<script>
+async function clearDB() {
+  // Clear IndexedDB
+  const dbName = 'close-reading-mock';
+  const request = indexedDB.deleteDatabase(dbName);
+  request.onsuccess = () => {
+    document.getElementById('status').innerHTML = '<p style="color:green">✅ Database cleared! Close this tab and refresh your app.</p>';
+  };
+  request.onerror = () => {
+    document.getElementById('status').innerHTML = '<p style="color:red">❌ Error clearing database</p>';
+  };
+  
+  // Clear localStorage
+  localStorage.clear();
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head><title>Debug Info</title></head>
+<body style="font-family: monospace; padding: 20px;">
+<h1>Close Reading - Debug Info</h1>
+<p><strong>Latest Code Version:</strong> <span id="version">Loading...</span></p>
+<p><strong>DocumentUpload Version:</strong> <span id="upload-version">Loading...</span></p>
+<script>
+fetch('/src/components/DocumentUpload.tsx')
+  .then(r => r.text())
+  .then(code => {
+    if (code.includes('🚀 Starting processDocument')) {
+      document.getElementById('upload-version').innerHTML = '✅ NEW (with debug logs)';
+      document.getElementById('version').innerHTML = 'LATEST';
+    } else {
+      document.getElementById('upload-version').innerHTML = '❌ OLD (needs refresh)';
+      document.getElementById('version').innerHTML = 'CACHED - DO HARD REFRESH';
+    }
+  });
+</script>
+<hr>
+<h2>Instructions:</h2>
+<ol>
+<li>If you see "CACHED" above, press <strong>Ctrl + Shift + R</strong> in your main app</li>
+<li>Upload a BRAND NEW file (not an old one)</li>
+<li>Check console for: <code>🚀 Starting processDocument</code></li>
+</ol>
+</body>
+</html>
