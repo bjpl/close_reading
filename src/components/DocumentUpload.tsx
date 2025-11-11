@@ -18,6 +18,7 @@ import { FiUploadCloud, FiFile } from 'react-icons/fi';
 import { useAuth } from '../hooks/useAuth';
 import { useDocuments } from '../hooks/useDocuments';
 import { processDocument } from '../services/documentProcessor';
+import logger, { logError, logUserAction } from '../lib/logger';
 
 interface DocumentUploadProps {
   onUploadComplete: (documentId: string) => void;
@@ -44,7 +45,11 @@ export const DocumentUpload: React.FC<DocumentUploadProps> = ({
     authLoadingRef.current = authLoading;
   }, [user, authLoading]);
 
-  console.log('🎨 DocumentUpload render - authLoading:', authLoading, 'user:', user?.email || 'null');
+  logger.debug({
+    message: 'DocumentUpload render',
+    authLoading,
+    userEmail: user?.email || null
+  });
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -61,7 +66,13 @@ export const DocumentUpload: React.FC<DocumentUploadProps> = ({
     const currentUser = userRef.current;
     const currentAuthLoading = authLoadingRef.current;
 
-    console.log('📤 Upload attempted, authLoading:', currentAuthLoading, 'user:', currentUser?.email || 'null');
+    logger.info({
+      message: 'Upload attempted',
+      authLoading: currentAuthLoading,
+      userEmail: currentUser?.email || null,
+      fileName: file.name,
+      fileSize: file.size
+    });
 
     // Wait for auth to finish loading
     if (currentAuthLoading) {
@@ -76,7 +87,7 @@ export const DocumentUpload: React.FC<DocumentUploadProps> = ({
     }
 
     if (!currentUser) {
-      console.error('❌ Upload blocked: No user found after auth loaded');
+      logger.error({ message: 'Upload blocked: No user found after auth loaded' });
       toast({
         title: 'Not authenticated',
         description: 'Please log in to upload documents.',
@@ -86,7 +97,7 @@ export const DocumentUpload: React.FC<DocumentUploadProps> = ({
       });
       return;
     }
-    console.log('✅ Upload proceeding for user:', currentUser.email);
+    logUserAction('document_upload_start', { userEmail: currentUser.email });
 
     // Validate file type
     const validTypes = [
@@ -142,7 +153,7 @@ export const DocumentUpload: React.FC<DocumentUploadProps> = ({
       // Trigger background processing
       if (document) {
         processDocument(file, projectId).catch(
-          (err) => console.error('Background processing error:', err)
+          (err) => logError(err, { context: 'Background processing error', documentId: document.id })
         );
       }
 

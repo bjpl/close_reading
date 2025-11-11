@@ -2,64 +2,53 @@
  * Paragraph Component
  *
  * Renders a single paragraph with annotations and linking support.
+ * Refactored to use extracted components and custom hooks.
  */
 import React, { useState } from 'react';
-import {
-  Box,
-  Text,
-  Badge,
-  HStack,
-  useToast,
-  useDisclosure,
-  AlertDialog,
-  AlertDialogBody,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogContent,
-  AlertDialogOverlay,
-  Button,
-  Input,
-} from '@chakra-ui/react';
+import { Box, useDisclosure } from '@chakra-ui/react';
 import { Paragraph as ParagraphType } from '../types';
 import { useDocumentStore } from '../stores/documentStore';
-import { useAnnotations } from '../hooks/useAnnotations';
-import { useAuth } from '../hooks/useAuth';
-import { FiLink } from 'react-icons/fi';
-import { AnnotationActions } from './AnnotationActions';
+import { useParagraphAnnotations } from '../hooks/useParagraphAnnotations';
+import { useParagraphLinks } from '../hooks/useParagraphLinks';
+import { AnnotatedText } from './AnnotatedText';
+import { AnnotationDialog } from './AnnotationDialog';
+import { ParagraphActions } from './ParagraphActions';
 
 interface ParagraphProps {
   paragraph: ParagraphType;
 }
 
+/**
+ * Main Paragraph component - orchestrates rendering and interactions
+ */
 export const Paragraph: React.FC<ParagraphProps> = ({ paragraph }) => {
-  const { user } = useAuth();
-  const toast = useToast();
   const {
     selectedParagraphs,
     hoveredParagraph,
     selectParagraph,
     deselectParagraph,
     setHoveredParagraph,
-    deleteAnnotation,
-    updateAnnotation,
-    currentDocument,
   } = useDocumentStore();
 
-  const { deleteAnnotation: deleteAnnotationDB, updateAnnotation: updateAnnotationDB } =
-    useAnnotations(currentDocument?.id, user?.id);
+  // Custom hooks
+  const { handleDeleteAnnotation, handleEditAnnotation } = useParagraphAnnotations();
+  const { hasLinks, linkCount } = useParagraphLinks(paragraph);
 
-  const [hoveredAnnotation, setHoveredAnnotation] = useState<string | null>(null);
+  // Local state
   const [editingAnnotationId, setEditingAnnotationId] = useState<string | null>(null);
   const [editedNote, setEditedNote] = useState('');
+  const [annotationToDelete, setAnnotationToDelete] = useState<string | null>(null);
   const { isOpen: isDeleteOpen, onOpen: onDeleteOpen, onClose: onDeleteClose } = useDisclosure();
   const { isOpen: isEditOpen, onOpen: onEditOpen, onClose: onEditClose } = useDisclosure();
-  const [annotationToDelete, setAnnotationToDelete] = useState<string | null>(null);
   const cancelRef = React.useRef<HTMLButtonElement>(null);
 
+  // Computed values
   const isSelected = selectedParagraphs.includes(paragraph.id);
   const isHovered = hoveredParagraph === paragraph.id;
-  const hasLinks = (paragraph.linkedParagraphs || []).length > 0;
 
+  /**
+   * Handle paragraph selection with Shift+Click
+   */
   const handleClick = (e: React.MouseEvent) => {
     if (e.shiftKey) {
       if (isSelected) {
@@ -70,47 +59,29 @@ export const Paragraph: React.FC<ParagraphProps> = ({ paragraph }) => {
     }
   };
 
-  // Handle annotation deletion
-  const handleDeleteAnnotation = async (annotationId: string) => {
+  /**
+   * Open delete confirmation dialog
+   */
+  const openDeleteDialog = (annotationId: string) => {
     setAnnotationToDelete(annotationId);
     onDeleteOpen();
   };
 
+  /**
+   * Confirm and execute annotation deletion
+   */
   const confirmDelete = async () => {
     if (!annotationToDelete) return;
 
-    try {
-      console.log('🗑️ Deleting annotation:', annotationToDelete);
-
-      // Delete from Zustand store (immediate UI update)
-      deleteAnnotation(annotationToDelete);
-
-      // Delete from database (persistence)
-      await deleteAnnotationDB(annotationToDelete);
-
-      toast({
-        title: 'Annotation deleted',
-        status: 'success',
-        duration: 2000,
-        isClosable: true,
-      });
-
-      onDeleteClose();
-      setAnnotationToDelete(null);
-    } catch (error) {
-      console.error('❌ Failed to delete annotation:', error);
-      toast({
-        title: 'Failed to delete annotation',
-        description: error instanceof Error ? error.message : 'Unknown error',
-        status: 'error',
-        duration: 3000,
-        isClosable: true,
-      });
-    }
+    await handleDeleteAnnotation(annotationToDelete);
+    onDeleteClose();
+    setAnnotationToDelete(null);
   };
 
-  // Handle annotation editing
-  const handleEditAnnotation = (annotationId: string) => {
+  /**
+   * Open edit dialog with annotation data
+   */
+  const openEditDialog = (annotationId: string) => {
     const annotation = (paragraph.annotations || []).find((a) => a.id === annotationId);
     if (annotation) {
       setEditingAnnotationId(annotationId);
@@ -119,222 +90,16 @@ export const Paragraph: React.FC<ParagraphProps> = ({ paragraph }) => {
     }
   };
 
+  /**
+   * Confirm and execute annotation edit
+   */
   const confirmEdit = async () => {
     if (!editingAnnotationId) return;
 
-    try {
-      console.log('✏️ Updating annotation:', editingAnnotationId);
-
-      const updates = { content: editedNote };
-
-      // Update in Zustand store (immediate UI update)
-      updateAnnotation(editingAnnotationId, updates);
-
-      // Update in database (persistence)
-      await updateAnnotationDB(editingAnnotationId, updates);
-
-      toast({
-        title: 'Note updated',
-        status: 'success',
-        duration: 2000,
-        isClosable: true,
-      });
-
-      onEditClose();
-      setEditingAnnotationId(null);
-      setEditedNote('');
-    } catch (error) {
-      console.error('❌ Failed to update annotation:', error);
-      toast({
-        title: 'Failed to update note',
-        description: error instanceof Error ? error.message : 'Unknown error',
-        status: 'error',
-        duration: 3000,
-        isClosable: true,
-      });
-    }
-  };
-
-  // Render text with annotations
-  const renderAnnotatedText = () => {
-    if ((paragraph.annotations || []).length === 0) {
-      return <Text>{paragraph.content}</Text>;
-    }
-
-    // Sort annotations by start offset
-    const sortedAnnotations = [...(paragraph.annotations || [])].sort(
-      (a, b) => a.startOffset - b.startOffset
-    );
-
-    const parts: React.ReactNode[] = [];
-    let lastIndex = 0;
-
-    sortedAnnotations.forEach((annotation, idx) => {
-      // Add text before annotation
-      if (annotation.startOffset > lastIndex) {
-        parts.push(
-          <span key={`text-${idx}`}>
-            {paragraph.content.slice(lastIndex, annotation.startOffset)}
-          </span>
-        );
-      }
-
-      // Add annotated text
-      const annotatedText = paragraph.content.slice(
-        annotation.startOffset,
-        annotation.endOffset
-      );
-
-      const bgColor = {
-        yellow: 'yellow.100',
-        green: 'green.100',
-        blue: 'blue.100',
-        pink: 'pink.100',
-        purple: 'purple.100',
-      }[annotation.color || 'yellow'];
-
-      // Different styling for each annotation type with hover support
-      if (annotation.type === 'main_idea') {
-        parts.push(
-          <Box
-            as="mark"
-            key={`annotation-${annotation.id}`}
-            bg="transparent"
-            borderBottom="3px solid"
-            borderColor="orange.500"
-            px={0.5}
-            fontWeight="bold"
-            title={annotation.note || 'Main Idea'}
-            cursor="pointer"
-            position="relative"
-            onMouseEnter={() => setHoveredAnnotation(annotation.id)}
-            onMouseLeave={() => setHoveredAnnotation(null)}
-          >
-            {annotatedText}
-            {hoveredAnnotation === annotation.id && (
-              <AnnotationActions
-                annotation={annotation}
-                onDelete={handleDeleteAnnotation}
-                onEdit={handleEditAnnotation}
-              />
-            )}
-          </Box>
-        );
-      } else if (annotation.type === 'citation') {
-        parts.push(
-          <Box
-            as="mark"
-            key={`annotation-${annotation.id}`}
-            bg="blue.50"
-            borderLeft="3px solid"
-            borderColor="blue.500"
-            px={1}
-            fontStyle="italic"
-            title={annotation.note || 'Citation'}
-            cursor="pointer"
-            position="relative"
-            onMouseEnter={() => setHoveredAnnotation(annotation.id)}
-            onMouseLeave={() => setHoveredAnnotation(null)}
-          >
-            {annotatedText}
-            {hoveredAnnotation === annotation.id && (
-              <AnnotationActions
-                annotation={annotation}
-                onDelete={handleDeleteAnnotation}
-                onEdit={handleEditAnnotation}
-              />
-            )}
-          </Box>
-        );
-      } else if (annotation.type === 'question') {
-        parts.push(
-          <Box
-            as="mark"
-            key={`annotation-${annotation.id}`}
-            bg="purple.50"
-            borderBottom="2px dotted"
-            borderColor="purple.500"
-            px={0.5}
-            title={annotation.note || 'Question'}
-            cursor="help"
-            position="relative"
-            onMouseEnter={() => setHoveredAnnotation(annotation.id)}
-            onMouseLeave={() => setHoveredAnnotation(null)}
-          >
-            {annotatedText}
-            {hoveredAnnotation === annotation.id && (
-              <AnnotationActions
-                annotation={annotation}
-                onDelete={handleDeleteAnnotation}
-                onEdit={handleEditAnnotation}
-              />
-            )}
-          </Box>
-        );
-      } else if (annotation.type === 'note') {
-        parts.push(
-          <Box
-            as="mark"
-            key={`annotation-${annotation.id}`}
-            bg={bgColor}
-            borderTop="2px solid"
-            borderColor="gray.600"
-            px={0.5}
-            borderRadius="sm"
-            title={annotation.note || 'Note'}
-            cursor="pointer"
-            position="relative"
-            onMouseEnter={() => setHoveredAnnotation(annotation.id)}
-            onMouseLeave={() => setHoveredAnnotation(null)}
-          >
-            {annotatedText}
-            {hoveredAnnotation === annotation.id && (
-              <AnnotationActions
-                annotation={annotation}
-                onDelete={handleDeleteAnnotation}
-                onEdit={handleEditAnnotation}
-              />
-            )}
-          </Box>
-        );
-      } else {
-        // Regular highlight
-        parts.push(
-          <Box
-            as="mark"
-            key={`annotation-${annotation.id}`}
-            bg={bgColor}
-            px={0.5}
-            borderRadius="sm"
-            title={annotation.note}
-            cursor="pointer"
-            position="relative"
-            onMouseEnter={() => setHoveredAnnotation(annotation.id)}
-            onMouseLeave={() => setHoveredAnnotation(null)}
-          >
-            {annotatedText}
-            {hoveredAnnotation === annotation.id && (
-              <AnnotationActions
-                annotation={annotation}
-                onDelete={handleDeleteAnnotation}
-                onEdit={handleEditAnnotation}
-              />
-            )}
-          </Box>
-        );
-      }
-
-      lastIndex = annotation.endOffset;
-    });
-
-    // Add remaining text
-    if (lastIndex < paragraph.content.length) {
-      parts.push(
-        <span key="text-end">{paragraph.content.slice(lastIndex)}</span>
-      );
-    }
-
-    return <Text>{parts}</Text>;
+    await handleEditAnnotation(editingAnnotationId, editedNote);
+    onEditClose();
+    setEditingAnnotationId(null);
+    setEditedNote('');
   };
 
   return (
@@ -352,86 +117,36 @@ export const Paragraph: React.FC<ParagraphProps> = ({ paragraph }) => {
       cursor={isSelected ? 'pointer' : 'default'}
       data-paragraph-id={paragraph.id}
     >
-      {/* Link indicator */}
-      {hasLinks && (
-        <HStack position="absolute" top={2} right={2} spacing={1}>
-          <FiLink size={14} />
-          <Badge colorScheme="blue" fontSize="xs">
-            {(paragraph.linkedParagraphs || []).length}
-          </Badge>
-        </HStack>
-      )}
+      {/* Action indicators */}
+      <ParagraphActions isSelected={isSelected} hasLinks={hasLinks} linkCount={linkCount} />
 
       {/* Paragraph content with annotations */}
-      {renderAnnotatedText()}
-
-      {/* Selection hint */}
-      {isSelected && (
-        <Text fontSize="xs" color="blue.600" mt={2}>
-          Shift+Click to deselect
-        </Text>
-      )}
+      <AnnotatedText
+        content={paragraph.content}
+        annotations={paragraph.annotations || []}
+        onDeleteAnnotation={openDeleteDialog}
+        onEditAnnotation={openEditDialog}
+      />
 
       {/* Delete confirmation dialog */}
-      <AlertDialog
+      <AnnotationDialog
+        type="delete"
         isOpen={isDeleteOpen}
-        leastDestructiveRef={cancelRef}
         onClose={onDeleteClose}
-      >
-        <AlertDialogOverlay>
-          <AlertDialogContent>
-            <AlertDialogHeader fontSize="lg" fontWeight="bold">
-              Delete Annotation
-            </AlertDialogHeader>
+        onConfirm={confirmDelete}
+        cancelRef={cancelRef}
+      />
 
-            <AlertDialogBody>
-              Are you sure you want to delete this annotation? This action cannot be undone.
-            </AlertDialogBody>
-
-            <AlertDialogFooter>
-              <Button ref={cancelRef} onClick={onDeleteClose}>
-                Cancel
-              </Button>
-              <Button colorScheme="red" onClick={confirmDelete} ml={3}>
-                Delete
-              </Button>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialogOverlay>
-      </AlertDialog>
-
-      {/* Edit note dialog */}
-      <AlertDialog
+      {/* Edit annotation dialog */}
+      <AnnotationDialog
+        type="edit"
         isOpen={isEditOpen}
-        leastDestructiveRef={cancelRef}
         onClose={onEditClose}
-      >
-        <AlertDialogOverlay>
-          <AlertDialogContent>
-            <AlertDialogHeader fontSize="lg" fontWeight="bold">
-              Edit Note
-            </AlertDialogHeader>
-
-            <AlertDialogBody>
-              <Input
-                value={editedNote}
-                onChange={(e) => setEditedNote(e.target.value)}
-                placeholder="Enter your note..."
-                autoFocus
-              />
-            </AlertDialogBody>
-
-            <AlertDialogFooter>
-              <Button ref={cancelRef} onClick={onEditClose}>
-                Cancel
-              </Button>
-              <Button colorScheme="blue" onClick={confirmEdit} ml={3}>
-                Save
-              </Button>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialogOverlay>
-      </AlertDialog>
+        onConfirm={confirmEdit}
+        cancelRef={cancelRef}
+        editValue={editedNote}
+        onEditValueChange={setEditedNote}
+      />
     </Box>
   );
 };

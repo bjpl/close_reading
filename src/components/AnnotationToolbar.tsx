@@ -32,6 +32,7 @@ import { useDocumentStore } from '../stores/documentStore';
 import { useAnnotations } from '../hooks/useAnnotations';
 import { useAuth } from '../hooks/useAuth';
 import type { AnnotationType, Annotation, AnnotationColor } from '../types';
+import logger, { logError, logUserAction, logDataOperation } from '../lib/logger';
 
 const COLOR_OPTIONS: AnnotationColor[] = ['yellow', 'green', 'blue', 'pink', 'purple'];
 
@@ -86,7 +87,8 @@ export const AnnotationToolbar: React.FC = () => {
 
   const applyAnnotation = (type: AnnotationType, note?: string) => {
     if (!selectedText || !selectionRange || !currentDocument) {
-      console.log('❌ Cannot apply annotation - missing:', {
+      logger.warn({
+        message: 'Cannot apply annotation - missing required data',
         selectedText: !!selectedText,
         selectionRange: !!selectionRange,
         currentDocument: !!currentDocument
@@ -110,12 +112,13 @@ export const AnnotationToolbar: React.FC = () => {
       }
     }
 
-    console.log('🎨 Creating annotation:', {
+    logUserAction('annotation_create', {
       type,
       color: activeColor,
-      text: selectedText.substring(0, 50),
+      textPreview: selectedText.substring(0, 50),
       paragraphId,
-      range: selectionRange
+      startOffset: selectionRange.start,
+      endOffset: selectionRange.end
     });
 
     const newAnnotation: Annotation = {
@@ -138,7 +141,7 @@ export const AnnotationToolbar: React.FC = () => {
 
     // Add to Zustand store (for immediate UI update)
     addAnnotation(paragraphId, newAnnotation);
-    console.log('✅ Annotation added to store');
+    logger.debug({ message: 'Annotation added to store', annotationId: newAnnotation.id });
 
     // Persist to database (async)
     createAnnotation({
@@ -149,9 +152,9 @@ export const AnnotationToolbar: React.FC = () => {
       start_offset: selectionRange.start,
       end_offset: selectionRange.end,
     }).then(() => {
-      console.log('💾 Annotation saved to database');
+      logDataOperation('create', 'annotation', { annotationId: newAnnotation.id, paragraphId });
     }).catch((err) => {
-      console.error('❌ Failed to save annotation to database:', err);
+      logError(err, { context: 'Failed to save annotation to database', annotationId: newAnnotation.id });
     });
 
     toast({
@@ -210,10 +213,10 @@ export const AnnotationToolbar: React.FC = () => {
               onClick={() => {
                 if (activeToolType === 'highlight') {
                   setActiveToolType(null);
-                  console.log('🔴 Highlight mode OFF');
+                  logger.debug({ message: 'Highlight mode OFF' });
                 } else {
                   setActiveToolType('highlight');
-                  console.log('🟢 Highlight mode ON');
+                  logger.debug({ message: 'Highlight mode ON' });
                 }
               }}
               size="sm"
@@ -271,10 +274,10 @@ export const AnnotationToolbar: React.FC = () => {
               onClick={() => {
                 if (activeToolType === 'main_idea') {
                   setActiveToolType(null);
-                  console.log('🔴 Main Idea mode OFF');
+                  logger.debug({ message: 'Main Idea mode OFF' });
                 } else {
                   setActiveToolType('main_idea');
-                  console.log('🟢 Main Idea mode ON');
+                  logger.debug({ message: 'Main Idea mode ON' });
                 }
               }}
               size="sm"
@@ -290,10 +293,10 @@ export const AnnotationToolbar: React.FC = () => {
               onClick={() => {
                 if (activeToolType === 'citation') {
                   setActiveToolType(null);
-                  console.log('🔴 Citation mode OFF');
+                  logger.debug({ message: 'Citation mode OFF' });
                 } else {
                   setActiveToolType('citation');
-                  console.log('🟢 Citation mode ON');
+                  logger.debug({ message: 'Citation mode ON' });
                 }
               }}
               size="sm"
@@ -309,10 +312,10 @@ export const AnnotationToolbar: React.FC = () => {
               onClick={() => {
                 if (activeToolType === 'question') {
                   setActiveToolType(null);
-                  console.log('🔴 Question mode OFF');
+                  logger.debug({ message: 'Question mode OFF' });
                 } else {
                   setActiveToolType('question');
-                  console.log('🟢 Question mode ON');
+                  logger.debug({ message: 'Question mode ON' });
                 }
               }}
               size="sm"
@@ -346,12 +349,12 @@ export const AnnotationToolbar: React.FC = () => {
                   if (activeToolType === 'highlight' && activeColor === color) {
                     // Turn off if clicking same color
                     setActiveToolType(null);
-                    console.log('🔴 Highlight mode OFF');
+                    logger.debug({ message: 'Highlight mode OFF' });
                   } else {
                     // Turn on highlight mode with this color
                     setActiveColor(color);
                     setActiveToolType('highlight');
-                    console.log('🟢 Highlight mode ON:', color);
+                    logger.debug({ message: 'Highlight mode ON', color });
                   }
                 }}
                 cursor="pointer"

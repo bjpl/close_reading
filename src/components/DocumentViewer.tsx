@@ -19,6 +19,7 @@ import { useAnnotations } from '../hooks/useAnnotations';
 import { useAuth } from '../hooks/useAuth';
 import { Paragraph } from './Paragraph';
 import { SentenceView } from './SentenceView';
+import logger, { logError, logUserAction, logDataOperation } from '../lib/logger';
 
 type ViewModeType = 'original' | 'sentence';
 
@@ -38,7 +39,7 @@ export const DocumentViewer: React.FC = () => {
   const handleTextSelection = useCallback((e: React.MouseEvent) => {
     // Only process on single click release, not double-click
     if (e.detail > 1) {
-      console.log('🚫 Ignoring double-click selection');
+      logger.debug({ message: 'Ignoring double-click selection' });
       return;
     }
 
@@ -92,13 +93,14 @@ export const DocumentViewer: React.FC = () => {
           }
         }
       } catch (error) {
-        console.error('Error calculating offsets:', error);
+        logError(error as Error, { context: 'Error calculating offsets' });
       }
 
-      console.log('📝 Text selected:', {
-        text: selectedText.substring(0, 50),
-        start: startOffset,
-        end: endOffset,
+      logger.debug({
+        message: 'Text selected',
+        textPreview: selectedText.substring(0, 50),
+        startOffset,
+        endOffset,
         paragraphId
       });
 
@@ -107,7 +109,11 @@ export const DocumentViewer: React.FC = () => {
 
       // Auto-apply annotation if a tool is active
       if (activeToolType && activeToolType !== 'note' && paragraphId) {
-        console.log('🎨 Auto-applying annotation:', activeToolType, 'color:', activeColor);
+        logger.debug({
+          message: 'Auto-applying annotation',
+          type: activeToolType,
+          color: activeColor
+        });
 
         const newAnnotation = {
           id: `annotation_${Date.now()}`,
@@ -140,9 +146,16 @@ export const DocumentViewer: React.FC = () => {
           start_offset: startOffset,
           end_offset: endOffset,
         }).then(() => {
-          console.log('💾 Annotation auto-saved to database');
+          logDataOperation('create', 'annotation', {
+            annotationId: newAnnotation.id,
+            paragraphId,
+            autoApplied: true
+          });
         }).catch((err) => {
-          console.error('❌ Failed to save annotation to database:', err);
+          logError(err, {
+            context: 'Failed to save annotation to database',
+            annotationId: newAnnotation.id
+          });
         });
 
         // Clear selection after applying

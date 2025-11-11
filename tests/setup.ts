@@ -7,6 +7,22 @@ afterEach(() => {
   cleanup();
 });
 
+// Mock logger
+vi.mock('../src/lib/logger', () => ({
+  default: {
+    info: vi.fn(),
+    debug: vi.fn(),
+    warn: vi.fn(),
+    error: vi.fn(),
+    fatal: vi.fn(),
+    trace: vi.fn(),
+  },
+  logError: vi.fn(),
+  logUserAction: vi.fn(),
+  logDataOperation: vi.fn(),
+  logPerformance: vi.fn(),
+}));
+
 // Mock Supabase client
 vi.mock('@supabase/supabase-js', () => ({
   createClient: vi.fn(() => ({

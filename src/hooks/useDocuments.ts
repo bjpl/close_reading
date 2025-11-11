@@ -7,6 +7,7 @@ import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
 import type { Database } from '../types/database';
 import { useDocumentStore } from '../stores/documentStore';
+import logger, { logError, logDataOperation } from '../lib/logger';
 
 type DocumentRow = Database['public']['Tables']['documents']['Row'];
 type DocumentUpdate = Database['public']['Tables']['documents']['Update'];
@@ -111,7 +112,7 @@ export const useDocuments = (projectId?: string, userId?: string) => {
   const getDocumentWithContent = async (documentId: string) => {
     try {
       setIsLoading(true);
-      console.log('🔍 Fetching document:', documentId);
+      logger.info({ message: 'Fetching document', documentId });
 
       // Fetch document
       const { data: doc, error: docError } = await supabase
@@ -120,7 +121,12 @@ export const useDocuments = (projectId?: string, userId?: string) => {
         .eq('id', documentId)
         .single();
 
-      console.log('📄 Document result:', doc ? 'Found' : 'Not found', docError);
+      logger.debug({
+        message: 'Document result',
+        documentId,
+        found: !!doc,
+        error: docError?.message
+      });
       if (docError) throw docError;
 
       // Fetch paragraphs
@@ -130,7 +136,12 @@ export const useDocuments = (projectId?: string, userId?: string) => {
         .eq('document_id', documentId)
         .order('position', { ascending: true });
 
-      console.log('📝 Paragraphs:', paragraphs?.length || 0, paraError);
+      logger.debug({
+        message: 'Paragraphs fetched',
+        documentId,
+        count: paragraphs?.length || 0,
+        error: paraError?.message
+      });
       if (paraError) throw paraError;
 
       // Fetch sentences
@@ -140,7 +151,12 @@ export const useDocuments = (projectId?: string, userId?: string) => {
         .eq('document_id', documentId)
         .order('position', { ascending: true });
 
-      console.log('💬 Sentences:', sentences?.length || 0, sentError);
+      logger.debug({
+        message: 'Sentences fetched',
+        documentId,
+        count: sentences?.length || 0,
+        error: sentError?.message
+      });
       if (sentError) throw sentError;
 
       // Fetch annotations
@@ -150,7 +166,12 @@ export const useDocuments = (projectId?: string, userId?: string) => {
         .eq('document_id', documentId)
         .eq('archived', false);
 
-      console.log('✏️ Annotations:', annotations?.length || 0, annoError);
+      logger.debug({
+        message: 'Annotations fetched',
+        documentId,
+        count: annotations?.length || 0,
+        error: annoError?.message
+      });
       if (annoError) throw annoError;
 
       // Transform to app format
