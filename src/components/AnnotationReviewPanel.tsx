@@ -14,7 +14,6 @@ import {
   Divider,
   Collapse,
   useDisclosure,
-  useToast,
   Menu,
   MenuButton,
   MenuList,
@@ -33,20 +32,17 @@ import {
   FiDownload,
   FiBarChart2,
 } from 'react-icons/fi';
-import type { Annotation, AnnotationType, AnnotationColor } from '../types';
+import type { Annotation } from '../types';
 import { useDocumentStore } from '../stores/documentStore';
 import { useAnnotations } from '../hooks/useAnnotations';
 import { useAuth } from '../hooks/useAuth';
 import { AnnotationListItem } from './AnnotationListItem';
 import { AnnotationFilterPanel } from './AnnotationFilterPanel';
-import {
-  exportAsJSON,
-  exportAsMarkdown,
-  exportAsCSV,
-  downloadFile,
-  getAnnotationStatistics,
-} from '../services/annotationExport';
-import { formatSimpleDate } from '../utils/dateUtils';
+import { useAnnotationFilters, type AnnotationFilters } from '../hooks/useAnnotationFilters';
+import { useAnnotationGrouping, type GroupByOption } from '../hooks/useAnnotationGrouping';
+import { useAnnotationStatistics } from '../hooks/useAnnotationStatistics';
+import { useAnnotationActions } from '../hooks/useAnnotationActions';
+import { useAnnotationExport } from '../hooks/useAnnotationExport';
 
 interface AnnotationReviewPanelProps {
   documentId: string;
@@ -56,7 +52,6 @@ export const AnnotationReviewPanel: React.FC<AnnotationReviewPanelProps> = ({
   documentId,
 }) => {
   const { user } = useAuth();
-  const toast = useToast();
   const { isOpen, onToggle } = useDisclosure({ defaultIsOpen: true });
   const {
     isOpen: isFilterOpen,
@@ -72,11 +67,8 @@ export const AnnotationReviewPanel: React.FC<AnnotationReviewPanelProps> = ({
   const { deleteAnnotation: deleteAnnotationDB, updateAnnotation: updateAnnotationDB } =
     useAnnotations(documentId, user?.id);
 
-  const [groupBy, setGroupBy] = useState<'type' | 'color' | 'date'>('type');
-  const [activeFilters, setActiveFilters] = useState<{
-    types: AnnotationType[];
-    colors: AnnotationColor[];
-  }>({
+  const [groupBy, setGroupBy] = useState<GroupByOption>('type');
+  const [activeFilters, setActiveFilters] = useState<AnnotationFilters>({
     types: [],
     colors: [],
   });
@@ -95,170 +87,24 @@ export const AnnotationReviewPanel: React.FC<AnnotationReviewPanelProps> = ({
     return annotations;
   }, [currentDocument]);
 
-  // Filter annotations
-  const filteredAnnotations = useMemo(() => {
-    let filtered = [...allAnnotations];
+  // Use custom hooks for filtering, grouping, and statistics
+  const filteredAnnotations = useAnnotationFilters(allAnnotations, activeFilters);
+  const groupedAnnotations = useAnnotationGrouping(filteredAnnotations, groupBy);
+  const { annotationCounts, statistics } = useAnnotationStatistics(allAnnotations);
 
-    if (activeFilters.types.length > 0) {
-      filtered = filtered.filter((a) => activeFilters.types.includes(a.type));
-    }
+  // Use custom hooks for actions and export
+  const { handleDelete, handleUpdate, handleJumpTo } = useAnnotationActions({
+    deleteAnnotation,
+    updateAnnotation,
+    deleteAnnotationDB,
+    updateAnnotationDB,
+  });
 
-    if (activeFilters.colors.length > 0) {
-      filtered = filtered.filter(
-        (a) => a.color && activeFilters.colors.includes(a.color)
-      );
-    }
-
-    return filtered;
-  }, [allAnnotations, activeFilters]);
-
-  // Group annotations
-  const groupedAnnotations = useMemo(() => {
-    const groups: Record<string, Annotation[]> = {};
-
-    filteredAnnotations.forEach((annotation) => {
-      let key = '';
-
-      if (groupBy === 'type') {
-        key = annotation.type;
-      } else if (groupBy === 'color') {
-        key = annotation.color || 'no-color';
-      } else if (groupBy === 'date') {
-        key = formatSimpleDate(annotation.created_at);
-      }
-
-      if (!groups[key]) {
-        groups[key] = [];
-      }
-      groups[key].push(annotation);
-    });
-
-    return groups;
-  }, [filteredAnnotations, groupBy]);
-
-  // Get annotation counts
-  const annotationCounts = useMemo(() => {
-    const counts: Record<string, number> = {
-      highlight: 0,
-      note: 0,
-      main_idea: 0,
-      citation: 0,
-      question: 0,
-    };
-
-    allAnnotations.forEach((annotation) => {
-      counts[annotation.type] = (counts[annotation.type] || 0) + 1;
-    });
-
-    return counts;
-  }, [allAnnotations]);
-
-  // Get statistics
-  const statistics = useMemo(
-    () => getAnnotationStatistics(allAnnotations),
-    [allAnnotations]
-  );
-
-  // Handle delete
-  const handleDelete = async (annotationId: string) => {
-    try {
-      console.log('🗑️ Deleting annotation:', annotationId);
-
-      // Delete from Zustand store (immediate UI update)
-      deleteAnnotation(annotationId);
-
-      // Delete from database (persistence)
-      await deleteAnnotationDB(annotationId);
-
-      console.log('✅ Annotation deleted successfully');
-    } catch (error) {
-      console.error('❌ Failed to delete annotation:', error);
-      toast({
-        title: 'Failed to delete annotation',
-        description: error instanceof Error ? error.message : 'Unknown error',
-        status: 'error',
-        duration: 3000,
-        isClosable: true,
-      });
-    }
-  };
-
-  // Handle update
-  const handleUpdate = async (
-    annotationId: string,
-    updates: Partial<Annotation>
-  ) => {
-    try {
-      console.log('✏️ Updating annotation:', annotationId, updates);
-
-      // Update in Zustand store (immediate UI update)
-      updateAnnotation(annotationId, updates);
-
-      // Update in database (persistence)
-      await updateAnnotationDB(annotationId, updates);
-
-      console.log('✅ Annotation updated successfully');
-    } catch (error) {
-      console.error('❌ Failed to update annotation:', error);
-      toast({
-        title: 'Failed to update annotation',
-        description: error instanceof Error ? error.message : 'Unknown error',
-        status: 'error',
-        duration: 3000,
-        isClosable: true,
-      });
-    }
-  };
-
-  // Handle jump to annotation
-  const handleJumpTo = (paragraphId: string) => {
-    const element = document.querySelector(
-      `[data-paragraph-id="${paragraphId}"]`
-    );
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      // Briefly highlight the paragraph
-      element.classList.add('highlight-animation');
-      setTimeout(() => {
-        element.classList.remove('highlight-animation');
-      }, 2000);
-    }
-  };
-
-  // Handle export
-  const handleExport = (format: 'json' | 'markdown' | 'csv') => {
-    const documentTitle = currentDocument?.title || 'Untitled Document';
-    const exportOptions = {
-      includeTimestamps: true,
-      includeColors: true,
-      filterByType: activeFilters.types.length > 0 ? activeFilters.types : undefined,
-      filterByColor: activeFilters.colors.length > 0 ? activeFilters.colors : undefined,
-    };
-
-    let content = '';
-    let filename = '';
-
-    if (format === 'json') {
-      content = exportAsJSON(filteredAnnotations, documentTitle, exportOptions);
-      filename = `${documentTitle}-annotations.json`;
-    } else if (format === 'markdown') {
-      content = exportAsMarkdown(filteredAnnotations, documentTitle, exportOptions);
-      filename = `${documentTitle}-annotations.md`;
-    } else if (format === 'csv') {
-      content = exportAsCSV(filteredAnnotations, documentTitle, exportOptions);
-      filename = `${documentTitle}-annotations.csv`;
-    }
-
-    downloadFile(content, filename);
-
-    toast({
-      title: 'Annotations exported',
-      description: `Exported as ${format.toUpperCase()}`,
-      status: 'success',
-      duration: 2000,
-      isClosable: true,
-    });
-  };
+  const { handleExport } = useAnnotationExport({
+    annotations: filteredAnnotations,
+    documentTitle: currentDocument?.title || 'Untitled Document',
+    activeFilters,
+  });
 
   return (
     <Box
