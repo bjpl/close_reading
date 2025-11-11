@@ -20,7 +20,7 @@ interface AnnotationDialogProps {
   isOpen: boolean;
   onClose: () => void;
   onConfirm: () => void;
-  cancelRef: React.RefObject<HTMLButtonElement>;
+  cancelRef: React.RefObject<HTMLButtonElement | null>;
   editValue?: string;
   onEditValueChange?: (value: string) => void;
 }

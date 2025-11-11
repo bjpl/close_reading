@@ -40,7 +40,7 @@ export const Paragraph: React.FC<ParagraphProps> = ({ paragraph }) => {
   const [annotationToDelete, setAnnotationToDelete] = useState<string | null>(null);
   const { isOpen: isDeleteOpen, onOpen: onDeleteOpen, onClose: onDeleteClose } = useDisclosure();
   const { isOpen: isEditOpen, onOpen: onEditOpen, onClose: onEditClose } = useDisclosure();
-  const cancelRef = React.useRef<HTMLButtonElement>(null);
+  const cancelRef = React.useRef<HTMLButtonElement | null>(null);
 
   // Computed values
   const isSelected = selectedParagraphs.includes(paragraph.id);
