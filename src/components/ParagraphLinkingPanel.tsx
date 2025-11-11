@@ -131,35 +131,48 @@ export const ParagraphLinkingPanel: React.FC = () => {
           </Box>
         ) : (
           <VStack gap={3} align="stretch">
-            {linkedParagraphs.map((paragraph) => (
-              <Box
-                key={paragraph.id}
-                p={3}
-                borderWidth={1}
-                borderRadius="md"
-                borderColor="gray.200"
-                bg="white"
-              >
-                <VStack gap={2} align="stretch">
-                  <Text fontSize="sm" lineClamp={2}>
-                    {paragraph.content}
-                  </Text>
-                  <HStack gap={1} flexWrap="wrap">
-                    {(paragraph.linkedParagraphs || []).map((linkedId) => {
-                      const linkedPara = (currentDocument?.paragraphs || []).find(
-                        (p) => p.id === linkedId
-                      );
-                      return (
-                        <Badge
-                          key={linkedId}
-                          colorScheme="blue"
-                          fontSize="xs"
-                          cursor="pointer"
-                          display="flex"
-                          alignItems="center"
-                          gap={1}
-                        >
-                          Para {linkedPara?.order || '?'}
+            {linkedParagraphs.map((paragraph) => {
+              // Calculate actual paragraph position from document array
+              const paragraphNumber = (currentDocument?.paragraphs || []).findIndex(p => p.id === paragraph.id) + 1;
+
+              return (
+                <Box
+                  key={paragraph.id}
+                  p={3}
+                  borderWidth={1}
+                  borderRadius="md"
+                  borderColor="gray.200"
+                  bg="white"
+                >
+                  <VStack gap={2} align="stretch">
+                    <HStack justify="space-between">
+                      <Text fontSize="sm" fontWeight="medium">
+                        Paragraph {paragraphNumber}
+                      </Text>
+                      <Badge colorScheme="blue" fontSize="xs">
+                        {(paragraph.linkedParagraphs || []).length} link{(paragraph.linkedParagraphs || []).length !== 1 ? 's' : ''}
+                      </Badge>
+                    </HStack>
+                    <Text fontSize="sm" color="gray.600" lineClamp={2}>
+                      {paragraph.content}
+                    </Text>
+                    <HStack gap={1} flexWrap="wrap">
+                      {(paragraph.linkedParagraphs || []).map((linkedId) => {
+                        const linkedPara = (currentDocument?.paragraphs || []).find(
+                          (p) => p.id === linkedId
+                        );
+                        const linkedNumber = (currentDocument?.paragraphs || []).findIndex(p => p.id === linkedId) + 1;
+                        return (
+                          <Badge
+                            key={linkedId}
+                            colorScheme="blue"
+                            fontSize="xs"
+                            cursor="pointer"
+                            display="flex"
+                            alignItems="center"
+                            gap={1}
+                          >
+                            → Para {linkedNumber}
                           <IconButton
                             aria-label="Unlink"
                             size="xs"
