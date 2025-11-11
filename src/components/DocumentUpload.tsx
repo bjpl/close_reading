@@ -128,14 +128,26 @@ export const DocumentUpload: React.FC<DocumentUploadProps> = ({
     setUploadProgress(0);
 
     try {
+      console.log('🚀 Starting processDocument with projectId:', projectId);
+
       // Process document with progress updates
       const result = await processDocument(file, projectId, (progress) => {
+        console.log('📊 Progress:', progress.stage, progress.progress + '%', progress.message);
         setUploadProgress(progress.progress);
       });
 
+      console.log('✅ processDocument result:', result);
+
       if (!result.success || !result.document) {
+        console.error('❌ Processing failed:', result.error);
         throw new Error(result.error || 'Processing failed');
       }
+
+      console.log('🎉 Document fully processed!', {
+        documentId: result.document.id,
+        paragraphs: result.paragraphs?.length,
+        sentences: result.sentences?.length
+      });
 
       toaster.create({
         title: 'Upload successful',
@@ -146,6 +158,7 @@ export const DocumentUpload: React.FC<DocumentUploadProps> = ({
 
       onUploadComplete(result.document.id);
     } catch (error) {
+      console.error('💥 Upload error:', error);
       toaster.create({
         title: 'Upload failed',
         description: error instanceof Error ? error.message : 'An error occurred while uploading your document.',
