@@ -127,6 +127,9 @@ export async function storeParagraphs(
       position: p.position
     }));
 
+    console.log('💾 Storing paragraphs with documentId:', documentId, 'Records:', paragraphRecords.length);
+    console.log('💾 First paragraph record:', paragraphRecords[0]);
+
     const { data, error } = await supabase
       .from('paragraphs')
       .insert(paragraphRecords)
@@ -157,12 +160,15 @@ export async function storeSentences(
     paragraphsData.forEach(({ parsed, stored }) => {
       parsed.sentences.forEach(sentence => {
         sentenceRecords.push({
+          document_id: stored.document_id,
           paragraph_id: stored.id,
           content: sentence.content,
           position: sentence.position
         });
       });
     });
+
+    console.log('💾 Storing sentences, first record:', sentenceRecords[0]);
 
     const { data, error } = await supabase
       .from('sentences')

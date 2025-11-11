@@ -10,6 +10,7 @@ import { useAuth } from './hooks/useAuth';
 import { LoginPage, DashboardPage, ProjectPage, DocumentPage } from './pages';
 import { SharedDocumentPage } from './pages/SharedDocumentPage';
 import { Box, Spinner } from '@chakra-ui/react';
+import './styles/annotations.css';
 
 /**
  * Protected Route Wrapper

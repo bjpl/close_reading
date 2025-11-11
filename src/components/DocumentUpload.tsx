@@ -4,7 +4,7 @@
  * Handles document file uploads with drag-and-drop support.
  * Supports PDF, DOCX, and TXT formats.
  */
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useState, useRef, useEffect } from 'react';
 import {
   Box,
   Button,
@@ -28,12 +28,23 @@ export const DocumentUpload: React.FC<DocumentUploadProps> = ({
   onUploadComplete,
   projectId,
 }) => {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const { createDocument } = useDocuments(projectId, user?.id);
   const [isDragging, setIsDragging] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const toast = useToast();
+
+  // Use refs to always get the latest auth state
+  const userRef = useRef(user);
+  const authLoadingRef = useRef(authLoading);
+
+  useEffect(() => {
+    userRef.current = user;
+    authLoadingRef.current = authLoading;
+  }, [user, authLoading]);
+
+  console.log('🎨 DocumentUpload render - authLoading:', authLoading, 'user:', user?.email || 'null');
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -46,7 +57,26 @@ export const DocumentUpload: React.FC<DocumentUploadProps> = ({
   }, []);
 
   const processFile = async (file: File) => {
-    if (!user) {
+    // Use ref values to get the latest state
+    const currentUser = userRef.current;
+    const currentAuthLoading = authLoadingRef.current;
+
+    console.log('📤 Upload attempted, authLoading:', currentAuthLoading, 'user:', currentUser?.email || 'null');
+
+    // Wait for auth to finish loading
+    if (currentAuthLoading) {
+      toast({
+        title: 'Loading',
+        description: 'Please wait while we verify your session...',
+        status: 'info',
+        duration: 2000,
+        isClosable: true,
+      });
+      return;
+    }
+
+    if (!currentUser) {
+      console.error('❌ Upload blocked: No user found after auth loaded');
       toast({
         title: 'Not authenticated',
         description: 'Please log in to upload documents.',
@@ -56,6 +86,7 @@ export const DocumentUpload: React.FC<DocumentUploadProps> = ({
       });
       return;
     }
+    console.log('✅ Upload proceeding for user:', currentUser.email);
 
     // Validate file type
     const validTypes = [
@@ -103,7 +134,7 @@ export const DocumentUpload: React.FC<DocumentUploadProps> = ({
       }, 200);
 
       // Upload document to Supabase Storage and create database record
-      const document = await createDocument(file, projectId, user.id, file.name);
+      const document = await createDocument(file, projectId, currentUser.id, file.name);
 
       clearInterval(progressInterval);
       setUploadProgress(90);
@@ -177,6 +208,7 @@ export const DocumentUpload: React.FC<DocumentUploadProps> = ({
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
+      opacity={authLoading ? 0.5 : 1}
     >
       <VStack spacing={4}>
         <Icon
@@ -185,7 +217,11 @@ export const DocumentUpload: React.FC<DocumentUploadProps> = ({
           color={isDragging ? 'blue.400' : 'gray.400'}
         />
 
-        {isUploading ? (
+        {authLoading ? (
+          <Text fontSize="lg" fontWeight="medium" color="gray.500">
+            Loading authentication...
+          </Text>
+        ) : isUploading ? (
           <>
             <Text fontSize="lg" fontWeight="medium">
               Uploading document...

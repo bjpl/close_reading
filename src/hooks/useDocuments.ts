@@ -111,6 +111,7 @@ export const useDocuments = (projectId?: string, userId?: string) => {
   const getDocumentWithContent = async (documentId: string) => {
     try {
       setIsLoading(true);
+      console.log('🔍 Fetching document:', documentId);
 
       // Fetch document
       const { data: doc, error: docError } = await supabase
@@ -119,6 +120,7 @@ export const useDocuments = (projectId?: string, userId?: string) => {
         .eq('id', documentId)
         .single();
 
+      console.log('📄 Document result:', doc ? 'Found' : 'Not found', docError);
       if (docError) throw docError;
 
       // Fetch paragraphs
@@ -128,6 +130,7 @@ export const useDocuments = (projectId?: string, userId?: string) => {
         .eq('document_id', documentId)
         .order('position', { ascending: true });
 
+      console.log('📝 Paragraphs:', paragraphs?.length || 0, paraError);
       if (paraError) throw paraError;
 
       // Fetch sentences
@@ -137,6 +140,7 @@ export const useDocuments = (projectId?: string, userId?: string) => {
         .eq('document_id', documentId)
         .order('position', { ascending: true });
 
+      console.log('💬 Sentences:', sentences?.length || 0, sentError);
       if (sentError) throw sentError;
 
       // Fetch annotations
@@ -146,6 +150,7 @@ export const useDocuments = (projectId?: string, userId?: string) => {
         .eq('document_id', documentId)
         .eq('archived', false);
 
+      console.log('✏️ Annotations:', annotations?.length || 0, annoError);
       if (annoError) throw annoError;
 
       // Transform to app format
@@ -261,7 +266,9 @@ export const useDocuments = (projectId?: string, userId?: string) => {
         .subscribe();
 
       return () => {
-        channel.unsubscribe();
+        if (channel && typeof channel.unsubscribe === 'function') {
+          channel.unsubscribe();
+        }
       };
     }
   }, [projectId, userId]);

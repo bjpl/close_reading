@@ -126,6 +126,7 @@ export async function processDocument(
     });
 
     // Stage 5: Store parsed structure
+    console.log('📝 About to store parsed document, documentId:', documentRecord.document.id);
     const storageResult = await storeParseDocument(
       documentRecord.document.id,
       parseResult.parsed

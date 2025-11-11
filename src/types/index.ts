@@ -57,7 +57,7 @@ export interface Sentence {
   created_at: string;
 }
 
-export type AnnotationType = 'highlight' | 'note' | 'main_idea' | 'citation';
+export type AnnotationType = 'highlight' | 'note' | 'main_idea' | 'citation' | 'question';
 
 export type AnnotationColor = 'yellow' | 'green' | 'blue' | 'pink' | 'purple';
 

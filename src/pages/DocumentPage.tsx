@@ -5,23 +5,30 @@
  */
 import React, { useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Box, HStack, Spinner, Text, IconButton } from '@chakra-ui/react';
+import { Box, HStack, Spinner, IconButton } from '@chakra-ui/react';
 import { FiArrowLeft } from 'react-icons/fi';
 import { useAuth } from '../hooks/useAuth';
 import { useDocuments } from '../hooks/useDocuments';
+import { useDocumentStore } from '../stores/documentStore';
 import { DocumentViewer } from '../components/DocumentViewer';
 import { AnnotationToolbar } from '../components/AnnotationToolbar';
 import { ParagraphLinkingPanel } from '../components/ParagraphLinkingPanel';
+import { DocumentMetadataEditor } from '../components/DocumentMetadataEditor';
+import { AnnotationReviewPanel } from '../components/AnnotationReviewPanel';
 
 export const DocumentPage: React.FC = () => {
   const { documentId } = useParams<{ documentId: string }>();
   const { user } = useAuth();
   const navigate = useNavigate();
-  const { getDocumentWithContent, isLoading } = useDocuments(undefined, user?.id);
+  const { currentDocument } = useDocumentStore();
+  const { getDocumentWithContent, updateDocument, isLoading } = useDocuments(undefined, user?.id);
 
   useEffect(() => {
     if (documentId && user) {
-      getDocumentWithContent(documentId);
+      console.log('📄 Loading document:', documentId);
+      getDocumentWithContent(documentId).catch(err => {
+        console.error('❌ Failed to load document:', err);
+      });
     }
   }, [documentId, user]);
 
@@ -43,6 +50,15 @@ export const DocumentPage: React.FC = () => {
     );
   }
 
+  const handleSaveMetadata = async (title: string, author: string) => {
+    if (!documentId) return;
+
+    await updateDocument(documentId, {
+      title,
+      metadata: { author },
+    });
+  };
+
   return (
     <Box h="100vh" display="flex" flexDirection="column" bg="gray.50">
       {/* Header */}
@@ -59,21 +75,31 @@ export const DocumentPage: React.FC = () => {
           variant="ghost"
           onClick={() => navigate(-1)}
         />
-        <Text fontWeight="bold" fontSize="lg">
-          Document Viewer
-        </Text>
+        {currentDocument && (
+          <Box flex={1}>
+            <DocumentMetadataEditor
+              documentId={currentDocument.id}
+              currentTitle={currentDocument.title}
+              currentAuthor={(currentDocument as any).metadata?.author}
+              onSave={handleSaveMetadata}
+            />
+          </Box>
+        )}
       </HStack>
 
       {/* Main Content */}
-      <HStack flex={1} spacing={0} align="stretch">
-        {/* Left: Document Viewer */}
-        <Box flex={1} display="flex" flexDirection="column">
+      <HStack flex={1} spacing={0} align="stretch" overflow="hidden">
+        {/* Left: Paragraph Linking Panel */}
+        <ParagraphLinkingPanel />
+
+        {/* Center: Document Viewer */}
+        <Box flex={1} display="flex" flexDirection="column" overflow="hidden">
           <AnnotationToolbar />
           <DocumentViewer />
         </Box>
 
-        {/* Right: Paragraph Linking Panel */}
-        <ParagraphLinkingPanel />
+        {/* Right: Annotation Review Panel */}
+        {documentId && <AnnotationReviewPanel documentId={documentId} />}
       </HStack>
     </Box>
   );

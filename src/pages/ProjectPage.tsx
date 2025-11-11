@@ -33,7 +33,7 @@ import { DocumentUpload } from '../components/DocumentUpload';
 
 export const ProjectPage: React.FC = () => {
   const { projectId } = useParams<{ projectId: string }>();
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const { currentProject } = useProjectStore();
   const { documents, isLoading, deleteDocument } = useDocuments(
@@ -46,6 +46,15 @@ export const ProjectPage: React.FC = () => {
   if (!projectId) {
     navigate('/dashboard');
     return null;
+  }
+
+  // Wait for auth to load before rendering upload component
+  if (authLoading) {
+    return (
+      <Box minH="100vh" display="flex" alignItems="center" justifyContent="center">
+        <Text>Loading...</Text>
+      </Box>
+    );
   }
 
   const handleDocumentClick = (documentId: string) => {

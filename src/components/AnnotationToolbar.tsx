@@ -24,10 +24,13 @@ import {
   FiFileText,
   FiStar,
   FiBookmark,
+  FiHelpCircle,
 } from 'react-icons/fi';
 import { HiOutlineColorSwatch } from 'react-icons/hi';
 import { useAnnotationStore } from '../stores/annotationStore';
 import { useDocumentStore } from '../stores/documentStore';
+import { useAnnotations } from '../hooks/useAnnotations';
+import { useAuth } from '../hooks/useAuth';
 import type { AnnotationType, Annotation, AnnotationColor } from '../types';
 
 const COLOR_OPTIONS: AnnotationColor[] = ['yellow', 'green', 'blue', 'pink', 'purple'];
@@ -51,7 +54,9 @@ export const AnnotationToolbar: React.FC = () => {
     clearSelection,
   } = useAnnotationStore();
 
+  const { user } = useAuth();
   const { addAnnotation, currentDocument } = useDocumentStore();
+  const { createAnnotation } = useAnnotations(currentDocument?.id, user?.id);
   const [noteText, setNoteText] = useState('');
   const [isNotePopoverOpen, setIsNotePopoverOpen] = useState(false);
   const toast = useToast();
@@ -70,32 +75,56 @@ export const AnnotationToolbar: React.FC = () => {
 
     setActiveToolType(type);
 
-    // For note and main idea, open popover
-    if (type === 'note' || type === 'main_idea') {
+    // Only notes require a popover - everything else applies immediately
+    if (type === 'note') {
       setIsNotePopoverOpen(true);
     } else {
-      // For highlight and citation, apply immediately
+      // For highlight, main_idea, and citation, apply immediately
       applyAnnotation(type);
     }
   };
 
   const applyAnnotation = (type: AnnotationType, note?: string) => {
     if (!selectedText || !selectionRange || !currentDocument) {
+      console.log('❌ Cannot apply annotation - missing:', {
+        selectedText: !!selectedText,
+        selectionRange: !!selectionRange,
+        currentDocument: !!currentDocument
+      });
       return;
     }
 
-    // Find which paragraph contains this selection
-    // This is a simplified version - real implementation would need more sophisticated logic
-    const paragraphId = currentDocument.id; // Using document ID as fallback
+    // Find which paragraph contains this selection by checking the DOM
+    let paragraphId = currentDocument.id;
+    const selection = window.getSelection();
+    if (selection && selection.rangeCount > 0) {
+      const range = selection.getRangeAt(0);
+      const container = range.commonAncestorContainer;
+      const element = container.nodeType === Node.TEXT_NODE
+        ? container.parentElement
+        : container as HTMLElement;
+
+      const paragraphBox = element?.closest('[data-paragraph-id]') as HTMLElement;
+      if (paragraphBox) {
+        paragraphId = paragraphBox.getAttribute('data-paragraph-id') || paragraphId;
+      }
+    }
+
+    console.log('🎨 Creating annotation:', {
+      type,
+      color: activeColor,
+      text: selectedText.substring(0, 50),
+      paragraphId,
+      range: selectionRange
+    });
 
     const newAnnotation: Annotation = {
       id: `annotation_${Date.now()}`,
       document_id: currentDocument.id,
       paragraph_id: paragraphId,
-      user_id: 'current-user', // TODO: Get from auth context
+      user_id: 'current-user',
       type,
       content: selectedText,
-      note_text: note || undefined,
       note: note || undefined,
       color: activeColor,
       start_offset: selectionRange.start,
@@ -104,9 +133,26 @@ export const AnnotationToolbar: React.FC = () => {
       endOffset: selectionRange.end,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
+      text: selectedText,
     };
 
+    // Add to Zustand store (for immediate UI update)
     addAnnotation(paragraphId, newAnnotation);
+    console.log('✅ Annotation added to store');
+
+    // Persist to database (async)
+    createAnnotation({
+      paragraph_id: paragraphId,
+      annotation_type: type,
+      content: note || selectedText,
+      highlight_color: activeColor,
+      start_offset: selectionRange.start,
+      end_offset: selectionRange.end,
+    }).then(() => {
+      console.log('💾 Annotation saved to database');
+    }).catch((err) => {
+      console.error('❌ Failed to save annotation to database:', err);
+    });
 
     toast({
       title: 'Annotation added',
@@ -155,13 +201,21 @@ export const AnnotationToolbar: React.FC = () => {
             Annotate:
           </Text>
 
-          <Tooltip label="Highlight" placement="bottom">
+          <Tooltip label={activeToolType === 'highlight' ? 'Highlight mode ON (click color to turn off)' : 'Click a color to enable highlight mode'} placement="bottom">
             <IconButton
               aria-label="Highlight"
               icon={<HiOutlineColorSwatch />}
               colorScheme={activeToolType === 'highlight' ? 'blue' : 'gray'}
               variant={activeToolType === 'highlight' ? 'solid' : 'outline'}
-              onClick={() => handleToolClick('highlight')}
+              onClick={() => {
+                if (activeToolType === 'highlight') {
+                  setActiveToolType(null);
+                  console.log('🔴 Highlight mode OFF');
+                } else {
+                  setActiveToolType('highlight');
+                  console.log('🟢 Highlight mode ON');
+                }
+              }}
               size="sm"
             />
           </Tooltip>
@@ -180,6 +234,7 @@ export const AnnotationToolbar: React.FC = () => {
                   variant={activeToolType === 'note' ? 'solid' : 'outline'}
                   onClick={() => handleToolClick('note')}
                   size="sm"
+                  isDisabled={!selectedText}
                 />
               </Tooltip>
             </PopoverTrigger>
@@ -207,79 +262,104 @@ export const AnnotationToolbar: React.FC = () => {
             </PopoverContent>
           </Popover>
 
-          <Popover
-            isOpen={isNotePopoverOpen && activeToolType === 'main_idea'}
-            onClose={() => setIsNotePopoverOpen(false)}
-            placement="bottom"
-          >
-            <PopoverTrigger>
-              <Tooltip label="Mark Main Idea" placement="bottom">
-                <IconButton
-                  aria-label="Main Idea"
-                  icon={<FiStar />}
-                  colorScheme={activeToolType === 'main_idea' ? 'blue' : 'gray'}
-                  variant={activeToolType === 'main_idea' ? 'solid' : 'outline'}
-                  onClick={() => handleToolClick('main_idea')}
-                  size="sm"
-                />
-              </Tooltip>
-            </PopoverTrigger>
-            <PopoverContent>
-              <PopoverArrow />
-              <PopoverBody>
-                <VStack spacing={3}>
-                  <Textarea
-                    placeholder="Describe the main idea..."
-                    value={noteText}
-                    onChange={(e) => setNoteText(e.target.value)}
-                    size="sm"
-                    rows={4}
-                  />
-                  <Button
-                    colorScheme="blue"
-                    size="sm"
-                    width="100%"
-                    onClick={handleNoteSave}
-                  >
-                    Save Main Idea
-                  </Button>
-                </VStack>
-              </PopoverBody>
-            </PopoverContent>
-          </Popover>
+          <Tooltip label={activeToolType === 'main_idea' ? 'Main Idea mode ON (click to turn off)' : 'Main Idea mode OFF'} placement="bottom">
+            <IconButton
+              aria-label="Main Idea"
+              icon={<FiStar />}
+              colorScheme={activeToolType === 'main_idea' ? 'orange' : 'gray'}
+              variant={activeToolType === 'main_idea' ? 'solid' : 'outline'}
+              onClick={() => {
+                if (activeToolType === 'main_idea') {
+                  setActiveToolType(null);
+                  console.log('🔴 Main Idea mode OFF');
+                } else {
+                  setActiveToolType('main_idea');
+                  console.log('🟢 Main Idea mode ON');
+                }
+              }}
+              size="sm"
+            />
+          </Tooltip>
 
-          <Tooltip label="Add Citation" placement="bottom">
+          <Tooltip label={activeToolType === 'citation' ? 'Citation mode ON (click to turn off)' : 'Citation mode OFF'} placement="bottom">
             <IconButton
               aria-label="Add Citation"
               icon={<FiBookmark />}
               colorScheme={activeToolType === 'citation' ? 'blue' : 'gray'}
               variant={activeToolType === 'citation' ? 'solid' : 'outline'}
-              onClick={() => handleToolClick('citation')}
+              onClick={() => {
+                if (activeToolType === 'citation') {
+                  setActiveToolType(null);
+                  console.log('🔴 Citation mode OFF');
+                } else {
+                  setActiveToolType('citation');
+                  console.log('🟢 Citation mode ON');
+                }
+              }}
+              size="sm"
+            />
+          </Tooltip>
+
+          <Tooltip label={activeToolType === 'question' ? 'Question mode ON (click to turn off)' : 'Question mode OFF'} placement="bottom">
+            <IconButton
+              aria-label="Mark as Question"
+              icon={<FiHelpCircle />}
+              colorScheme={activeToolType === 'question' ? 'purple' : 'gray'}
+              variant={activeToolType === 'question' ? 'solid' : 'outline'}
+              onClick={() => {
+                if (activeToolType === 'question') {
+                  setActiveToolType(null);
+                  console.log('🔴 Question mode OFF');
+                } else {
+                  setActiveToolType('question');
+                  console.log('🟢 Question mode ON');
+                }
+              }}
               size="sm"
             />
           </Tooltip>
         </HStack>
 
-        {/* Color Selection */}
+        {/* Color Selection - Toggle Mode */}
         <HStack spacing={2}>
           <Text fontSize="sm" fontWeight="medium" mr={2}>
             Color:
           </Text>
           {COLOR_OPTIONS.map((color) => (
-            <Box
+            <Tooltip
               key={color}
-              as="button"
-              w={6}
-              h={6}
-              borderRadius="md"
-              bg={COLOR_MAP[color as AnnotationColor]}
-              borderWidth={2}
-              borderColor={activeColor === color ? 'blue.500' : 'gray.300'}
-              onClick={() => setActiveColor(color)}
-              cursor="pointer"
-              transition="all 0.2s"
-              _hover={{ transform: 'scale(1.1)' }}
-            />
+              label={activeToolType === 'highlight' && activeColor === color
+                ? `${color} highlight mode (click to turn off)`
+                : `${color} highlight mode`}
+              placement="bottom"
+            >
+              <Box
+                as="button"
+                w={8}
+                h={8}
+                borderRadius="md"
+                bg={COLOR_MAP[color as AnnotationColor]}
+                borderWidth={activeToolType === 'highlight' && activeColor === color ? 3 : 2}
+                borderColor={activeToolType === 'highlight' && activeColor === color ? 'blue.600' : 'gray.300'}
+                onClick={() => {
+                  // Toggle highlight mode on/off
+                  if (activeToolType === 'highlight' && activeColor === color) {
+                    // Turn off if clicking same color
+                    setActiveToolType(null);
+                    console.log('🔴 Highlight mode OFF');
+                  } else {
+                    // Turn on highlight mode with this color
+                    setActiveColor(color);
+                    setActiveToolType('highlight');
+                    console.log('🟢 Highlight mode ON:', color);
+                  }
+                }}
+                cursor="pointer"
+                transition="all 0.2s"
+                _hover={{ transform: 'scale(1.15)', boxShadow: 'md' }}
+                boxShadow={activeToolType === 'highlight' && activeColor === color ? 'lg' : 'sm'}
+              />
+            </Tooltip>
           ))}
         </HStack>
 

@@ -126,7 +126,9 @@ export const useProjects = (userId?: string) => {
       .subscribe();
 
     return () => {
-      channel.unsubscribe();
+      if (channel && typeof channel.unsubscribe === 'function') {
+        channel.unsubscribe();
+      }
     };
   }, [userId]);
 

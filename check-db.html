@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head><title>Check IndexedDB</title></head>
+<body>
+<h1>IndexedDB Inspector</h1>
+<button onclick="checkDB()">Check Database</button>
+<pre id="output"></pre>
+<script type="module">
+async function checkDB() {
+  const { openDB } = await import('https://cdn.jsdelivr.net/npm/idb@8/+esm');
+  const db = await openDB('close-reading-mock', 2);
+  
+  const output = document.getElementById('output');
+  output.textContent = 'Checking database...\n\n';
+  
+  const stores = ['documents', 'paragraphs', 'sentences'];
+  for (const store of stores) {
+    const items = await db.getAll(store);
+    output.textContent += `${store}: ${items.length} items\n`;
+    if (items.length > 0) {
+      output.textContent += JSON.stringify(items[0], null, 2) + '\n\n';
+    }
+  }
+}
+window.checkDB = checkDB;
+</script>
+</body>
+</html>
