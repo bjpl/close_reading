@@ -2,6 +2,7 @@ import { uploadDocument, createDocumentRecord } from './documentUpload';
 import { extractText } from './textExtraction';
 import { parseDocument, storeParseDocument } from './textParsing';
 import type { Document, Paragraph, Sentence } from '../types';
+import logger, { logError, logPerformance } from '../lib/logger';
 
 export interface ProcessingProgress {
   stage: 'uploading' | 'extracting' | 'parsing' | 'storing' | 'complete' | 'error';
@@ -126,7 +127,11 @@ export async function processDocument(
     });
 
     // Stage 5: Store parsed structure
-    console.log('📝 About to store parsed document, documentId:', documentRecord.document.id);
+    logger.debug({
+      documentId: documentRecord.document.id,
+      paragraphCount: parseResult.parsed.totalParagraphs,
+      sentenceCount: parseResult.parsed.totalSentences
+    }, 'Storing parsed document structure');
     const storageResult = await storeParseDocument(
       documentRecord.document.id,
       parseResult.parsed

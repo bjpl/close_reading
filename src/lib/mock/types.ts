@@ -6,6 +6,54 @@
  */
 
 import { DBSchema } from 'idb';
+import { Database } from '../../types/database';
+
+/**
+ * Type alias for JSON data from database schema
+ */
+export type Json = Database['public']['Tables']['annotations']['Row']['metadata'];
+
+/**
+ * User record stored in IndexedDB
+ * Extends the database user type with authentication fields
+ */
+export interface DBUser {
+  id: string;
+  email: string;
+  password: string; // Stored in mock DB only - hashed in production
+  created_at: string;
+  user_metadata: Record<string, unknown>;
+}
+
+/**
+ * Document record from database schema
+ */
+export type DBDocument = Database['public']['Tables']['documents']['Row'];
+
+/**
+ * Annotation record from database schema
+ */
+export type DBAnnotation = Database['public']['Tables']['annotations']['Row'];
+
+/**
+ * Project record from database schema
+ */
+export type DBProject = Database['public']['Tables']['projects']['Row'];
+
+/**
+ * Paragraph record from database schema
+ */
+export type DBParagraph = Database['public']['Tables']['paragraphs']['Row'];
+
+/**
+ * Sentence record from database schema
+ */
+export type DBSentence = Database['public']['Tables']['sentences']['Row'];
+
+/**
+ * Paragraph link record from database schema
+ */
+export type DBParagraphLink = Database['public']['Tables']['paragraph_links']['Row'];
 
 /**
  * IndexedDB schema definition for the mock Supabase database
@@ -22,37 +70,37 @@ import { DBSchema } from 'idb';
 export interface MockDB extends DBSchema {
   users: {
     key: string;
-    value: any;
+    value: DBUser;
     indexes: { 'by-email': string };
   };
   documents: {
     key: string;
-    value: any;
+    value: DBDocument;
     indexes: { 'by-user': string };
   };
   annotations: {
     key: string;
-    value: any;
+    value: DBAnnotation;
     indexes: { 'by-document': string };
   };
   projects: {
     key: string;
-    value: any;
+    value: DBProject;
     indexes: { 'by-user': string };
   };
   paragraphs: {
     key: string;
-    value: any;
+    value: DBParagraph;
     indexes: { 'by-document': string };
   };
   sentences: {
     key: string;
-    value: any;
+    value: DBSentence;
     indexes: { 'by-document': string };
   };
   paragraph_links: {
     key: string;
-    value: any;
+    value: DBParagraphLink;
     indexes: { 'by-document': string };
   };
 }
@@ -64,7 +112,7 @@ export interface MockUser {
   id: string;
   email: string;
   created_at: string;
-  user_metadata: Record<string, any>;
+  user_metadata: Record<string, unknown>;
   aud: string;
   role: string;
 }
@@ -79,9 +127,20 @@ export interface MockSession {
 }
 
 /**
+ * Error details that may be included in Supabase responses
+ */
+export interface SupabaseErrorDetails {
+  message: string;
+  details?: string | Record<string, unknown>;
+  hint?: string;
+  code?: string;
+}
+
+/**
  * Standard response format for Supabase operations
+ * @template T The type of data returned on success
  */
 export interface SupabaseResponse<T> {
   data: T;
-  error: { message: string; details?: any } | null;
+  error: SupabaseErrorDetails | null;
 }

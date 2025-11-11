@@ -101,7 +101,7 @@ export interface Citation {
   document_id: string;
   citation_type: CitationType;
   citation_text: string;
-  metadata: Record<string, any>;
+  metadata: Record<string, unknown>;
   created_at: string;
   updated_at?: string;
 }
@@ -114,5 +114,5 @@ export type ViewMode = 'original' | 'sentence';
 export interface AppError {
   code: string;
   message: string;
-  details?: any;
+  details?: string | Record<string, unknown>;
 }

@@ -6,6 +6,7 @@
 import { useEffect, useState } from 'react';
 import { User, Session, AuthError } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
+import logger from '../lib/logger';
 
 export interface UseAuthReturn {
   user: User | null;
@@ -27,7 +28,10 @@ export const useAuth = (): UseAuthReturn => {
   useEffect(() => {
     // Get initial session
     supabase.auth.getSession().then(({ data: { session }, error }) => {
-      console.log('🔐 useAuth: Initial session loaded', session?.user ? `User: ${session.user.email}` : 'No user');
+      logger.info({
+        hasUser: !!session?.user,
+        userEmail: session?.user?.email
+      }, 'Initial session loaded');
       if (error) {
         setError(error);
       } else {
@@ -41,7 +45,11 @@ export const useAuth = (): UseAuthReturn => {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
-      console.log('🔐 useAuth: Auth state changed', _event, session?.user ? `User: ${session.user.email}` : 'No user');
+      logger.info({
+        event: _event,
+        hasUser: !!session?.user,
+        userEmail: session?.user?.email
+      }, 'Auth state changed');
       setSession(session);
       setUser(session?.user ?? null);
       setLoading(false);

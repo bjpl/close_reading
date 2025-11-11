@@ -9,6 +9,7 @@
  */
 
 import { supabase } from '../lib/supabase';
+import logger, { logError } from '../lib/logger';
 
 export interface ShareLink {
   id: string;
@@ -21,13 +22,26 @@ export interface ShareLink {
   updated_at: string;
 }
 
+/**
+ * Annotation data for shared documents
+ */
+export interface SharedAnnotation {
+  id: string;
+  annotation_type: 'highlight' | 'note' | 'main_idea' | 'citation' | 'question';
+  content: string | null;
+  highlight_color: string | null;
+  start_offset: number | null;
+  end_offset: number | null;
+  created_at: string;
+}
+
 export interface SharedDocument {
   id: string;
   title: string;
   content: string;
   project_id: string;
   created_at: string;
-  annotations: any[];
+  annotations: SharedAnnotation[];
   project_title?: string;
 }
 
@@ -101,7 +115,11 @@ export async function generateShareLink(
     .single();
 
   if (error) {
-    console.error('Error creating share link:', error);
+    logError(new Error('Failed to create share link'), {
+      documentId,
+      errorCode: error.code,
+      errorMessage: error.message
+    });
     throw new Error('Failed to create share link');
   }
 
@@ -226,7 +244,12 @@ export async function revokeShareLink(documentId: string): Promise<void> {
     .eq('created_by', user.id);
 
   if (error) {
-    console.error('Error revoking share link:', error);
+    logError(new Error('Failed to revoke share link'), {
+      documentId,
+      userId: user.id,
+      errorCode: error.code,
+      errorMessage: error.message
+    });
     throw new Error('Failed to revoke share link');
   }
 }
@@ -254,7 +277,11 @@ export async function incrementAccessCount(token: string): Promise<void> {
     .eq('token', token);
 
   if (updateError) {
-    console.error('Error incrementing access count:', updateError);
+    logger.warn({
+      token: token.substring(0, 8) + '...',
+      errorCode: updateError.code,
+      errorMessage: updateError.message
+    }, 'Failed to increment access count');
   }
 }
 

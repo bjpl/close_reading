@@ -76,14 +76,30 @@ const calculateSimpleSimilarity = (text1: string, text2: string): number => {
 };
 
 /**
- * Cache ML inference results
+ * Input data for ML inference - typically text embeddings or features
+ */
+export type MLInputData = string | number[] | Record<string, unknown>;
+
+/**
+ * Output data from ML inference - predictions, embeddings, or classifications
+ */
+export type MLOutputData = number | number[] | Record<string, unknown>;
+
+/**
+ * Cache ML inference results for reuse
+ * @param modelName - Name/identifier of the ML model
+ * @param modelVersion - Version of the model
+ * @param inputType - Type classification of the input (e.g., "text", "embedding")
+ * @param inputData - The input data that was processed
+ * @param outputData - The output/result from the model
+ * @param processingTimeMs - Processing time in milliseconds
  */
 export const cacheMLResult = async (
   modelName: string,
   modelVersion: string,
   inputType: string,
-  inputData: any,
-  outputData: any,
+  inputData: MLInputData,
+  outputData: MLOutputData,
   processingTimeMs: number
 ) => {
   const inputHash = await hashInput(JSON.stringify(inputData));
@@ -107,13 +123,17 @@ export const cacheMLResult = async (
 };
 
 /**
- * Get cached ML result
+ * Get cached ML result from previous inference
+ * @param modelName - Name/identifier of the ML model
+ * @param modelVersion - Version of the model
+ * @param inputData - The input data to look up in cache
+ * @returns The cached output data, or null if not found
  */
 export const getCachedMLResult = async (
   modelName: string,
   modelVersion: string,
-  inputData: any
-): Promise<any | null> => {
+  inputData: MLInputData
+): Promise<MLOutputData | null> => {
   const inputHash = await hashInput(JSON.stringify(inputData));
 
   const { data, error } = await supabase

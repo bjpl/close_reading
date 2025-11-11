@@ -155,15 +155,32 @@ export async function storeSentences(
   paragraphsData: { parsed: ParsedParagraph; stored: Paragraph }[]
 ): Promise<{ success: boolean; sentences?: Sentence[]; error?: string }> {
   try {
-    const sentenceRecords: any[] = [];
+    // Type for sentence insert records - matches database schema
+    interface SentenceInsert {
+      document_id: string;
+      paragraph_id: string;
+      user_id: string;
+      content: string;
+      position: number;
+      start_offset: number;
+      end_offset: number;
+    }
+
+    const sentenceRecords: SentenceInsert[] = [];
 
     paragraphsData.forEach(({ parsed, stored }) => {
       parsed.sentences.forEach(sentence => {
+        // Note: stored.user_id may not exist on Paragraph type from types/index.ts
+        // but is present on the database Row type. Using type assertion for now.
+        const storedWithUserId = stored as typeof stored & { user_id: string };
         sentenceRecords.push({
           document_id: stored.document_id,
           paragraph_id: stored.id,
+          user_id: storedWithUserId.user_id || '',
           content: sentence.content,
-          position: sentence.position
+          position: sentence.position,
+          start_offset: 0, // TODO: Calculate actual offsets from text content
+          end_offset: sentence.content.length
         });
       });
     });

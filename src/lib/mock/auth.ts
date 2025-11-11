@@ -7,8 +7,12 @@
 
 import { IDBPDatabase } from 'idb';
 import { MockDB, MockUser, MockSession, SupabaseResponse } from './types';
+import logger from '@/lib/logger';
 
-type AuthCallback = (event: string, session: any) => void;
+/**
+ * Callback function for authentication state changes
+ */
+type AuthCallback = (event: string, session: MockSession | null) => void;
 
 /**
  * Mock authentication service class
@@ -36,7 +40,11 @@ export class MockAuthService {
    */
   async getSession(): Promise<SupabaseResponse<{ session: MockSession | null }>> {
     const user = this.getCurrentUser();
-    console.log('🔍 getSession called, user:', user ? `${user.email} (${user.id})` : 'null');
+    logger.debug({
+      hasUser: !!user,
+      userId: user?.id,
+      userEmail: user?.email
+    }, 'Mock auth: getSession called');
 
     const session = user ? {
       access_token: `mock_token_${user.id}`,
@@ -73,7 +81,10 @@ export class MockAuthService {
         };
 
         this.setCurrentUser(sanitized);
-        console.log('✅ User signed in:', sanitized.email);
+        logger.info({
+          userId: sanitized.id,
+          userEmail: sanitized.email
+        }, 'Mock auth: User signed in');
 
         const session: MockSession = {
           access_token: `mock_token_${user.id}`,
@@ -89,10 +100,13 @@ export class MockAuthService {
         return { data: { user: sanitized, session }, error: null };
       }
 
-      console.log('❌ Invalid credentials for:', email);
+      logger.warn({ email }, 'Mock auth: Invalid credentials');
       return { data: { user: null, session: null }, error: { message: 'Invalid credentials' } };
     } catch (error) {
-      console.error('❌ Login failed:', error);
+      logger.error({
+        email,
+        error: error instanceof Error ? error.message : 'Unknown error'
+      }, 'Mock auth: Login failed');
       return { data: { user: null, session: null }, error: { message: 'Login failed' } };
     }
   }
@@ -130,7 +144,10 @@ export class MockAuthService {
       };
 
       this.setCurrentUser(sanitized);
-      console.log('✅ User signed up:', sanitized.email);
+      logger.info({
+        userId: sanitized.id,
+        userEmail: sanitized.email
+      }, 'Mock auth: User signed up');
 
       const session: MockSession = {
         access_token: `mock_token_${user.id}`,
@@ -145,7 +162,10 @@ export class MockAuthService {
 
       return { data: { user: sanitized, session }, error: null };
     } catch (error) {
-      console.error('❌ Signup failed:', error);
+      logger.error({
+        email,
+        error: error instanceof Error ? error.message : 'Unknown error'
+      }, 'Mock auth: Signup failed');
       return { data: { user: null, session: null }, error: { message: 'User already exists' } };
     }
   }
@@ -156,7 +176,11 @@ export class MockAuthService {
    * Clears the session and notifies listeners
    */
   async signOut(): Promise<{ error: null }> {
-    console.log('👋 User signed out');
+    const currentUser = this.getCurrentUser();
+    logger.info({
+      userId: currentUser?.id,
+      userEmail: currentUser?.email
+    }, 'Mock auth: User signed out');
     this.setCurrentUser(null);
 
     // Notify listeners asynchronously
@@ -208,7 +232,7 @@ export class MockAuthService {
    * @returns Success response (mock implementation, doesn't send actual email)
    */
   async resetPasswordForEmail(email: string): Promise<SupabaseResponse<{}>> {
-    console.log('Password reset requested for:', email);
+    logger.info({ email }, 'Mock auth: Password reset requested');
     return { data: {}, error: null };
   }
 }
