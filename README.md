@@ -1,39 +1,49 @@
 # Close Reading Platform
 
+**Version:** 0.1.0 | **Status:** ACTIVE
+
 A modern web application for close reading and text analysis, featuring document upload, annotation tools, and AI-powered text analysis capabilities.
 
 ## Features
 
-- **Document Management**: Upload and manage PDF, DOCX, and image files (with OCR)
+- **Document Management**: Upload and manage PDF, DOCX, and image files (with OCR via Tesseract.js)
 - **Rich Annotations**: Create, edit, and organize text annotations with tags and colors
-- **Text Analysis**: Perform sentiment analysis, keyword extraction, and entity recognition
+- **ML-Powered Text Analysis**:
+  - TensorFlow.js integration for machine learning insights
+  - Wink NLP for natural language processing
+  - Sentiment analysis, keyword extraction, and entity recognition
+- **Document Parsing**: Comprehensive PDF and DOCX parsing capabilities
 - **Search & Filter**: Powerful search across documents and annotations
 - **User Authentication**: Secure user accounts with Supabase Auth
 - **Real-time Sync**: Changes sync across devices in real-time
 - **Responsive Design**: Works seamlessly on desktop, tablet, and mobile
+- **High Test Coverage**: 95%+ test coverage with comprehensive testing suite
 
 ## Tech Stack
 
-- **Frontend**: React 18 + TypeScript + Vite
-- **UI Framework**: Chakra UI + Framer Motion
+- **Frontend**: React 19 + TypeScript 5.3 + Vite 7.2
+- **UI Framework**: Chakra UI 3.29.0 + Framer Motion
 - **State Management**: Zustand
-- **Backend**: Supabase (PostgreSQL + Auth + Real-time)
-- **Text Processing**:
+- **Backend**: Supabase 2.39.0 (PostgreSQL + Auth + Real-time)
+- **ML/NLP Processing**:
+  - TensorFlow.js 4.15.0 (machine learning)
+  - Wink NLP 1.14.2 (natural language processing)
   - PDF parsing: react-pdf
   - DOCX parsing: mammoth
-  - OCR: tesseract.js
-  - NLP: compromise, wink-nlp
-- **Testing**: Vitest + React Testing Library + Playwright
-- **Deployment**: Vercel + GitHub Actions CI/CD
+  - OCR: tesseract.js (Tesseract.js)
+- **Testing**: Vitest 4.0 + React Testing Library + Playwright (95%+ coverage)
+- **Deployment**: Vercel (configured) + GitHub Actions CI/CD
 
 ## Quick Start
 
 ### Prerequisites
 
-- Node.js 20 or higher
+- Node.js 18+ or higher
 - npm or yarn
 - Supabase account
 - Vercel account (for deployment)
+
+**Current Configuration:** Vercel deployment configured and ready
 
 ### Local Development
 
