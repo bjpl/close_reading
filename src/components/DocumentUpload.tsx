@@ -150,7 +150,16 @@ export const DocumentUpload: React.FC<DocumentUploadProps> = ({
       // Trigger background processing
       if (document) {
         processDocument(file, projectId).catch(
-          (err) => logError(err, { context: 'Background processing error', documentId: document.id })
+          (err) => {
+            logError(err, { context: 'Background processing error', documentId: document.id });
+            console.error('❌ Background processing failed:', err);
+            toaster.create({
+              title: 'Processing Error',
+              description: 'Document uploaded but text processing failed. You may need to re-upload.',
+              type: 'warning',
+              duration: 8000,
+            });
+          }
         );
       }
 
