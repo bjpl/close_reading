@@ -12,9 +12,11 @@ import {
   Button,
   IconButton,
   Badge,
-  Divider,
-  toaster,
+  Separator,
+  createToaster,
 } from '@chakra-ui/react';
+
+const toaster = createToaster({ placement: 'top-end' });
 import { FiLink, FiX } from 'react-icons/fi';
 import { useDocumentStore } from '../stores/documentStore';
 
@@ -98,14 +100,14 @@ export const ParagraphLinkingPanel: React.FC = () => {
               colorScheme="blue"
               size="sm"
               onClick={handleLinkParagraphs}
-              isDisabled={selectedParagraphs.length < 2}
+              disabled={selectedParagraphs.length < 2}
             >
               <FiLink /> Link Selected
             </Button>
           </VStack>
         </Box>
 
-        <Divider />
+        <Separator />
 
         {/* Existing Links */}
         <Text fontSize="sm" fontWeight="medium">

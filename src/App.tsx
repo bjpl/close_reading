@@ -5,13 +5,18 @@
  */
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { ChakraProvider, Toaster } from '@chakra-ui/react';
+import { ChakraProvider, Toaster, createToaster } from '@chakra-ui/react';
 import { system } from './theme';
 import { useAuth } from './hooks/useAuth';
 import { LoginPage, DashboardPage, ProjectPage, DocumentPage } from './pages';
 import { SharedDocumentPage } from './pages/SharedDocumentPage';
 import { Box, Spinner } from '@chakra-ui/react';
 import './styles/annotations.css';
+
+export const toaster = createToaster({
+  placement: 'top-end',
+  duration: 3000,
+});
 
 /**
  * Protected Route Wrapper
@@ -46,7 +51,20 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
 function App() {
   return (
     <ChakraProvider value={system}>
-      <Toaster />
+      <Toaster toaster={toaster}>
+        {(toast) => (
+          <Box
+            bg="bg.panel"
+            borderRadius="md"
+            boxShadow="md"
+            p={4}
+            minW="300px"
+          >
+            {toast.title && <Box fontWeight="bold" mb={1}>{toast.title}</Box>}
+            {toast.description && <Box fontSize="sm">{toast.description}</Box>}
+          </Box>
+        )}
+      </Toaster>
       <BrowserRouter>
         <Routes>
           {/* Public Routes */}

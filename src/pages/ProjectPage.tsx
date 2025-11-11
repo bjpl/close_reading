@@ -15,7 +15,6 @@ import {
   Text,
   Grid,
   Card,
-  CardBody,
   Badge,
   IconButton,
 } from '@chakra-ui/react';
@@ -129,14 +128,14 @@ export const ProjectPage: React.FC = () => {
           ) : (
             <Grid templateColumns="repeat(auto-fill, minmax(300px, 1fr))" gap={4}>
               {documents.map((doc) => (
-                <Card
+                <Card.Root
                   key={doc.id}
                   cursor="pointer"
                   _hover={{ shadow: 'md' }}
                   transition="all 0.2s"
                   onClick={() => handleDocumentClick(doc.id)}
                 >
-                  <CardBody>
+                  <Card.Body>
                     <VStack align="stretch" gap={3}>
                       <HStack justify="space-between">
                         <HStack>
@@ -181,8 +180,8 @@ export const ProjectPage: React.FC = () => {
                         {formatSimpleDate(doc.created_at)}
                       </Text>
                     </VStack>
-                  </CardBody>
-                </Card>
+                  </Card.Body>
+                </Card.Root>
               ))}
             </Grid>
           )}

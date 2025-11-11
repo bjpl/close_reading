@@ -12,14 +12,12 @@ import {
   Tooltip,
   Button,
   Popover,
-  PopoverTrigger,
-  PopoverContent,
-  PopoverBody,
-  PopoverArrow,
   Text,
   Textarea,
-  toaster,
+  createToaster,
 } from '@chakra-ui/react';
+
+const toaster = createToaster({ placement: 'top-end' });
 import {
   FiFileText,
   FiStar,
@@ -200,8 +198,9 @@ export const AnnotationToolbar: React.FC = () => {
             Annotate:
           </Text>
 
-          <Tooltip label={activeToolType === 'highlight' ? 'Highlight mode ON (click color to turn off)' : 'Click a color to enable highlight mode'} placement="bottom">
-            <IconButton
+          <Tooltip.Root>
+            <Tooltip.Trigger asChild>
+              <IconButton
               aria-label="Highlight"
               colorScheme={activeToolType === 'highlight' ? 'blue' : 'gray'}
               variant={activeToolType === 'highlight' ? 'solid' : 'outline'}
@@ -218,53 +217,67 @@ export const AnnotationToolbar: React.FC = () => {
             >
               <HiOutlineColorSwatch />
             </IconButton>
-          </Tooltip>
+            </Tooltip.Trigger>
+            <Tooltip.Positioner>
+              <Tooltip.Content>
+                {activeToolType === 'highlight' ? 'Highlight mode ON (click color to turn off)' : 'Click a color to enable highlight mode'}
+              </Tooltip.Content>
+            </Tooltip.Positioner>
+          </Tooltip.Root>
 
-          <Popover
-            isOpen={isNotePopoverOpen && activeToolType === 'note'}
-            onClose={() => setIsNotePopoverOpen(false)}
-            placement="bottom"
+          <Popover.Root
+            open={isNotePopoverOpen && activeToolType === 'note'}
+            onOpenChange={(e) => setIsNotePopoverOpen(e.open)}
+            positioning={{ placement: 'bottom' }}
           >
-            <PopoverTrigger>
-              <Tooltip label="Add Note" placement="bottom">
-                <IconButton
+            <Popover.Trigger asChild>
+              <Tooltip.Root>
+                <Tooltip.Trigger asChild>
+                  <IconButton
                   aria-label="Add Note"
                   colorScheme={activeToolType === 'note' ? 'blue' : 'gray'}
                   variant={activeToolType === 'note' ? 'solid' : 'outline'}
                   onClick={() => handleToolClick('note')}
                   size="sm"
-                  isDisabled={!selectedText}
+                  disabled={!selectedText}
                 >
                   <FiFileText />
                 </IconButton>
-              </Tooltip>
-            </PopoverTrigger>
-            <PopoverContent>
-              <PopoverArrow />
-              <PopoverBody>
-                <VStack gap={3}>
-                  <Textarea
-                    placeholder="Enter your note..."
-                    value={noteText}
-                    onChange={(e) => setNoteText(e.target.value)}
-                    size="sm"
-                    rows={4}
-                  />
-                  <Button
-                    colorScheme="blue"
-                    size="sm"
-                    width="100%"
-                    onClick={handleNoteSave}
-                  >
-                    Save Note
-                  </Button>
-                </VStack>
-              </PopoverBody>
-            </PopoverContent>
-          </Popover>
+                </Tooltip.Trigger>
+                <Tooltip.Positioner>
+                  <Tooltip.Content>Add Note</Tooltip.Content>
+                </Tooltip.Positioner>
+              </Tooltip.Root>
+            </Popover.Trigger>
+            <Popover.Positioner>
+              <Popover.Content>
+                <Popover.Arrow />
+                <Popover.Body>
+                  <VStack gap={3}>
+                    <Textarea
+                      placeholder="Enter your note..."
+                      value={noteText}
+                      onChange={(e) => setNoteText(e.target.value)}
+                      size="sm"
+                      rows={4}
+                    />
+                    <Button
+                      colorScheme="blue"
+                      size="sm"
+                      width="100%"
+                      onClick={handleNoteSave}
+                    >
+                      Save Note
+                    </Button>
+                  </VStack>
+                </Popover.Body>
+              </Popover.Content>
+            </Popover.Positioner>
+          </Popover.Root>
 
-          <Tooltip label={activeToolType === 'main_idea' ? 'Main Idea mode ON (click to turn off)' : 'Main Idea mode OFF'} placement="bottom">
-            <IconButton
+          <Tooltip.Root>
+            <Tooltip.Trigger asChild>
+              <IconButton
               aria-label="Main Idea"
               colorScheme={activeToolType === 'main_idea' ? 'orange' : 'gray'}
               variant={activeToolType === 'main_idea' ? 'solid' : 'outline'}
@@ -281,10 +294,17 @@ export const AnnotationToolbar: React.FC = () => {
             >
               <FiStar />
             </IconButton>
-          </Tooltip>
+            </Tooltip.Trigger>
+            <Tooltip.Positioner>
+              <Tooltip.Content>
+                {activeToolType === 'main_idea' ? 'Main Idea mode ON (click to turn off)' : 'Main Idea mode OFF'}
+              </Tooltip.Content>
+            </Tooltip.Positioner>
+          </Tooltip.Root>
 
-          <Tooltip label={activeToolType === 'citation' ? 'Citation mode ON (click to turn off)' : 'Citation mode OFF'} placement="bottom">
-            <IconButton
+          <Tooltip.Root>
+            <Tooltip.Trigger asChild>
+              <IconButton
               aria-label="Add Citation"
               colorScheme={activeToolType === 'citation' ? 'blue' : 'gray'}
               variant={activeToolType === 'citation' ? 'solid' : 'outline'}
@@ -301,10 +321,17 @@ export const AnnotationToolbar: React.FC = () => {
             >
               <FiBookmark />
             </IconButton>
-          </Tooltip>
+            </Tooltip.Trigger>
+            <Tooltip.Positioner>
+              <Tooltip.Content>
+                {activeToolType === 'citation' ? 'Citation mode ON (click to turn off)' : 'Citation mode OFF'}
+              </Tooltip.Content>
+            </Tooltip.Positioner>
+          </Tooltip.Root>
 
-          <Tooltip label={activeToolType === 'question' ? 'Question mode ON (click to turn off)' : 'Question mode OFF'} placement="bottom">
-            <IconButton
+          <Tooltip.Root>
+            <Tooltip.Trigger asChild>
+              <IconButton
               aria-label="Mark as Question"
               colorScheme={activeToolType === 'question' ? 'purple' : 'gray'}
               variant={activeToolType === 'question' ? 'solid' : 'outline'}
@@ -321,7 +348,13 @@ export const AnnotationToolbar: React.FC = () => {
             >
               <FiHelpCircle />
             </IconButton>
-          </Tooltip>
+            </Tooltip.Trigger>
+            <Tooltip.Positioner>
+              <Tooltip.Content>
+                {activeToolType === 'question' ? 'Question mode ON (click to turn off)' : 'Question mode OFF'}
+              </Tooltip.Content>
+            </Tooltip.Positioner>
+          </Tooltip.Root>
         </HStack>
 
         {/* Color Selection - Toggle Mode */}
@@ -330,14 +363,9 @@ export const AnnotationToolbar: React.FC = () => {
             Color:
           </Text>
           {COLOR_OPTIONS.map((color) => (
-            <Tooltip
-              key={color}
-              label={activeToolType === 'highlight' && activeColor === color
-                ? `${color} highlight mode (click to turn off)`
-                : `${color} highlight mode`}
-              placement="bottom"
-            >
-              <Box
+            <Tooltip.Root key={color}>
+              <Tooltip.Trigger asChild>
+                <Box
                 as="button"
                 w={8}
                 h={8}
@@ -363,7 +391,15 @@ export const AnnotationToolbar: React.FC = () => {
                 _hover={{ transform: 'scale(1.15)', boxShadow: 'md' }}
                 boxShadow={activeToolType === 'highlight' && activeColor === color ? 'lg' : 'sm'}
               />
-            </Tooltip>
+              </Tooltip.Trigger>
+              <Tooltip.Positioner>
+                <Tooltip.Content>
+                  {activeToolType === 'highlight' && activeColor === color
+                    ? `${color} highlight mode (click to turn off)`
+                    : `${color} highlight mode`}
+                </Tooltip.Content>
+              </Tooltip.Positioner>
+            </Tooltip.Root>
           ))}
         </HStack>
 

@@ -72,7 +72,7 @@ export const SentenceView: React.FC<SentenceViewProps> = ({ sentences }) => {
   };
 
   return (
-    <VStack spacing={4} align="stretch">
+    <VStack gap={4} align="stretch">
       {sentences.map((sentence) => (
         <Box
           key={sentence.id}

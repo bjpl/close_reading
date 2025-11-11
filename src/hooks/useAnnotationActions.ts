@@ -5,7 +5,9 @@
  * Manages both local store updates and database persistence.
  */
 import { useCallback } from 'react';
-import { toaster } from '@chakra-ui/react';
+import { createToaster } from '@chakra-ui/react';
+
+const toaster = createToaster({ placement: 'top-end' });
 import type { Annotation } from '../types';
 
 interface UseAnnotationActionsOptions {

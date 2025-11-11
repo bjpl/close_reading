@@ -5,7 +5,9 @@
  * Handles both local state updates and database persistence.
  */
 import { useState } from 'react';
-import { toaster } from '@chakra-ui/react';
+import { createToaster } from '@chakra-ui/react';
+
+const toaster = createToaster({ placement: 'top-end' });
 import { useDocumentStore } from '../stores/documentStore';
 import { useAnnotations } from './useAnnotations';
 import { useAuth } from './useAuth';

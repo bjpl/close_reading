@@ -179,11 +179,11 @@ export const DocumentViewer: React.FC = () => {
   return (
     <Box h="100%" display="flex" flexDirection="column">
       {/* View Mode Toggle */}
-      <HStack p={4} borderBottomWidth={1} borderColor="gray.200" spacing={4}>
+      <HStack p={4} borderBottomWidth={1} borderColor="gray.200" gap={4}>
         <Text fontWeight="medium" fontSize="sm">
           View:
         </Text>
-        <ButtonGroup size="sm" isAttached variant="outline">
+        <ButtonGroup size="sm" attached variant="outline">
           <Button
             colorScheme={viewMode === 'original' ? 'blue' : 'gray'}
             onClick={() => setViewMode('original' as ViewModeType)}
@@ -208,13 +208,13 @@ export const DocumentViewer: React.FC = () => {
         bg="white"
         onMouseUp={handleTextSelection}
         userSelect="text"
-        sx={{
+        css={{
           '::selection': {
             bg: 'blue.100'
           }
         }}
       >
-        <VStack spacing={6} align="stretch">
+        <VStack gap={6} align="stretch">
           {/* Document Title */}
           <Text fontSize="2xl" fontWeight="bold" mb={4}>
             {currentDocument.title}

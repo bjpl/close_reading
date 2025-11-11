@@ -5,13 +5,7 @@
  */
 import React, { useState, useMemo } from 'react';
 import {
-  Modal,
-  ModalOverlay,
-  ModalContent,
-  ModalHeader,
-  ModalBody,
-  ModalFooter,
-  ModalCloseButton,
+  Dialog,
   Button,
   VStack,
   HStack,
@@ -20,9 +14,12 @@ import {
   Box,
   Code,
   IconButton,
-  toaster,
-  Divider,
+  createToaster,
+  Separator,
+  createListCollection,
 } from '@chakra-ui/react';
+
+const toaster = createToaster({ placement: 'top-end' });
 import { FiCopy, FiDownload } from 'react-icons/fi';
 import { useDocumentStore } from '../stores/documentStore';
 import { CitationExportFormat, CitationMetadata } from '../types/citation';
@@ -117,114 +114,134 @@ export const CitationExportModal: React.FC<CitationExportModalProps> = ({
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} size="xl">
-      <ModalOverlay />
-      <ModalContent maxW="800px">
-        <ModalHeader>Export Citations</ModalHeader>
-        <ModalCloseButton />
-        <ModalBody>
-          <VStack spacing={4} align="stretch">
-            {/* Format Selection */}
-            <HStack>
-              <Text fontSize="sm" fontWeight="medium">
-                Citation Format:
-              </Text>
-              <Select
-                value={format}
-                onChange={(e) => setFormat(e.target.value as CitationExportFormat)}
-                size="sm"
-                maxW="200px"
-              >
-                <option value="mla">MLA</option>
-                <option value="apa">APA</option>
-                <option value="chicago">Chicago</option>
-                <option value="bibtex">BibTeX</option>
-                <option value="ris">RIS</option>
-                <option value="json">JSON</option>
-              </Select>
-            </HStack>
-
-            <Divider />
-
-            {/* Citation Count */}
-            <HStack justify="space-between">
-              <Text fontSize="sm" color="gray.600">
-                {citations.length} citation{citations.length !== 1 ? 's' : ''} found
-              </Text>
+    <Dialog.Root open={isOpen} onOpenChange={(e) => !e.open && onClose()} size="xl">
+      <Dialog.Backdrop />
+      <Dialog.Positioner>
+        <Dialog.Content maxW="800px">
+          <Dialog.Header>Export Citations</Dialog.Header>
+          <Dialog.CloseTrigger />
+          <Dialog.Body>
+            <VStack gap={4} align="stretch">
+              {/* Format Selection */}
               <HStack>
-                <IconButton
-                  aria-label="Copy citations"
-                  icon={<FiCopy />}
+                <Text fontSize="sm" fontWeight="medium">
+                  Citation Format:
+                </Text>
+                <Select.Root
+                  value={[format]}
+                  onValueChange={(e: { value: string[] }) => setFormat(e.value[0] as CitationExportFormat)}
                   size="sm"
-                  onClick={handleCopy}
-                  isDisabled={citations.length === 0}
-                />
-                <IconButton
-                  aria-label="Download citations"
-                  icon={<FiDownload />}
-                  size="sm"
-                  onClick={handleDownload}
-                  isDisabled={citations.length === 0}
-                />
+                  maxW="200px"
+                  collection={createListCollection({
+                    items: [
+                      { value: 'mla', label: 'MLA' },
+                      { value: 'apa', label: 'APA' },
+                      { value: 'chicago', label: 'Chicago' },
+                      { value: 'bibtex', label: 'BibTeX' },
+                      { value: 'ris', label: 'RIS' },
+                      { value: 'json', label: 'JSON' },
+                    ],
+                  })}
+                >
+                  <Select.Trigger>
+                    <Select.ValueText />
+                  </Select.Trigger>
+                  <Select.Positioner>
+                    <Select.Content>
+                      {['mla', 'apa', 'chicago', 'bibtex', 'ris', 'json'].map((item) => (
+                        <Select.Item key={item} item={item}>
+                          {item.toUpperCase()}
+                        </Select.Item>
+                      ))}
+                    </Select.Content>
+                  </Select.Positioner>
+                </Select.Root>
               </HStack>
-            </HStack>
 
-            {/* Citations Preview */}
-            {citations.length === 0 ? (
-              <Box p={8} textAlign="center" bg="gray.50" borderRadius="md">
-                <Text color="gray.500">
-                  No citations found in this document. Mark text as citations using the
-                  annotation toolbar.
+              <Separator />
+
+              {/* Citation Count */}
+              <HStack justify="space-between">
+                <Text fontSize="sm" color="gray.600">
+                  {citations.length} citation{citations.length !== 1 ? 's' : ''} found
+                </Text>
+                <HStack>
+                  <IconButton
+                    aria-label="Copy citations"
+                    size="sm"
+                    onClick={handleCopy}
+                    disabled={citations.length === 0}
+                  >
+                    <FiCopy />
+                  </IconButton>
+                  <IconButton
+                    aria-label="Download citations"
+                    size="sm"
+                    onClick={handleDownload}
+                    disabled={citations.length === 0}
+                  >
+                    <FiDownload />
+                  </IconButton>
+                </HStack>
+              </HStack>
+
+              {/* Citations Preview */}
+              {citations.length === 0 ? (
+                <Box p={8} textAlign="center" bg="gray.50" borderRadius="md">
+                  <Text color="gray.500">
+                    No citations found in this document. Mark text as citations using the
+                    annotation toolbar.
+                  </Text>
+                </Box>
+              ) : (
+                <Box
+                  p={4}
+                  bg="gray.50"
+                  borderRadius="md"
+                  maxH="400px"
+                  overflow="auto"
+                >
+                  <Code
+                    display="block"
+                    whiteSpace="pre-wrap"
+                    bg="transparent"
+                    p={0}
+                    fontSize="sm"
+                  >
+                    {formattedCitations}
+                  </Code>
+                </Box>
+              )}
+
+              {/* Format Guide */}
+              <Box p={3} bg="blue.50" borderRadius="md">
+                <Text fontSize="xs" fontWeight="medium" mb={1}>
+                  Format Guide:
+                </Text>
+                <Text fontSize="xs" color="gray.700">
+                  {format === 'mla' &&
+                    'MLA: In-text citation with author and page number'}
+                  {format === 'apa' &&
+                    'APA: Author-date citation system with reference list'}
+                  {format === 'chicago' &&
+                    'Chicago: Numbered notes with full citation details'}
+                  {format === 'bibtex' &&
+                    'BibTeX: LaTeX bibliography format for academic papers'}
+                  {format === 'ris' &&
+                    'RIS: Standard format for reference management software (EndNote, Mendeley, Zotero)'}
+                  {format === 'json' &&
+                    'JSON: Structured data format for programmatic access and data interchange'}
                 </Text>
               </Box>
-            ) : (
-              <Box
-                p={4}
-                bg="gray.50"
-                borderRadius="md"
-                maxH="400px"
-                overflow="auto"
-              >
-                <Code
-                  display="block"
-                  whiteSpace="pre-wrap"
-                  bg="transparent"
-                  p={0}
-                  fontSize="sm"
-                >
-                  {formattedCitations}
-                </Code>
-              </Box>
-            )}
-
-            {/* Format Guide */}
-            <Box p={3} bg="blue.50" borderRadius="md">
-              <Text fontSize="xs" fontWeight="medium" mb={1}>
-                Format Guide:
-              </Text>
-              <Text fontSize="xs" color="gray.700">
-                {format === 'mla' &&
-                  'MLA: In-text citation with author and page number'}
-                {format === 'apa' &&
-                  'APA: Author-date citation system with reference list'}
-                {format === 'chicago' &&
-                  'Chicago: Numbered notes with full citation details'}
-                {format === 'bibtex' &&
-                  'BibTeX: LaTeX bibliography format for academic papers'}
-                {format === 'ris' &&
-                  'RIS: Standard format for reference management software (EndNote, Mendeley, Zotero)'}
-                {format === 'json' &&
-                  'JSON: Structured data format for programmatic access and data interchange'}
-              </Text>
-            </Box>
-          </VStack>
-        </ModalBody>
-        <ModalFooter>
-          <Button variant="ghost" mr={3} onClick={onClose}>
-            Close
-          </Button>
-        </ModalFooter>
-      </ModalContent>
-    </Modal>
+            </VStack>
+          </Dialog.Body>
+          <Dialog.Footer>
+            <Button variant="ghost" mr={3} onClick={onClose}>
+              Close
+            </Button>
+          </Dialog.Footer>
+        </Dialog.Content>
+      </Dialog.Positioner>
+    </Dialog.Root>
   );
 };

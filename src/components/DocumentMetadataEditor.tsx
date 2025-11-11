@@ -11,14 +11,15 @@ import {
   Text,
   Input,
   Button,
-  FormControl,
-  FormLabel,
-  toaster,
+  Field,
+  createToaster,
 } from '@chakra-ui/react';
+
+const toaster = createToaster({ placement: 'top-end' });
 import { FiEdit2, FiSave, FiX } from 'react-icons/fi';
 
 interface DocumentMetadataEditorProps {
-  documentId: string;
+  documentId?: string;
   currentTitle: string;
   currentAuthor?: string;
   onSave: (title: string, author: string) => Promise<void>;
@@ -76,8 +77,8 @@ export const DocumentMetadataEditor: React.FC<DocumentMetadataEditorProps> = ({
 
   if (!isEditing) {
     return (
-      <HStack spacing={4} align="start">
-        <VStack align="start" spacing={1} flex={1}>
+      <HStack gap={4} align="start">
+        <VStack align="start" gap={1} flex={1}>
           <Text fontSize="2xl" fontWeight="bold">
             {currentTitle}
           </Text>
@@ -89,10 +90,10 @@ export const DocumentMetadataEditor: React.FC<DocumentMetadataEditorProps> = ({
         </VStack>
         <Button
           size="sm"
-          leftIcon={<FiEdit2 />}
           onClick={() => setIsEditing(true)}
           variant="ghost"
         >
+          <FiEdit2 />
           Edit Info
         </Button>
       </HStack>
@@ -101,44 +102,44 @@ export const DocumentMetadataEditor: React.FC<DocumentMetadataEditorProps> = ({
 
   return (
     <Box p={4} bg="gray.50" borderRadius="md" borderWidth={1}>
-      <VStack spacing={3} align="stretch">
-        <FormControl>
-          <FormLabel fontSize="sm">Document Title</FormLabel>
+      <VStack gap={3} align="stretch">
+        <Field.Root>
+          <Field.Label fontSize="sm">Document Title</Field.Label>
           <Input
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             placeholder="Enter document title"
             size="sm"
           />
-        </FormControl>
+        </Field.Root>
 
-        <FormControl>
-          <FormLabel fontSize="sm">Author (optional)</FormLabel>
+        <Field.Root>
+          <Field.Label fontSize="sm">Author (optional)</Field.Label>
           <Input
             value={author}
             onChange={(e) => setAuthor(e.target.value)}
             placeholder="Enter author name"
             size="sm"
           />
-        </FormControl>
+        </Field.Root>
 
-        <HStack justify="flex-end" spacing={2}>
+        <HStack justify="flex-end" gap={2}>
           <Button
             size="sm"
             variant="ghost"
-            leftIcon={<FiX />}
             onClick={handleCancel}
-            isDisabled={isSaving}
+            disabled={isSaving}
           >
+            <FiX />
             Cancel
           </Button>
           <Button
             size="sm"
             colorScheme="blue"
-            leftIcon={<FiSave />}
             onClick={handleSave}
-            isLoading={isSaving}
+            loading={isSaving}
           >
+            <FiSave />
             Save
           </Button>
         </HStack>

@@ -38,8 +38,8 @@ export const Paragraph: React.FC<ParagraphProps> = ({ paragraph }) => {
   const [editingAnnotationId, setEditingAnnotationId] = useState<string | null>(null);
   const [editedNote, setEditedNote] = useState('');
   const [annotationToDelete, setAnnotationToDelete] = useState<string | null>(null);
-  const { isOpen: isDeleteOpen, onOpen: onDeleteOpen, onClose: onDeleteClose } = useDisclosure();
-  const { isOpen: isEditOpen, onOpen: onEditOpen, onClose: onEditClose } = useDisclosure();
+  const { open: isDeleteOpen, onOpen: onDeleteOpen, onClose: onDeleteClose } = useDisclosure();
+  const { open: isEditOpen, onOpen: onEditOpen, onClose: onEditClose } = useDisclosure();
   const cancelRef = React.useRef<HTMLButtonElement | null>(null);
 
   // Computed values

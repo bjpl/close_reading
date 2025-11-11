@@ -25,7 +25,7 @@ export const ParagraphActions: React.FC<ParagraphActionsProps> = ({
     <>
       {/* Link indicator */}
       {hasLinks && (
-        <HStack position="absolute" top={2} right={2} spacing={1}>
+        <HStack position="absolute" top={2} right={2} gap={1}>
           <FiLink size={14} />
           <Badge colorScheme="blue" fontSize="xs">
             {linkCount}

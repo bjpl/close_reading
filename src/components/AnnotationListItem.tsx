@@ -12,7 +12,7 @@ import {
   IconButton,
   Badge,
   Tooltip,
-  toaster,
+  createToaster,
   DialogRoot,
   DialogContent,
   DialogHeader,
@@ -24,6 +24,11 @@ import {
   Input,
   useDisclosure,
 } from '@chakra-ui/react';
+
+const toaster = createToaster({
+  placement: 'top-end',
+  duration: 3000,
+});
 import { FiEdit2, FiTrash2, FiExternalLink } from 'react-icons/fi';
 import {
   FaHighlighter,
@@ -158,39 +163,54 @@ export const AnnotationListItem: React.FC<AnnotationListItemProps> = ({
               )}
             </HStack>
             <HStack gap={1}>
-              <Tooltip label="Jump to annotation">
-                <IconButton
-                  aria-label="Jump to"
-                  size="xs"
-                  variant="ghost"
-                  onClick={handleJumpTo}
-                >
-                  <FiExternalLink />
-                </IconButton>
-              </Tooltip>
-              {(annotation.type === 'note' || annotation.note) && (
-                <Tooltip label="Edit note">
+              <Tooltip.Root>
+                <Tooltip.Trigger asChild>
                   <IconButton
-                    aria-label="Edit note"
+                    aria-label="Jump to"
                     size="xs"
                     variant="ghost"
-                    onClick={onEditOpen}
+                    onClick={handleJumpTo}
                   >
-                    <FiEdit2 />
+                    <FiExternalLink />
                   </IconButton>
-                </Tooltip>
+                </Tooltip.Trigger>
+                <Tooltip.Positioner>
+                  <Tooltip.Content>Jump to annotation</Tooltip.Content>
+                </Tooltip.Positioner>
+              </Tooltip.Root>
+              {(annotation.type === 'note' || annotation.note) && (
+                <Tooltip.Root>
+                  <Tooltip.Trigger asChild>
+                    <IconButton
+                      aria-label="Edit note"
+                      size="xs"
+                      variant="ghost"
+                      onClick={onEditOpen}
+                    >
+                      <FiEdit2 />
+                    </IconButton>
+                  </Tooltip.Trigger>
+                  <Tooltip.Positioner>
+                    <Tooltip.Content>Edit note</Tooltip.Content>
+                  </Tooltip.Positioner>
+                </Tooltip.Root>
               )}
-              <Tooltip label="Delete annotation">
-                <IconButton
-                  aria-label="Delete"
-                  size="xs"
-                  variant="ghost"
-                  colorScheme="red"
-                  onClick={onOpen}
-                >
-                  <FiTrash2 />
-                </IconButton>
-              </Tooltip>
+              <Tooltip.Root>
+                <Tooltip.Trigger asChild>
+                  <IconButton
+                    aria-label="Delete"
+                    size="xs"
+                    variant="ghost"
+                    colorScheme="red"
+                    onClick={onOpen}
+                  >
+                    <FiTrash2 />
+                  </IconButton>
+                </Tooltip.Trigger>
+                <Tooltip.Positioner>
+                  <Tooltip.Content>Delete annotation</Tooltip.Content>
+                </Tooltip.Positioner>
+              </Tooltip.Root>
             </HStack>
           </HStack>
 

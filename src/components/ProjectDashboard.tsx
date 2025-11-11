@@ -12,22 +12,17 @@ import {
   Text,
   Button,
   Input,
-  Modal,
-  ModalOverlay,
-  ModalContent,
-  ModalHeader,
-  ModalBody,
-  ModalFooter,
-  ModalCloseButton,
+  Dialog,
   useDisclosure,
   Card,
-  CardBody,
   IconButton,
   Textarea,
   Grid,
-  toaster,
+  createToaster,
   Spinner,
 } from '@chakra-ui/react';
+
+const toaster = createToaster({ placement: 'top-end' });
 import {
   FiPlus,
   FiFolder,
@@ -50,7 +45,7 @@ export const ProjectDashboard: React.FC = () => {
   const { isLoading, createProject, updateProject, deleteProject } = useProjects(
     user?.id
   );
-  const { isOpen, onOpen, onClose } = useDisclosure();
+  const { open: isOpen, onOpen, onClose } = useDisclosure();
   const [projectName, setProjectName] = useState('');
   const [projectDescription, setProjectDescription] = useState('');
   const [editingProject, setEditingProject] = useState<Project | null>(null);
@@ -205,14 +200,14 @@ export const ProjectDashboard: React.FC = () => {
             gap={4}
           >
             {projects.map((project) => (
-              <Card
+              <Card.Root
                 key={project.id}
                 cursor="pointer"
                 _hover={{ shadow: 'md' }}
                 transition="all 0.2s"
                 onClick={() => handleOpenProject(project)}
               >
-                <CardBody>
+                <Card.Body>
                   <VStack align="stretch" gap={3}>
                     <HStack justify="space-between">
                       <HStack>
@@ -257,59 +252,61 @@ export const ProjectDashboard: React.FC = () => {
                       Updated {formatSimpleDate(project.updated_at)}
                     </Text>
                   </VStack>
-                </CardBody>
-              </Card>
+                </Card.Body>
+              </Card.Root>
             ))}
           </Grid>
         )}
       </VStack>
 
       {/* Create/Edit Project Modal */}
-      <Modal isOpen={isOpen} onClose={handleCloseModal}>
-        <ModalOverlay />
-        <ModalContent>
-          <ModalHeader>
-            {editingProject ? 'Edit Project' : 'Create New Project'}
-          </ModalHeader>
-          <ModalCloseButton />
-          <ModalBody>
-            <VStack gap={4}>
-              <Box w="100%">
-                <Text fontSize="sm" fontWeight="medium" mb={2}>
-                  Project Name *
-                </Text>
-                <Input
-                  placeholder="Enter project name"
-                  value={projectName}
-                  onChange={(e) => setProjectName(e.target.value)}
-                />
-              </Box>
-              <Box w="100%">
-                <Text fontSize="sm" fontWeight="medium" mb={2}>
-                  Description
-                </Text>
-                <Textarea
-                  placeholder="Enter project description (optional)"
-                  value={projectDescription}
-                  onChange={(e) => setProjectDescription(e.target.value)}
-                  rows={4}
-                />
-              </Box>
-            </VStack>
-          </ModalBody>
-          <ModalFooter>
-            <Button variant="ghost" mr={3} onClick={handleCloseModal}>
-              Cancel
-            </Button>
-            <Button
-              colorScheme="blue"
-              onClick={editingProject ? handleUpdateProject : handleCreateProject}
-            >
-              {editingProject ? 'Update' : 'Create'}
-            </Button>
-          </ModalFooter>
-        </ModalContent>
-      </Modal>
+      <Dialog.Root open={isOpen} onOpenChange={(e) => !e.open && handleCloseModal()}>
+        <Dialog.Backdrop />
+        <Dialog.Positioner>
+          <Dialog.Content>
+            <Dialog.Header>
+              {editingProject ? 'Edit Project' : 'Create New Project'}
+            </Dialog.Header>
+            <Dialog.CloseTrigger />
+            <Dialog.Body>
+              <VStack gap={4}>
+                <Box w="100%">
+                  <Text fontSize="sm" fontWeight="medium" mb={2}>
+                    Project Name *
+                  </Text>
+                  <Input
+                    placeholder="Enter project name"
+                    value={projectName}
+                    onChange={(e) => setProjectName(e.target.value)}
+                  />
+                </Box>
+                <Box w="100%">
+                  <Text fontSize="sm" fontWeight="medium" mb={2}>
+                    Description
+                  </Text>
+                  <Textarea
+                    placeholder="Enter project description (optional)"
+                    value={projectDescription}
+                    onChange={(e) => setProjectDescription(e.target.value)}
+                    rows={4}
+                  />
+                </Box>
+              </VStack>
+            </Dialog.Body>
+            <Dialog.Footer>
+              <Button variant="ghost" mr={3} onClick={handleCloseModal}>
+                Cancel
+              </Button>
+              <Button
+                colorScheme="blue"
+                onClick={editingProject ? handleUpdateProject : handleCreateProject}
+              >
+                {editingProject ? 'Update' : 'Create'}
+              </Button>
+            </Dialog.Footer>
+          </Dialog.Content>
+        </Dialog.Positioner>
+      </Dialog.Root>
     </Box>
   );
 };

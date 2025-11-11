@@ -102,18 +102,17 @@ export const AnnotationFilterPanel: React.FC<AnnotationFilterPanelProps> = ({
                 onClick={() => toggleType(value)}
                 variant={activeFilters.types.includes(value) ? 'solid' : 'outline'}
                 colorScheme={activeFilters.types.includes(value) ? 'blue' : 'gray'}
-                rightIcon={
-                  annotationCounts[value] > 0 ? (
-                    <Badge
-                      colorScheme={activeFilters.types.includes(value) ? 'blue' : 'gray'}
-                      fontSize="xs"
-                    >
-                      {annotationCounts[value]}
-                    </Badge>
-                  ) : undefined
-                }
               >
                 {label}
+                {annotationCounts[value] > 0 && (
+                  <Badge
+                    colorScheme={activeFilters.types.includes(value) ? 'blue' : 'gray'}
+                    fontSize="xs"
+                    ml={2}
+                  >
+                    {annotationCounts[value]}
+                  </Badge>
+                )}
               </Button>
             ))}
           </ButtonGroup>

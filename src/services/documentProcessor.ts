@@ -2,7 +2,7 @@ import { uploadDocument, createDocumentRecord } from './documentUpload';
 import { extractText } from './textExtraction';
 import { parseDocument, storeParseDocument } from './textParsing';
 import type { Document, Paragraph, Sentence } from '../types';
-import logger, { logError, logPerformance } from '../lib/logger';
+import logger from '../lib/logger';
 
 export interface ProcessingProgress {
   stage: 'uploading' | 'extracting' | 'parsing' | 'storing' | 'complete' | 'error';

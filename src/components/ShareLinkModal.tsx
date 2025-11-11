@@ -5,27 +5,20 @@
  */
 import React, { useState, useEffect } from 'react';
 import {
-  Modal,
-  ModalOverlay,
-  ModalContent,
-  ModalHeader,
-  ModalBody,
-  ModalFooter,
-  ModalCloseButton,
+  Dialog,
   Button,
   VStack,
   HStack,
   Text,
   Input,
-  InputGroup,
-  InputRightElement,
   IconButton,
   Switch,
-  FormControl,
-  FormLabel,
-  toaster,
+  Field,
+  createToaster,
   Box,
 } from '@chakra-ui/react';
+
+const toaster = createToaster({ placement: 'top-end' });
 import { FiCopy, FiRefreshCw } from 'react-icons/fi';
 import { useSharing } from '../hooks/useSharing';
 
@@ -122,58 +115,69 @@ export const ShareLinkModal: React.FC<ShareLinkModalProps> = ({
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} size="lg">
-      <ModalOverlay />
-      <ModalContent>
-        <ModalHeader>Share Document</ModalHeader>
-        <ModalCloseButton />
-        <ModalBody>
-          <VStack gap={4} align="stretch">
-            {/* Document Info */}
-            <Box p={3} bg="gray.50" borderRadius="md">
-              <Text fontSize="sm" fontWeight="medium" color="gray.600">
-                Sharing:
-              </Text>
-              <Text fontWeight="medium">{documentTitle}</Text>
-            </Box>
-
-            {/* Share Options */}
-            <FormControl display="flex" alignItems="center">
-              <FormLabel htmlFor="expiry-toggle" mb="0" fontSize="sm">
-                Link expires in 7 days
-              </FormLabel>
-              <Switch
-                id="expiry-toggle"
-                isChecked={hasExpiry}
-                onChange={(e) => setHasExpiry(e.target.checked)}
-              />
-            </FormControl>
-
-            {/* Generate/Show Link */}
-            {!shareLink ? (
-              <Button
-                colorScheme="blue"
-                onClick={generateShareLink}
-                isLoading={loading}
-                loadingText="Generating..."
-              >
-                Generate Share Link
-              </Button>
-            ) : (
-              <VStack gap={3} align="stretch">
-                <Text fontSize="sm" fontWeight="medium">
-                  Share Link:
+    <Dialog.Root open={isOpen} onOpenChange={(e) => !e.open && onClose()} size="lg">
+      <Dialog.Backdrop />
+      <Dialog.Positioner>
+        <Dialog.Content>
+          <Dialog.Header>Share Document</Dialog.Header>
+          <Dialog.CloseTrigger />
+          <Dialog.Body>
+            <VStack gap={4} align="stretch">
+              {/* Document Info */}
+              <Box p={3} bg="gray.50" borderRadius="md">
+                <Text fontSize="sm" fontWeight="medium" color="gray.600">
+                  Sharing:
                 </Text>
-                <InputGroup size="sm">
-                  <Input
-                    value={shareLink}
-                    isReadOnly
-                    pr="80px"
-                    fontFamily="mono"
-                    fontSize="xs"
-                  />
-                  <InputRightElement width="80px">
-                    <HStack gap={1}>
+                <Text fontWeight="medium">{documentTitle}</Text>
+              </Box>
+
+              {/* Share Options */}
+              <Field.Root display="flex" alignItems="center">
+                <Field.Label htmlFor="expiry-toggle" mb="0" fontSize="sm">
+                  Link expires in 7 days
+                </Field.Label>
+                <Switch.Root
+                  id="expiry-toggle"
+                  checked={hasExpiry}
+                  onCheckedChange={(e) => setHasExpiry(e.checked)}
+                >
+                  <Switch.Control>
+                    <Switch.Thumb />
+                  </Switch.Control>
+                </Switch.Root>
+              </Field.Root>
+
+              {/* Generate/Show Link */}
+              {!shareLink ? (
+                <Button
+                  colorScheme="blue"
+                  onClick={generateShareLink}
+                  loading={loading}
+                  loadingText="Generating..."
+                >
+                  Generate Share Link
+                </Button>
+              ) : (
+                <VStack gap={3} align="stretch">
+                  <Text fontSize="sm" fontWeight="medium">
+                    Share Link:
+                  </Text>
+                  <Box position="relative">
+                    <Input
+                      value={shareLink}
+                      readOnly
+                      pr="90px"
+                      fontFamily="mono"
+                      fontSize="xs"
+                      size="sm"
+                    />
+                    <HStack
+                      position="absolute"
+                      right={2}
+                      top="50%"
+                      transform="translateY(-50%)"
+                      gap={1}
+                    >
                       <IconButton
                         aria-label="Copy link"
                         size="xs"
@@ -189,40 +193,40 @@ export const ShareLinkModal: React.FC<ShareLinkModalProps> = ({
                         <FiRefreshCw />
                       </IconButton>
                     </HStack>
-                  </InputRightElement>
-                </InputGroup>
-              </VStack>
-            )}
+                  </Box>
+                </VStack>
+              )}
 
-            {/* Permissions Info */}
-            <Box p={3} bg="blue.50" borderRadius="md">
-              <Text fontSize="xs" fontWeight="medium" mb={1}>
-                Read-only Access:
-              </Text>
-              <Text fontSize="xs" color="gray.700">
-                Recipients can view the document and all annotations but cannot make
-                changes.
-                {hasExpiry && ' The link will expire automatically in 7 days.'}
-              </Text>
-            </Box>
-
-            {/* Warning */}
-            {shareLink && (
-              <Box p={3} bg="orange.50" borderRadius="md">
-                <Text fontSize="xs" color="orange.800">
-                  <strong>Note:</strong> Anyone with this link can view your document.
-                  Generate a new link to revoke access.
+              {/* Permissions Info */}
+              <Box p={3} bg="blue.50" borderRadius="md">
+                <Text fontSize="xs" fontWeight="medium" mb={1}>
+                  Read-only Access:
+                </Text>
+                <Text fontSize="xs" color="gray.700">
+                  Recipients can view the document and all annotations but cannot make
+                  changes.
+                  {hasExpiry && ' The link will expire automatically in 7 days.'}
                 </Text>
               </Box>
-            )}
-          </VStack>
-        </ModalBody>
-        <ModalFooter>
-          <Button variant="ghost" onClick={onClose}>
-            Close
-          </Button>
-        </ModalFooter>
-      </ModalContent>
-    </Modal>
+
+              {/* Warning */}
+              {shareLink && (
+                <Box p={3} bg="orange.50" borderRadius="md">
+                  <Text fontSize="xs" color="orange.800">
+                    <strong>Note:</strong> Anyone with this link can view your document.
+                    Generate a new link to revoke access.
+                  </Text>
+                </Box>
+              )}
+            </VStack>
+          </Dialog.Body>
+          <Dialog.Footer>
+            <Button variant="ghost" onClick={onClose}>
+              Close
+            </Button>
+          </Dialog.Footer>
+        </Dialog.Content>
+      </Dialog.Positioner>
+    </Dialog.Root>
   );
 };

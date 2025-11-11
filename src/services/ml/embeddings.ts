@@ -109,7 +109,7 @@ export class EmbeddingService {
 
     try {
       const embeddings = await this.model!.embed([text]);
-      const vector = Array.from(await embeddings.data());
+      const vector = Array.from(await embeddings.data()) as number[];
       embeddings.dispose(); // Clean up tensors
 
       const duration = performance.now() - startTime;

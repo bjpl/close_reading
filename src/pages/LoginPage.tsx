@@ -12,16 +12,15 @@ import {
   Text,
   Input,
   Button,
-  FormControl,
-  FormLabel,
-  FormErrorMessage,
-  toaster,
+  Field,
+  createToaster,
   Tabs,
-  TabList,
-  TabPanels,
-  Tab,
-  TabPanel,
 } from '@chakra-ui/react';
+
+const toaster = createToaster({
+  placement: 'top-end',
+  duration: 3000,
+});
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 
@@ -83,7 +82,7 @@ export const LoginPage: React.FC = () => {
   return (
     <Box minH="100vh" bg="gray.50" py={12}>
       <Container maxW="md">
-        <VStack spacing={8} align="stretch">
+        <VStack gap={8} align="stretch">
           <Box textAlign="center">
             <Heading size="xl" mb={2}>
               Close Reading Platform
@@ -94,28 +93,27 @@ export const LoginPage: React.FC = () => {
           </Box>
 
           <Box bg="white" p={8} borderRadius="lg" shadow="md">
-            <Tabs isFitted>
-              <TabList mb={6}>
-                <Tab>Login</Tab>
-                <Tab>Sign Up</Tab>
-              </TabList>
+            <Tabs.Root fitted defaultValue="login">
+              <Tabs.List mb={6}>
+                <Tabs.Trigger value="login">Login</Tabs.Trigger>
+                <Tabs.Trigger value="signup">Sign Up</Tabs.Trigger>
+              </Tabs.List>
 
-              <TabPanels>
-                <TabPanel>
-                  <form onSubmit={handleLogin}>
-                    <VStack spacing={4}>
-                      <FormControl isRequired isInvalid={!!error}>
-                        <FormLabel>Email</FormLabel>
+              <Tabs.Content value="login">
+                <form onSubmit={handleLogin}>
+                  <VStack gap={4}>
+                      <Field.Root required invalid={!!error}>
+                        <Field.Label>Email</Field.Label>
                         <Input
                           type="email"
                           value={email}
                           onChange={(e) => setEmail(e.target.value)}
                           placeholder="Enter your email"
                         />
-                      </FormControl>
+                      </Field.Root>
 
-                      <FormControl isRequired isInvalid={!!error}>
-                        <FormLabel>Password</FormLabel>
+                      <Field.Root required invalid={!!error}>
+                        <Field.Label>Password</Field.Label>
                         <Input
                           type="password"
                           value={password}
@@ -123,37 +121,37 @@ export const LoginPage: React.FC = () => {
                           placeholder="Enter your password"
                         />
                         {error && (
-                          <FormErrorMessage>{error.message}</FormErrorMessage>
+                          <Field.ErrorText>{error.message}</Field.ErrorText>
                         )}
-                      </FormControl>
+                      </Field.Root>
 
                       <Button
                         type="submit"
                         colorScheme="blue"
                         width="100%"
-                        isLoading={isLoading}
+                        loading={isLoading}
                       >
                         Log In
                       </Button>
                     </VStack>
                   </form>
-                </TabPanel>
+                </Tabs.Content>
 
-                <TabPanel>
+                <Tabs.Content value="signup">
                   <form onSubmit={handleSignUp}>
-                    <VStack spacing={4}>
-                      <FormControl isRequired isInvalid={!!error}>
-                        <FormLabel>Email</FormLabel>
+                    <VStack gap={4}>
+                      <Field.Root required invalid={!!error}>
+                        <Field.Label>Email</Field.Label>
                         <Input
                           type="email"
                           value={email}
                           onChange={(e) => setEmail(e.target.value)}
                           placeholder="Enter your email"
                         />
-                      </FormControl>
+                      </Field.Root>
 
-                      <FormControl isRequired isInvalid={!!error}>
-                        <FormLabel>Password</FormLabel>
+                      <Field.Root required invalid={!!error}>
+                        <Field.Label>Password</Field.Label>
                         <Input
                           type="password"
                           value={password}
@@ -161,23 +159,22 @@ export const LoginPage: React.FC = () => {
                           placeholder="Create a password"
                         />
                         {error && (
-                          <FormErrorMessage>{error.message}</FormErrorMessage>
+                          <Field.ErrorText>{error.message}</Field.ErrorText>
                         )}
-                      </FormControl>
+                      </Field.Root>
 
                       <Button
                         type="submit"
                         colorScheme="blue"
                         width="100%"
-                        isLoading={isLoading}
+                        loading={isLoading}
                       >
                         Sign Up
                       </Button>
                     </VStack>
                   </form>
-                </TabPanel>
-              </TabPanels>
-            </Tabs>
+                </Tabs.Content>
+              </Tabs.Root>
           </Box>
         </VStack>
       </Container>

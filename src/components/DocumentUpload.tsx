@@ -11,9 +11,11 @@ import {
   VStack,
   Text,
   Icon,
-  toaster,
+  createToaster,
   Progress,
 } from '@chakra-ui/react';
+
+const toaster = createToaster({ placement: 'top-end' });
 import { FiUploadCloud, FiFile } from 'react-icons/fi';
 import { useAuth } from '../hooks/useAuth';
 import { useDocuments } from '../hooks/useDocuments';
@@ -230,12 +232,11 @@ export const DocumentUpload: React.FC<DocumentUploadProps> = ({
             <Text fontSize="lg" fontWeight="medium">
               Uploading document...
             </Text>
-            <Progress
-              value={uploadProgress}
-              width="100%"
-              colorScheme="blue"
-              borderRadius="md"
-            />
+            <Progress.Root value={uploadProgress} width="100%">
+              <Progress.Track>
+                <Progress.Range colorPalette="blue" />
+              </Progress.Track>
+            </Progress.Root>
             <Text fontSize="sm" color="gray.600">
               {uploadProgress}% complete
             </Text>
@@ -250,13 +251,14 @@ export const DocumentUpload: React.FC<DocumentUploadProps> = ({
             <Text fontSize="sm" color="gray.600">
               or
             </Text>
-            <Button
-              as="label"
-              colorScheme="blue"
-              cursor="pointer"
-              htmlFor="file-upload"
-            >
-              Browse Files
+            <label htmlFor="file-upload">
+              <Button
+                as="span"
+                colorScheme="blue"
+                cursor="pointer"
+              >
+                Browse Files
+              </Button>
               <input
                 id="file-upload"
                 type="file"
@@ -264,7 +266,7 @@ export const DocumentUpload: React.FC<DocumentUploadProps> = ({
                 onChange={handleFileSelect}
                 style={{ display: 'none' }}
               />
-            </Button>
+            </label>
             <Text fontSize="xs" color="gray.500">
               Supports PDF, DOCX, and TXT files (max 10MB)
             </Text>

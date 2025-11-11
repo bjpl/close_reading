@@ -10,9 +10,6 @@ import {
   IconButton,
   Tooltip,
   Popover,
-  PopoverTrigger,
-  PopoverContent,
-  PopoverBody,
   Text,
 } from '@chakra-ui/react';
 import { FiEdit2, FiTrash2, FiMessageSquare } from 'react-icons/fi';
@@ -46,50 +43,65 @@ export const AnnotationActions: React.FC<AnnotationActionsProps> = ({
       boxShadow="lg"
       p={1}
     >
-      <HStack spacing={1}>
+      <HStack gap={1}>
         {/* Show note in popover */}
         {hasNote && (
-          <Popover trigger="hover" placement="top">
-            <PopoverTrigger>
+          <Popover.Root positioning={{ placement: 'top' }}>
+            <Popover.Trigger asChild>
               <IconButton
                 aria-label="View note"
-                icon={<FiMessageSquare />}
                 size="xs"
                 variant="ghost"
-              />
-            </PopoverTrigger>
-            <PopoverContent>
-              <PopoverBody>
-                <Text fontSize="sm">{annotation.note}</Text>
-              </PopoverBody>
-            </PopoverContent>
-          </Popover>
+              >
+                <FiMessageSquare />
+              </IconButton>
+            </Popover.Trigger>
+            <Popover.Positioner>
+              <Popover.Content>
+                <Popover.Body>
+                  <Text fontSize="sm">{annotation.note}</Text>
+                </Popover.Body>
+              </Popover.Content>
+            </Popover.Positioner>
+          </Popover.Root>
         )}
 
         {/* Edit button (for notes) */}
         {(annotation.type === 'note' || hasNote) && (
-          <Tooltip label="Edit note">
-            <IconButton
-              aria-label="Edit"
-              icon={<FiEdit2 />}
-              size="xs"
-              variant="ghost"
-              onClick={() => onEdit(annotation.id)}
-            />
-          </Tooltip>
+          <Tooltip.Root>
+            <Tooltip.Trigger asChild>
+              <IconButton
+                aria-label="Edit"
+                size="xs"
+                variant="ghost"
+                onClick={() => onEdit(annotation.id)}
+              >
+                <FiEdit2 />
+              </IconButton>
+            </Tooltip.Trigger>
+            <Tooltip.Positioner>
+              <Tooltip.Content>Edit note</Tooltip.Content>
+            </Tooltip.Positioner>
+          </Tooltip.Root>
         )}
 
         {/* Delete button */}
-        <Tooltip label="Delete">
-          <IconButton
-            aria-label="Delete"
-            icon={<FiTrash2 />}
-            size="xs"
-            variant="ghost"
-            colorScheme="red"
-            onClick={() => onDelete(annotation.id)}
-          />
-        </Tooltip>
+        <Tooltip.Root>
+          <Tooltip.Trigger asChild>
+            <IconButton
+              aria-label="Delete"
+              size="xs"
+              variant="ghost"
+              colorScheme="red"
+              onClick={() => onDelete(annotation.id)}
+            >
+              <FiTrash2 />
+            </IconButton>
+          </Tooltip.Trigger>
+          <Tooltip.Positioner>
+            <Tooltip.Content>Delete</Tooltip.Content>
+          </Tooltip.Positioner>
+        </Tooltip.Root>
       </HStack>
     </Box>
   );

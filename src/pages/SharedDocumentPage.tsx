@@ -14,13 +14,10 @@ import {
   Text,
   Spinner,
   Alert,
-  AlertIcon,
-  AlertTitle,
-  AlertDescription,
   VStack,
   HStack,
   Badge,
-  Divider,
+  Separator,
   Button,
 } from '@chakra-ui/react';
 import { FiExternalLink, FiLock } from 'react-icons/fi';
@@ -71,7 +68,7 @@ export const SharedDocumentPage: React.FC = () => {
     return (
       <Box minH="100vh" bg="gray.50" py={16}>
         <Container maxW="container.md">
-          <Alert
+          <Alert.Root
             status="error"
             variant="subtle"
             flexDirection="column"
@@ -81,14 +78,14 @@ export const SharedDocumentPage: React.FC = () => {
             height="300px"
             borderRadius="lg"
           >
-            <AlertIcon boxSize="40px" mr={0} />
-            <AlertTitle mt={4} mb={1} fontSize="lg">
+            <Alert.Indicator boxSize="40px" mr={0} />
+            <Alert.Title mt={4} mb={1} fontSize="lg">
               Document Not Available
-            </AlertTitle>
-            <AlertDescription maxWidth="sm">
+            </Alert.Title>
+            <Alert.Description maxWidth="sm">
               {error || 'This share link is invalid or has expired.'}
-            </AlertDescription>
-          </Alert>
+            </Alert.Description>
+          </Alert.Root>
         </Container>
       </Box>
     );
@@ -106,15 +103,11 @@ export const SharedDocumentPage: React.FC = () => {
                 Read-Only View - You're viewing a shared document
               </Text>
             </HStack>
-            <Button
-              as={RouterLink}
-              to="/login"
-              size="sm"
-              variant="outline"
-              colorScheme="whiteAlpha"
-            >
-              Sign in to edit <FiExternalLink />
-            </Button>
+            <RouterLink to="/login">
+              <Button size="sm" variant="outline" colorPalette="whiteAlpha">
+                Sign in to edit <FiExternalLink />
+              </Button>
+            </RouterLink>
           </HStack>
         </Container>
       </Box>
@@ -141,7 +134,7 @@ export const SharedDocumentPage: React.FC = () => {
                   Read-Only
                 </Badge>
               </HStack>
-              <Divider />
+              <Separator />
               <Text fontSize="sm" color="gray.600">
                 Shared on {formatSimpleDate(document.created_at)}
               </Text>
@@ -159,10 +152,10 @@ export const SharedDocumentPage: React.FC = () => {
                   KEEP_CONTENT: true
                 })
               }}
-              sx={{
-                '& p': { mb: 4 },
-                '& h1, & h2, & h3': { mt: 6, mb: 3 },
-                '& ul, & ol': { ml: 6, mb: 4 },
+              css={{
+                '& p': { marginBottom: '1rem' },
+                '& h1, & h2, & h3': { marginTop: '1.5rem', marginBottom: '0.75rem' },
+                '& ul, & ol': { marginLeft: '1.5rem', marginBottom: '1rem' },
                 lineHeight: '1.8',
                 fontSize: 'md',
               }}
@@ -177,7 +170,7 @@ export const SharedDocumentPage: React.FC = () => {
                   <Heading size="md">Annotations</Heading>
                   <Badge colorScheme="purple">{document.annotations.length}</Badge>
                 </HStack>
-                <Divider />
+                <Separator />
                 <VStack align="stretch" gap={4}>
                   {document.annotations.map((annotation: any, index: number) => (
                     <Box
@@ -236,15 +229,15 @@ export const SharedDocumentPage: React.FC = () => {
           <Box textAlign="center" py={4}>
             <Text fontSize="sm" color="gray.600">
               This is a shared read-only view.{' '}
-              <Button
-                as={RouterLink}
-                to="/login"
-                variant="link"
-                colorScheme="blue"
-                size="sm"
-              >
-                Sign in
-              </Button>{' '}
+              <RouterLink to="/login">
+                <Button
+                  variant="plain"
+                  colorPalette="blue"
+                  size="sm"
+                >
+                  Sign in
+                </Button>
+              </RouterLink>{' '}
               to create and edit your own documents.
             </Text>
           </Box>

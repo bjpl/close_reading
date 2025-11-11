@@ -5,7 +5,9 @@
  * Handles file generation and download with toast notifications.
  */
 import { useCallback } from 'react';
-import { toaster } from '@chakra-ui/react';
+import { createToaster } from '@chakra-ui/react';
+
+const toaster = createToaster({ placement: 'top-end' });
 import type { Annotation } from '../types';
 import type { AnnotationFilters } from './useAnnotationFilters';
 import {

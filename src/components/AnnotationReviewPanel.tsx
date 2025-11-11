@@ -11,19 +11,15 @@ import {
   Text,
   IconButton,
   Badge,
-  Divider,
-  Collapse,
+  Separator,
+  Collapsible,
   useDisclosure,
   Menu,
-  MenuButton,
-  MenuList,
-  MenuItem,
   Select,
   Stat,
-  StatLabel,
-  StatNumber,
   StatGroup,
   Tooltip,
+  createListCollection,
 } from '@chakra-ui/react';
 import {
   FiChevronLeft,
@@ -52,15 +48,15 @@ export const AnnotationReviewPanel: React.FC<AnnotationReviewPanelProps> = ({
   documentId,
 }) => {
   const { user } = useAuth();
-  const { isOpen, onToggle } = useDisclosure({ defaultIsOpen: true });
+  const { open, onToggle } = useDisclosure({ defaultOpen: true });
   const {
-    isOpen: isFilterOpen,
+    open: filterOpen,
     onToggle: onToggleFilter,
-  } = useDisclosure({ defaultIsOpen: false });
+  } = useDisclosure({ defaultOpen: false });
   const {
-    isOpen: isStatsOpen,
+    open: statsOpen,
     onToggle: onToggleStats,
-  } = useDisclosure({ defaultIsOpen: false });
+  } = useDisclosure({ defaultOpen: false });
 
   const { currentDocument, deleteAnnotation, updateAnnotation } =
     useDocumentStore();
@@ -108,7 +104,7 @@ export const AnnotationReviewPanel: React.FC<AnnotationReviewPanelProps> = ({
 
   return (
     <Box
-      w={isOpen ? '400px' : '50px'}
+      w={open ? '400px' : '50px'}
       h="100%"
       borderLeftWidth={1}
       borderColor="gray.200"
@@ -120,7 +116,7 @@ export const AnnotationReviewPanel: React.FC<AnnotationReviewPanelProps> = ({
     >
       {/* Toggle button */}
       <IconButton
-        aria-label={isOpen ? 'Collapse panel' : 'Expand panel'}
+        aria-label={open ? 'Collapse panel' : 'Expand panel'}
         size="sm"
         position="absolute"
         left={-4}
@@ -129,11 +125,12 @@ export const AnnotationReviewPanel: React.FC<AnnotationReviewPanelProps> = ({
         borderRadius="full"
         onClick={onToggle}
       >
-        {isOpen ? <FiChevronRight /> : <FiChevronLeft />}
+        {open ? <FiChevronRight /> : <FiChevronLeft />}
       </IconButton>
 
       {/* Panel content */}
-      <Collapse in={isOpen} animateOpacity>
+      <Collapsible.Root open={open}>
+        <Collapsible.Content>
         <VStack align="stretch" h="100%" gap={0}>
           {/* Header */}
           <Box p={4} borderBottomWidth={1} borderColor="gray.200">
@@ -149,82 +146,112 @@ export const AnnotationReviewPanel: React.FC<AnnotationReviewPanelProps> = ({
 
               {/* Action buttons */}
               <HStack gap={2}>
-                <Tooltip label="Toggle filters">
-                  <IconButton
-                    aria-label="Filters"
-                    size="sm"
-                    variant={isFilterOpen ? 'solid' : 'outline'}
-                    onClick={onToggleFilter}
-                  >
-                    <FiFilter />
-                  </IconButton>
-                </Tooltip>
-                <Tooltip label="Toggle statistics">
-                  <IconButton
-                    aria-label="Statistics"
-                    size="sm"
-                    variant={isStatsOpen ? 'solid' : 'outline'}
-                    onClick={onToggleStats}
-                  >
-                    <FiBarChart2 />
-                  </IconButton>
-                </Tooltip>
-                <Menu>
-                  <MenuButton
-                    as={IconButton}
-                    aria-label="Export"
-                    size="sm"
-                    variant="outline"
-                  >
-                    <FiDownload />
-                  </MenuButton>
-                  <MenuList>
-                    <MenuItem onClick={() => handleExport('json')}>
-                      Export as JSON
-                    </MenuItem>
-                    <MenuItem onClick={() => handleExport('markdown')}>
-                      Export as Markdown
-                    </MenuItem>
-                    <MenuItem onClick={() => handleExport('csv')}>
-                      Export as CSV
-                    </MenuItem>
-                  </MenuList>
-                </Menu>
+                <Tooltip.Root>
+                  <Tooltip.Trigger asChild>
+                    <IconButton
+                      aria-label="Filters"
+                      size="sm"
+                      variant={filterOpen ? 'solid' : 'outline'}
+                      onClick={onToggleFilter}
+                    >
+                      <FiFilter />
+                    </IconButton>
+                  </Tooltip.Trigger>
+                  <Tooltip.Positioner>
+                    <Tooltip.Content>Toggle filters</Tooltip.Content>
+                  </Tooltip.Positioner>
+                </Tooltip.Root>
+                <Tooltip.Root>
+                  <Tooltip.Trigger asChild>
+                    <IconButton
+                      aria-label="Statistics"
+                      size="sm"
+                      variant={statsOpen ? 'solid' : 'outline'}
+                      onClick={onToggleStats}
+                    >
+                      <FiBarChart2 />
+                    </IconButton>
+                  </Tooltip.Trigger>
+                  <Tooltip.Positioner>
+                    <Tooltip.Content>Toggle statistics</Tooltip.Content>
+                  </Tooltip.Positioner>
+                </Tooltip.Root>
+                <Menu.Root>
+                  <Menu.Trigger asChild>
+                    <IconButton
+                      aria-label="Export"
+                      size="sm"
+                      variant="outline"
+                    >
+                      <FiDownload />
+                    </IconButton>
+                  </Menu.Trigger>
+                  <Menu.Positioner>
+                    <Menu.Content>
+                      <Menu.Item value="json" onClick={() => handleExport('json')}>
+                        Export as JSON
+                      </Menu.Item>
+                      <Menu.Item value="markdown" onClick={() => handleExport('markdown')}>
+                        Export as Markdown
+                      </Menu.Item>
+                      <Menu.Item value="csv" onClick={() => handleExport('csv')}>
+                        Export as CSV
+                      </Menu.Item>
+                    </Menu.Content>
+                  </Menu.Positioner>
+                </Menu.Root>
               </HStack>
 
               {/* Group by selector */}
-              <Select
+              <Select.Root
                 size="sm"
-                value={groupBy}
-                onChange={(e) =>
-                  setGroupBy(e.target.value as 'type' | 'color' | 'date')
+                value={[groupBy]}
+                onValueChange={(e: { value: string[] }) =>
+                  setGroupBy(e.value[0] as 'type' | 'color' | 'date')
                 }
+                collection={createListCollection({
+                  items: [
+                    { value: 'type', label: 'Group by Type' },
+                    { value: 'color', label: 'Group by Color' },
+                    { value: 'date', label: 'Group by Date' },
+                  ],
+                })}
               >
-                <option value="type">Group by Type</option>
-                <option value="color">Group by Color</option>
-                <option value="date">Group by Date</option>
-              </Select>
+                <Select.Trigger>
+                  <Select.ValueText placeholder="Group by..." />
+                </Select.Trigger>
+                <Select.Positioner>
+                  <Select.Content>
+                    {['type', 'color', 'date'].map((item) => (
+                      <Select.Item key={item} item={item}>
+                        {item === 'type' ? 'Group by Type' : item === 'color' ? 'Group by Color' : 'Group by Date'}
+                      </Select.Item>
+                    ))}
+                  </Select.Content>
+                </Select.Positioner>
+              </Select.Root>
             </VStack>
           </Box>
 
           {/* Statistics panel */}
-          <Collapse in={isStatsOpen} animateOpacity>
+          <Collapsible.Root open={statsOpen}>
+            <Collapsible.Content>
             <Box p={4} bg="blue.50" borderBottomWidth={1}>
               <VStack align="stretch" gap={3}>
                 <Text fontWeight="bold" fontSize="sm">
                   Statistics
                 </Text>
                 <StatGroup>
-                  <Stat>
-                    <StatLabel fontSize="xs">Total</StatLabel>
-                    <StatNumber fontSize="lg">{statistics.total}</StatNumber>
-                  </Stat>
-                  <Stat>
-                    <StatLabel fontSize="xs">With Notes</StatLabel>
-                    <StatNumber fontSize="lg">
+                  <Stat.Root>
+                    <Stat.Label fontSize="xs">Total</Stat.Label>
+                    <Stat.ValueText fontSize="lg">{statistics.total}</Stat.ValueText>
+                  </Stat.Root>
+                  <Stat.Root>
+                    <Stat.Label fontSize="xs">With Notes</Stat.Label>
+                    <Stat.ValueText fontSize="lg">
                       {statistics.withNotes}
-                    </StatNumber>
-                  </Stat>
+                    </Stat.ValueText>
+                  </Stat.Root>
                 </StatGroup>
                 {statistics.mostUsedColor && (
                   <Text fontSize="xs" color="gray.600">
@@ -244,10 +271,12 @@ export const AnnotationReviewPanel: React.FC<AnnotationReviewPanelProps> = ({
                 </VStack>
               </VStack>
             </Box>
-          </Collapse>
+            </Collapsible.Content>
+          </Collapsible.Root>
 
           {/* Filter panel */}
-          <Collapse in={isFilterOpen} animateOpacity>
+          <Collapsible.Root open={filterOpen}>
+            <Collapsible.Content>
             <Box p={4} borderBottomWidth={1}>
               <AnnotationFilterPanel
                 activeFilters={activeFilters}
@@ -255,7 +284,8 @@ export const AnnotationReviewPanel: React.FC<AnnotationReviewPanelProps> = ({
                 annotationCounts={annotationCounts}
               />
             </Box>
-          </Collapse>
+            </Collapsible.Content>
+          </Collapsible.Root>
 
           {/* Annotations list */}
           <Box flex={1} overflowY="auto" p={4}>
@@ -278,7 +308,7 @@ export const AnnotationReviewPanel: React.FC<AnnotationReviewPanelProps> = ({
                       </Text>
                       <Badge colorScheme="gray">{annotations.length}</Badge>
                     </HStack>
-                    <Divider />
+                    <Separator />
                     {annotations.map((annotation) => (
                       <AnnotationListItem
                         key={annotation.id}
@@ -294,7 +324,8 @@ export const AnnotationReviewPanel: React.FC<AnnotationReviewPanelProps> = ({
             )}
           </Box>
         </VStack>
-      </Collapse>
+        </Collapsible.Content>
+      </Collapsible.Root>
     </Box>
   );
 };
