@@ -18,9 +18,8 @@ import {
 const toaster = createToaster({ placement: 'top-end' });
 import { FiUploadCloud, FiFile } from 'react-icons/fi';
 import { useAuth } from '../hooks/useAuth';
-import { useDocuments } from '../hooks/useDocuments';
 import { processDocument } from '../services/documentProcessor';
-import logger, { logError, logUserAction } from '../lib/logger';
+import logger, { logUserAction } from '../lib/logger';
 
 interface DocumentUploadProps {
   onUploadComplete: (documentId: string) => void;
@@ -32,7 +31,6 @@ export const DocumentUpload: React.FC<DocumentUploadProps> = ({
   projectId,
 }) => {
   const { user, loading: authLoading } = useAuth();
-  const { createDocument } = useDocuments(projectId, user?.id);
   const [isDragging, setIsDragging] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
@@ -130,51 +128,23 @@ export const DocumentUpload: React.FC<DocumentUploadProps> = ({
     setUploadProgress(0);
 
     try {
-      // Simulate upload progress
-      const progressInterval = setInterval(() => {
-        setUploadProgress((prev) => {
-          if (prev >= 80) {
-            clearInterval(progressInterval);
-            return prev;
-          }
-          return prev + 10;
-        });
-      }, 200);
+      // Process document with progress updates
+      const result = await processDocument(file, projectId, (progress) => {
+        setUploadProgress(progress.progress);
+      });
 
-      // Upload document to Supabase Storage and create database record
-      const document = await createDocument(file, projectId, currentUser.id, file.name);
-
-      clearInterval(progressInterval);
-      setUploadProgress(90);
-
-      // Trigger background processing
-      if (document) {
-        processDocument(file, projectId).catch(
-          (err) => {
-            logError(err, { context: 'Background processing error', documentId: document.id });
-            console.error('❌ Background processing failed:', err);
-            toaster.create({
-              title: 'Processing Error',
-              description: 'Document uploaded but text processing failed. You may need to re-upload.',
-              type: 'warning',
-              duration: 8000,
-            });
-          }
-        );
+      if (!result.success || !result.document) {
+        throw new Error(result.error || 'Processing failed');
       }
-
-      setUploadProgress(100);
 
       toaster.create({
         title: 'Upload successful',
-        description: 'Your document has been uploaded and is being processed.',
+        description: `Document processed: ${result.paragraphs?.length || 0} paragraphs, ${result.sentences?.length || 0} sentences`,
         type: 'success',
         duration: 5000,
       });
 
-      if (document) {
-        onUploadComplete(document.id);
-      }
+      onUploadComplete(result.document.id);
     } catch (error) {
       toaster.create({
         title: 'Upload failed',
