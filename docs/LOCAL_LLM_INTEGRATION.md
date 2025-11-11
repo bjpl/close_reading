@@ -3,7 +3,13 @@
 
 **Your Setup:**
 - **Ollama installed** at `C:\Users\brand\Development\LLM_Workspace`
-- **Available models:** mistral, codellama:7b-code, qwen2.5:14b
+- **Available models:**
+  - **qwen2.5-coder:32b-instruct** (19GB) - MOST POWERFUL for analysis
+  - **qwen2.5:14b** - Excellent for general analysis
+  - **mistral** (7B) - Fast for quick tasks
+  - **codellama:7b-code** - Code-focused (not needed for this app)
+- **Hardware:** ThinkPad P16v (RTX 2000 Ada 8GB, 64GB RAM)
+- **Performance:** 12-20 tokens/second
 - **Integration approach:** Local API server (privacy-first, no cloud)
 
 ---
@@ -81,9 +87,9 @@ export class OllamaClient {
   constructor(config: Partial<OllamaConfig> = {}) {
     this.config = {
       baseUrl: config.baseUrl || 'http://localhost:11434',
-      model: config.model || 'qwen2.5:14b',  // Your most powerful model
+      model: config.model || 'qwen2.5-coder:32b-instruct',  // Your most powerful model (19GB, 32B params)
       temperature: config.temperature || 0.7,
-      timeout: config.timeout || 30000
+      timeout: config.timeout || 45000  // 32B model needs more time
     };
   }
 
