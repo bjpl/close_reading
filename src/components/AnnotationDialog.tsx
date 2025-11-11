@@ -12,6 +12,7 @@ import {
   DialogFooter,
   DialogBackdrop,
   DialogCloseTrigger,
+  DialogPositioner,
   Button,
   Input,
 } from '@chakra-ui/react';
@@ -45,59 +46,63 @@ export const AnnotationDialog: React.FC<AnnotationDialogProps> = ({
 
   if (type === 'delete') {
     return (
-      <DialogRoot open={isOpen} onOpenChange={handleOpenChange}>
+      <DialogRoot open={isOpen} onOpenChange={handleOpenChange} placement="center">
         <DialogBackdrop />
-        <DialogContent>
-          <DialogHeader fontSize="lg" fontWeight="bold">
-            Delete Annotation
-          </DialogHeader>
-          <DialogCloseTrigger />
+        <DialogPositioner>
+          <DialogContent>
+            <DialogHeader fontSize="lg" fontWeight="bold">
+              Delete Annotation
+            </DialogHeader>
+            <DialogCloseTrigger />
 
-          <DialogBody>
-            Are you sure you want to delete this annotation? This action cannot be undone.
-          </DialogBody>
+            <DialogBody>
+              Are you sure you want to delete this annotation? This action cannot be undone.
+            </DialogBody>
 
-          <DialogFooter>
-            <Button onClick={onClose}>
-              Cancel
-            </Button>
-            <Button colorScheme="red" onClick={onConfirm} ml={3}>
-              Delete
-            </Button>
-          </DialogFooter>
-        </DialogContent>
+            <DialogFooter>
+              <Button onClick={onClose}>
+                Cancel
+              </Button>
+              <Button colorScheme="red" onClick={onConfirm} ml={3}>
+                Delete
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </DialogPositioner>
       </DialogRoot>
     );
   }
 
   // Edit dialog
   return (
-    <DialogRoot open={isOpen} onOpenChange={handleOpenChange}>
+    <DialogRoot open={isOpen} onOpenChange={handleOpenChange} placement="center">
       <DialogBackdrop />
-      <DialogContent>
-        <DialogHeader fontSize="lg" fontWeight="bold">
-          Edit Note
-        </DialogHeader>
-        <DialogCloseTrigger />
+      <DialogPositioner>
+        <DialogContent>
+          <DialogHeader fontSize="lg" fontWeight="bold">
+            Edit Note
+          </DialogHeader>
+          <DialogCloseTrigger />
 
-        <DialogBody>
-          <Input
-            value={editValue || ''}
-            onChange={(e) => onEditValueChange?.(e.target.value)}
-            placeholder="Enter your note..."
-            autoFocus
-          />
-        </DialogBody>
+          <DialogBody>
+            <Input
+              value={editValue || ''}
+              onChange={(e) => onEditValueChange?.(e.target.value)}
+              placeholder="Enter your note..."
+              autoFocus
+            />
+          </DialogBody>
 
-        <DialogFooter>
-          <Button onClick={onClose}>
-            Cancel
-          </Button>
-          <Button colorScheme="blue" onClick={onConfirm} ml={3}>
-            Save
-          </Button>
-        </DialogFooter>
-      </DialogContent>
+          <DialogFooter>
+            <Button onClick={onClose}>
+              Cancel
+            </Button>
+            <Button colorScheme="blue" onClick={onConfirm} ml={3}>
+              Save
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </DialogPositioner>
     </DialogRoot>
   );
 };

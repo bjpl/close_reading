@@ -403,10 +403,29 @@ export const AnnotationToolbar: React.FC = () => {
           ))}
         </HStack>
 
+        {/* Mode Status Indicator */}
+        {activeToolType && (
+          <Box p={3} bg="blue.50" borderRadius="md" borderWidth={1} borderColor="blue.200">
+            <HStack gap={2}>
+              <Box w={3} h={3} bg="blue.500" borderRadius="full" />
+              <Text fontSize="sm" fontWeight="medium" color="blue.700">
+                {activeToolType === 'highlight' && `${activeColor.charAt(0).toUpperCase() + activeColor.slice(1)} Highlight Mode Active`}
+                {activeToolType === 'main_idea' && 'Main Idea Mode Active'}
+                {activeToolType === 'citation' && 'Citation Mode Active'}
+                {activeToolType === 'question' && 'Question Mode Active'}
+                {activeToolType === 'note' && 'Note Mode Active'}
+              </Text>
+              <Text fontSize="xs" color="blue.600">
+                (Select text to annotate)
+              </Text>
+            </HStack>
+          </Box>
+        )}
+
         {/* Selection Info */}
         {selectedText && (
-          <Box p={2} bg="blue.50" borderRadius="md">
-            <Text fontSize="xs" color="blue.700">
+          <Box p={2} bg="green.50" borderRadius="md" borderWidth={1} borderColor="green.200">
+            <Text fontSize="xs" color="green.700" fontWeight="medium">
               Selected: "{selectedText.substring(0, 50)}
               {selectedText.length > 50 ? '...' : ''}"
             </Text>

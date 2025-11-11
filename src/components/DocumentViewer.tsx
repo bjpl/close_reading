@@ -12,6 +12,7 @@ import {
   Text,
   Button,
   ButtonGroup,
+  createToaster,
 } from '@chakra-ui/react';
 import { useDocumentStore } from '../stores/documentStore';
 import { useAnnotationStore } from '../stores/annotationStore';
@@ -19,7 +20,9 @@ import { useAnnotations } from '../hooks/useAnnotations';
 import { useAuth } from '../hooks/useAuth';
 import { Paragraph } from './Paragraph';
 import { SentenceView } from './SentenceView';
-import logger, { logError, logUserAction, logDataOperation } from '../lib/logger';
+import logger, { logError, logDataOperation } from '../lib/logger';
+
+const toaster = createToaster({ placement: 'top-end' });
 
 type ViewModeType = 'original' | 'sentence';
 
@@ -48,6 +51,7 @@ export const DocumentViewer: React.FC = () => {
       // Debounce to prevent rapid duplicate annotations
       const now = Date.now();
       if (now - lastAnnotationTime.current < 300) {
+        logger.debug({ message: 'Selection debounced - too soon after last annotation' });
         return;
       }
 
@@ -60,8 +64,15 @@ export const DocumentViewer: React.FC = () => {
 
       const selectedText = selection.toString().trim();
 
+      // Validate selection length
+      if (selectedText.length === 0) {
+        logger.debug({ message: 'Empty selection after trim, ignoring' });
+        return;
+      }
+
       // Ignore very short selections (likely accidental)
-      if (selectedText.length < 3) {
+      if (selectedText.length < 2) {
+        logger.debug({ message: 'Selection too short (< 2 characters), ignoring' });
         return;
       }
 
@@ -82,18 +93,61 @@ export const DocumentViewer: React.FC = () => {
         // Find the paragraph box that contains this selection
         const paragraphBox = paragraphElement?.closest('[data-paragraph-id]') as HTMLElement;
 
-        if (paragraphBox) {
-          paragraphId = paragraphBox.getAttribute('data-paragraph-id') || '';
-          const paragraphText = paragraphBox.textContent || '';
-          const selectedIndex = paragraphText.indexOf(selectedText);
-
-          if (selectedIndex !== -1) {
-            startOffset = selectedIndex;
-            endOffset = selectedIndex + selectedText.length;
-          }
+        if (!paragraphBox) {
+          logger.warn({ message: 'Selection not within a paragraph, ignoring' });
+          setSelectedText(null);
+          setSelectionRange(null);
+          return;
         }
+
+        paragraphId = paragraphBox.getAttribute('data-paragraph-id') || '';
+
+        // Check for cross-paragraph selection
+        const startParagraph = range.startContainer.nodeType === Node.TEXT_NODE
+          ? range.startContainer.parentElement?.closest('[data-paragraph-id]')
+          : (range.startContainer as HTMLElement).closest('[data-paragraph-id]');
+
+        const endParagraph = range.endContainer.nodeType === Node.TEXT_NODE
+          ? range.endContainer.parentElement?.closest('[data-paragraph-id]')
+          : (range.endContainer as HTMLElement).closest('[data-paragraph-id]');
+
+        if (startParagraph !== endParagraph) {
+          logger.warn({ message: 'Cross-paragraph selection detected' });
+          toaster.create({
+            title: 'Invalid Selection',
+            description: 'Please select text within a single paragraph only.',
+            type: 'warning',
+            duration: 3000,
+          });
+          window.getSelection()?.removeAllRanges();
+          setSelectedText(null);
+          setSelectionRange(null);
+          return;
+        }
+
+        const paragraphText = paragraphBox.textContent || '';
+        const selectedIndex = paragraphText.indexOf(selectedText);
+
+        if (selectedIndex === -1) {
+          logger.warn({ message: 'Could not find selected text in paragraph' });
+          setSelectedText(null);
+          setSelectionRange(null);
+          return;
+        }
+
+        startOffset = selectedIndex;
+        endOffset = selectedIndex + selectedText.length;
       } catch (error) {
         logError(error as Error, { context: 'Error calculating offsets' });
+        toaster.create({
+          title: 'Selection Error',
+          description: 'Failed to process text selection. Please try again.',
+          type: 'error',
+          duration: 3000,
+        });
+        setSelectedText(null);
+        setSelectionRange(null);
+        return;
       }
 
       logger.debug({
@@ -137,6 +191,14 @@ export const DocumentViewer: React.FC = () => {
         addAnnotation(paragraphId, newAnnotation);
         lastAnnotationTime.current = Date.now();
 
+        // Show success feedback
+        toaster.create({
+          title: 'Annotation Created',
+          description: `${activeToolType.charAt(0).toUpperCase() + activeToolType.slice(1)} annotation added successfully.`,
+          type: 'success',
+          duration: 2000,
+        });
+
         // Persist to database (async)
         createAnnotation({
           paragraph_id: paragraphId,
@@ -155,6 +217,12 @@ export const DocumentViewer: React.FC = () => {
           logError(err, {
             context: 'Failed to save annotation to database',
             annotationId: newAnnotation.id
+          });
+          toaster.create({
+            title: 'Sync Error',
+            description: 'Annotation created locally but failed to save to cloud. It will be retried.',
+            type: 'warning',
+            duration: 4000,
           });
         });
 
