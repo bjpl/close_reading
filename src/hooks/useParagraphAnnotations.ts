@@ -65,17 +65,17 @@ export const useParagraphAnnotations = (): UseParagraphAnnotationsReturn => {
   };
 
   /**
-   * Update an annotation's content
+   * Update an annotation's note
    */
   const handleEditAnnotation = async (
     annotationId: string,
-    newContent: string
+    newNote: string
   ): Promise<void> => {
     setIsEditing(true);
     try {
-      console.log('✏️ Updating annotation:', annotationId);
+      console.log('✏️ Updating annotation note:', annotationId);
 
-      const updates = { content: newContent };
+      const updates = { note: newNote };
 
       // Update in Zustand store (immediate UI update)
       updateAnnotation(annotationId, updates);

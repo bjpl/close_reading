@@ -29,7 +29,7 @@ export const ParagraphLinkingPanel: React.FC = () => {
     clearSelection,
   } = useDocumentStore();
 
-  const handleLinkParagraphs = () => {
+  const handleLinkParagraphs = async () => {
     if (selectedParagraphs.length < 2) {
       toaster.create({
         title: 'Select paragraphs',
@@ -40,15 +40,24 @@ export const ParagraphLinkingPanel: React.FC = () => {
       return;
     }
 
-    linkParagraphs(selectedParagraphs);
-    clearSelection();
+    try {
+      await linkParagraphs(selectedParagraphs);
+      clearSelection();
 
-    toaster.create({
-      title: 'Paragraphs linked',
-      description: `${selectedParagraphs.length} paragraphs have been linked together.`,
-      type: 'success',
-      duration: 3000,
-    });
+      toaster.create({
+        title: 'Paragraphs linked',
+        description: `${selectedParagraphs.length} paragraphs have been linked together.`,
+        type: 'success',
+        duration: 3000,
+      });
+    } catch (error) {
+      toaster.create({
+        title: 'Failed to link paragraphs',
+        description: error instanceof Error ? error.message : 'An error occurred',
+        type: 'error',
+        duration: 5000,
+      });
+    }
   };
 
   const getLinkedParagraphs = () => {

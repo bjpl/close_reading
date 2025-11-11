@@ -24,16 +24,23 @@ export interface Document {
   id: string;
   project_id: string;
   user_id: string;
+  userId?: string; // UI alias for user_id
+  projectId?: string; // UI alias for project_id
   title: string;
   author?: string;
   content: string;
   file_type: 'txt' | 'md' | 'docx' | 'pdf';
   file_url: string;
+  fileUrl?: string; // UI alias for file_url
+  fileType?: string; // UI alias for file_type
   paragraphs?: Paragraph[];
   sentences?: Sentence[];
   processing_status: 'pending' | 'processing' | 'completed' | 'failed';
+  processingStatus?: string; // UI alias for processing_status
   created_at: string;
   updated_at: string;
+  createdAt?: Date; // UI alias for created_at
+  updatedAt?: Date; // UI alias for updated_at
 }
 
 export interface Paragraph {

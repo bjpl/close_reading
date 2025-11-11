@@ -3,6 +3,11 @@
  */
 import { create } from 'zustand';
 import { Document, ViewMode, Annotation } from '../types';
+import {
+  createParagraphLinks,
+  removeParagraphLink,
+} from '../services/paragraphLinks';
+import logger from '../lib/logger';
 
 interface DocumentState {
   currentDocument: Document | null;
@@ -20,8 +25,8 @@ interface DocumentState {
   addAnnotation: (paragraphId: string, annotation: Annotation) => void;
   updateAnnotation: (annotationId: string, updates: Partial<Annotation>) => void;
   deleteAnnotation: (annotationId: string) => void;
-  linkParagraphs: (paragraphIds: string[]) => void;
-  unlinkParagraph: (paragraphId: string, linkedId: string) => void;
+  linkParagraphs: (paragraphIds: string[]) => Promise<void>;
+  unlinkParagraph: (paragraphId: string, linkedId: string) => Promise<void>;
 }
 
 export const useDocumentStore = create<DocumentState>((set) => ({
@@ -104,52 +109,91 @@ export const useDocumentStore = create<DocumentState>((set) => ({
       };
     }),
 
-  linkParagraphs: (paragraphIds) =>
-    set((state) => {
-      if (!state.currentDocument) return state;
+  linkParagraphs: async (paragraphIds) => {
+    const state = useDocumentStore.getState();
+    if (!state.currentDocument) return;
 
-      const updatedParagraphs = (state.currentDocument.paragraphs || []).map((p) => {
-        if (paragraphIds.includes(p.id)) {
-          const newLinks = paragraphIds.filter((id) => id !== p.id);
-          const uniqueLinks = Array.from(new Set([...(p.linkedParagraphs || []), ...newLinks]));
-          return { ...p, linkedParagraphs: uniqueLinks };
-        }
-        return p;
+    try {
+      // Get user ID from current document
+      const userId = state.currentDocument.userId || state.currentDocument.user_id;
+      if (!userId) {
+        logger.error({ message: 'No user ID found for creating paragraph links' });
+        return;
+      }
+
+      // Create links in database
+      await createParagraphLinks(paragraphIds, userId);
+      logger.info({ message: 'Paragraph links created', count: paragraphIds.length });
+
+      // Update local state
+      set((state) => {
+        if (!state.currentDocument) return state;
+
+        const updatedParagraphs = (state.currentDocument.paragraphs || []).map((p) => {
+          if (paragraphIds.includes(p.id)) {
+            const newLinks = paragraphIds.filter((id) => id !== p.id);
+            const uniqueLinks = Array.from(
+              new Set([...(p.linkedParagraphs || []), ...newLinks])
+            );
+            return { ...p, linkedParagraphs: uniqueLinks };
+          }
+          return p;
+        });
+
+        return {
+          currentDocument: {
+            ...state.currentDocument,
+            paragraphs: updatedParagraphs,
+          },
+        };
       });
+    } catch (error) {
+      logger.error({ message: 'Failed to create paragraph links', error });
+      throw error;
+    }
+  },
 
-      return {
-        currentDocument: {
-          ...state.currentDocument,
-          paragraphs: updatedParagraphs,
-        },
-      };
-    }),
+  unlinkParagraph: async (paragraphId, linkedId) => {
+    const state = useDocumentStore.getState();
+    if (!state.currentDocument) return;
 
-  unlinkParagraph: (paragraphId, linkedId) =>
-    set((state) => {
-      if (!state.currentDocument) return state;
+    try {
+      // Remove link from database (bidirectional)
+      await removeParagraphLink(paragraphId, linkedId);
+      logger.info({ message: 'Paragraph link removed', paragraphId, linkedId });
 
-      const updatedParagraphs = (state.currentDocument.paragraphs || []).map((p) => {
-        if (p.id === paragraphId) {
-          return {
-            ...p,
-            linkedParagraphs: (p.linkedParagraphs || []).filter((id) => id !== linkedId),
-          };
-        }
-        if (p.id === linkedId) {
-          return {
-            ...p,
-            linkedParagraphs: (p.linkedParagraphs || []).filter((id) => id !== paragraphId),
-          };
-        }
-        return p;
+      // Update local state
+      set((state) => {
+        if (!state.currentDocument) return state;
+
+        const updatedParagraphs = (state.currentDocument.paragraphs || []).map((p) => {
+          if (p.id === paragraphId) {
+            return {
+              ...p,
+              linkedParagraphs: (p.linkedParagraphs || []).filter((id) => id !== linkedId),
+            };
+          }
+          if (p.id === linkedId) {
+            return {
+              ...p,
+              linkedParagraphs: (p.linkedParagraphs || []).filter(
+                (id) => id !== paragraphId
+              ),
+            };
+          }
+          return p;
+        });
+
+        return {
+          currentDocument: {
+            ...state.currentDocument,
+            paragraphs: updatedParagraphs,
+          },
+        };
       });
-
-      return {
-        currentDocument: {
-          ...state.currentDocument,
-          paragraphs: updatedParagraphs,
-        },
-      };
-    }),
+    } catch (error) {
+      logger.error({ message: 'Failed to remove paragraph link', error });
+      throw error;
+    }
+  },
 }));

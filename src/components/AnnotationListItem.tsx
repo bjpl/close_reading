@@ -109,7 +109,7 @@ export const AnnotationListItem: React.FC<AnnotationListItemProps> = ({
   const handleUpdateNote = async () => {
     try {
       console.log('✏️ Updating annotation note:', annotation.id);
-      await onUpdate(annotation.id, { content: editedNote });
+      await onUpdate(annotation.id, { note: editedNote });
       toaster.create({
         title: 'Note updated',
         type: 'success',

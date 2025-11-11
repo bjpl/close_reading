@@ -7,7 +7,8 @@ import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
 import type { Database } from '../types/database';
 import { useDocumentStore } from '../stores/documentStore';
-import logger, { logError, logDataOperation } from '../lib/logger';
+import logger from '../lib/logger';
+import { getParagraphLinks } from '../services/paragraphLinks';
 
 type DocumentRow = Database['public']['Tables']['documents']['Row'];
 type DocumentUpdate = Database['public']['Tables']['documents']['Update'];
@@ -174,24 +175,38 @@ export const useDocuments = (projectId?: string, userId?: string) => {
       });
       if (annoError) throw annoError;
 
+      // Fetch paragraph links
+      logger.debug({ message: 'Fetching paragraph links', documentId });
+      const linkMap = await getParagraphLinks(documentId);
+      logger.debug({
+        message: 'Paragraph links fetched',
+        documentId,
+        linkCount: linkMap.size
+      });
+
       // Transform to app format
       const transformedDocument = {
         id: doc.id,
         title: doc.title,
+        project_id: doc.project_id,
         projectId: doc.project_id,
+        user_id: doc.user_id,
         userId: doc.user_id,
+        file_url: doc.file_url,
         fileUrl: doc.file_url,
+        file_type: doc.file_type,
         fileType: doc.file_type,
+        processing_status: doc.processing_status,
         processingStatus: doc.processing_status,
-        paragraphs: paragraphs.map((p) => ({
+        paragraphs: (paragraphs || []).map((p: any) => ({
           id: p.id,
           content: p.content,
           order: p.position,
           pageNumber: p.page_number || undefined,
-          linkedParagraphs: [],
-          annotations: annotations
-            .filter((a) => a.paragraph_id === p.id)
-            .map((a) => ({
+          linkedParagraphs: linkMap.get(p.id) || [],
+          annotations: (annotations || [])
+            .filter((a: any) => a.paragraph_id === p.id)
+            .map((a: any) => ({
               id: a.id,
               type: a.annotation_type,
               text: a.content || '',
@@ -204,7 +219,7 @@ export const useDocuments = (projectId?: string, userId?: string) => {
               updatedAt: new Date(a.updated_at),
             })),
         })),
-        sentences: sentences.map((s) => ({
+        sentences: (sentences || []).map((s: any) => ({
           id: s.id,
           paragraphId: s.paragraph_id,
           content: s.content,
@@ -212,8 +227,11 @@ export const useDocuments = (projectId?: string, userId?: string) => {
           startOffset: s.start_offset,
           endOffset: s.end_offset,
         })),
+        created_at: doc.created_at,
+        updated_at: doc.updated_at,
         createdAt: new Date(doc.created_at),
         updatedAt: new Date(doc.updated_at),
+        content: '', // Not loading full content for now
       };
 
       setDocument(transformedDocument as any);

@@ -41,20 +41,35 @@ export const CitationExportModal: React.FC<CitationExportModalProps> = ({
   const { currentDocument } = useDocumentStore();
   const [format, setFormat] = useState<CitationExportFormat>('mla');
 
+  // Extract citation-type annotations from paragraphs
   const citations = useMemo(() => {
-    if (!currentDocument) return [];
+    if (!currentDocument?.paragraphs) return [];
 
-    // TODO: Fetch annotations from store or API
-    // For now, return empty array until we have annotations loaded
-    return [];
+    const citationAnnotations: any[] = [];
+
+    currentDocument.paragraphs.forEach((paragraph) => {
+      if (paragraph.annotations) {
+        paragraph.annotations
+          .filter((ann) => ann.type === 'citation')
+          .forEach((ann) => {
+            citationAnnotations.push({
+              text: ann.content || ann.text || '',
+              note: ann.note || ann.note_text || '',
+              citation_text: ann.citation_text || '',
+            });
+          });
+      }
+    });
+
+    return citationAnnotations;
   }, [currentDocument]);
 
   // Generate metadata for each citation
   const citationMetadata = useMemo((): CitationMetadata[] => {
     return citations.map((citation: any) => ({
       title: currentDocument?.title || 'Untitled Document',
-      author: 'Unknown', // TODO: Add author field to Document type
-      year: new Date().getFullYear(),
+      author: currentDocument?.author || 'Unknown',
+      year: new Date(currentDocument?.created_at || Date.now()).getFullYear(),
       type: 'article' as const,
       note: citation.note,
     }));
@@ -65,8 +80,8 @@ export const CitationExportModal: React.FC<CitationExportModalProps> = ({
 
     const documentInfo = {
       title: currentDocument?.title || 'Untitled Document',
-      author: 'Unknown', // TODO: Add author field to Document type
-      date: new Date().toISOString(),
+      author: currentDocument?.author || 'Unknown',
+      date: currentDocument?.created_at || new Date().toISOString(),
     };
 
     return exportCitations(citations, citationMetadata, format, documentInfo);
