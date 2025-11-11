@@ -50,7 +50,9 @@ export async function uploadFileToStorage(
 ): Promise<{ success: boolean; fileUrl?: string; error?: string }> {
   try {
     const fileExt = file.name.split('.').pop();
-    const fileName = `${projectId}/${Date.now()}_${crypto.randomUUID()}.${fileExt}`;
+    // Use browser-compatible UUID generation
+    const randomId = Math.random().toString(36).substring(2, 15);
+    const fileName = `${projectId}/${Date.now()}_${randomId}.${fileExt}`;
 
     const { data, error } = await supabase.storage
       .from('documents')
