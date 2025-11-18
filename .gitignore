@@ -38,3 +38,5 @@ coverage
 # Build
 build
 .cache
+.claude-flow/metrics/
+*.backup

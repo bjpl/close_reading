@@ -78,10 +78,10 @@ export const useParagraphAnnotations = (): UseParagraphAnnotationsReturn => {
       const updates = { note: newNote };
 
       // Update in Zustand store (immediate UI update)
-      updateAnnotation(annotationId, updates);
+      updateAnnotation(annotationId, updates as any);
 
       // Update in database (persistence)
-      await updateAnnotationDB(annotationId, updates);
+      await updateAnnotationDB(annotationId, updates as any);
 
       toaster.create({
         title: 'Note updated',
