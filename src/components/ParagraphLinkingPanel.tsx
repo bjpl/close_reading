@@ -158,9 +158,6 @@ export const ParagraphLinkingPanel: React.FC = () => {
                     </Text>
                     <HStack gap={1} flexWrap="wrap">
                       {(paragraph.linkedParagraphs || []).map((linkedId) => {
-                        const linkedPara = (currentDocument?.paragraphs || []).find(
-                          (p) => p.id === linkedId
-                        );
                         const linkedNumber = (currentDocument?.paragraphs || []).findIndex(p => p.id === linkedId) + 1;
                         return (
                           <Badge
@@ -173,23 +170,24 @@ export const ParagraphLinkingPanel: React.FC = () => {
                             gap={1}
                           >
                             → Para {linkedNumber}
-                          <IconButton
-                            aria-label="Unlink"
-                            size="xs"
-                            variant="ghost"
-                            minW="auto"
-                            h="auto"
-                            onClick={() => unlinkParagraph(paragraph.id, linkedId)}
-                          >
-                            <FiX />
-                          </IconButton>
-                        </Badge>
-                      );
+                            <IconButton
+                              aria-label="Unlink"
+                              size="xs"
+                              variant="ghost"
+                              minW="auto"
+                              h="auto"
+                              onClick={() => unlinkParagraph(paragraph.id, linkedId)}
+                            >
+                              <FiX />
+                            </IconButton>
+                          </Badge>
+                        );
                     })}
                   </HStack>
                 </VStack>
               </Box>
-            ))}
+              );
+            })}
           </VStack>
         )}
       </VStack>
