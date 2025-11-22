@@ -40,3 +40,13 @@ build
 .cache
 .claude-flow/metrics/
 *.backup
+
+# Claude Flow / Development Artifacts
+.claude/
+.hive-mind/
+.swarm/*.db-shm
+.swarm/*.db-wal
+.swarm/architecture-complete.json
+.mcp.json
+claude-flow
+memory/
