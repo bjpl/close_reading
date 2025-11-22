@@ -119,7 +119,7 @@ describe('RIS Export', () => {
       const result = exportRIS(citations, metadata);
 
       expect(result).toContain('AU  - Smith, John');
-      expect(result.match(/AU  -/g)?.length).toBe(1);
+      expect(result.match(/AU {2}-/g)?.length).toBe(1);
     });
   });
 
@@ -315,7 +315,7 @@ describe('RIS Export', () => {
 
       const result = exportRIS(citations, metadata);
 
-      const erCount = (result.match(/ER  - /g) || []).length;
+      const erCount = (result.match(/ER {2}- /g) || []).length;
       expect(erCount).toBe(2);
     });
   });

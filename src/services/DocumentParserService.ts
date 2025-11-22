@@ -234,7 +234,7 @@ export class DocumentParserService {
     const text = await file.text();
 
     // Basic markdown to plain text conversion
-    let cleaned = text
+    const cleaned = text
       .replace(/^#{1,6}\s+/gm, '') // Remove headers
       .replace(/\*\*(.+?)\*\*/g, '$1') // Bold
       .replace(/\*(.+?)\*/g, '$1') // Italic

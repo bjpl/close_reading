@@ -221,7 +221,7 @@ describe('Citation Export Integration', () => {
 
       // Count entries
       const bibtexEntries = (bibtex.match(/@article/g) || []).length;
-      const risEntries = (ris.match(/ER  - /g) || []).length;
+      const risEntries = (ris.match(/ER {2}- /g) || []).length;
       const jsonData = JSON.parse(json);
 
       expect(bibtexEntries).toBe(100);
