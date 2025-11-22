@@ -7,37 +7,20 @@
 import React from 'react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import { ChakraProvider, defaultSystem } from '@chakra-ui/react';
+import { ChakraProvider } from '@chakra-ui/react';
 import {
   ErrorBoundary,
   withErrorBoundary,
   useErrorHandler,
   FallbackProps,
-  ErrorBoundaryProps,
 } from '../../../src/components/ErrorBoundary';
 
-// Mock the logger module
-vi.mock('../../../src/lib/logger', () => ({
-  default: {
-    error: vi.fn(),
-    info: vi.fn(),
-    debug: vi.fn(),
-    warn: vi.fn(),
-  },
-  logError: vi.fn(),
-  createLogger: vi.fn(() => ({
-    debug: vi.fn(),
-    error: vi.fn(),
-    info: vi.fn(),
-  })),
-}));
-
-// Import mocked logger for assertions
+// Import mocked logger for assertions (mocked in setup.ts)
 import logger, { logError } from '../../../src/lib/logger';
 
 // Wrapper component for Chakra UI
 const TestWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => (
-  <ChakraProvider value={defaultSystem}>{children}</ChakraProvider>
+  <ChakraProvider>{children}</ChakraProvider>
 );
 
 // Component that throws an error
@@ -120,7 +103,7 @@ describe('ErrorBoundary', () => {
     });
 
     it('should generate unique error IDs', () => {
-      const { rerender } = render(
+      render(
         <TestWrapper>
           <ErrorBoundary showDetails={true}>
             <ThrowingComponent />
@@ -329,7 +312,6 @@ describe('ErrorBoundary', () => {
   describe('Callbacks', () => {
     it('should call onError callback when error is caught', () => {
       const onErrorMock = vi.fn();
-      const testError = new Error('Callback test error');
 
       render(
         <TestWrapper>
