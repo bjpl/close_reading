@@ -3,6 +3,7 @@ import { createWorker } from 'tesseract.js';
 
 // Import pdf-parse using namespace import for CommonJS compatibility
 import * as PdfParseModule from 'pdf-parse';
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const PdfParse = (PdfParseModule as any).default || PdfParseModule;
 
 export interface ExtractionResult {

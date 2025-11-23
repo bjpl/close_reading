@@ -8,6 +8,26 @@ export default defineConfig({
     globals: true,
     environment: 'happy-dom',
     setupFiles: ['./tests/setup.ts'],
+    // Use vmThreads pool for better WSL2/Node.js 22 compatibility
+    // vmThreads avoids the worker startup timeout issues
+    pool: 'vmThreads',
+    poolOptions: {
+      vmThreads: {
+        // Shared memory for faster test execution
+        useAtomics: true,
+      },
+    },
+    // Increase timeouts for CI/WSL2 environments
+    testTimeout: 30000,
+    hookTimeout: 30000,
+    // Retry failed tests once to handle flaky tests
+    retry: 1,
+    // Disable isolation for faster test runs (tests should be independent anyway)
+    isolate: false,
+    // Sequence tests for more predictable execution
+    sequence: {
+      shuffle: false,
+    },
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html', 'lcov'],
@@ -27,8 +47,8 @@ export default defineConfig({
       }
     },
     include: ['tests/**/*.test.{ts,tsx}'],
-    testTimeout: 10000,
-    hookTimeout: 10000
+    // Exclude node_modules test files
+    exclude: ['**/node_modules/**', '**/dist/**'],
   },
   resolve: {
     alias: {

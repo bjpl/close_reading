@@ -3,10 +3,11 @@ import { createMockClient } from './mockSupabase';
 
 const enableMockMode = import.meta.env.VITE_ENABLE_MOCK_MODE === 'true';
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 let supabase: any;
 
 if (enableMockMode) {
-  console.log('🎭 Running in MOCK MODE - no Supabase account needed');
+  console.log('Running in MOCK MODE - no Supabase account needed');
   supabase = createMockClient();
 } else {
   const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
