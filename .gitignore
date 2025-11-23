@@ -50,3 +50,5 @@ build
 .mcp.json
 claude-flow
 memory/
+
+.vercel
