@@ -113,6 +113,38 @@ close_reading/
 └── dist/                 # Production build output
 ```
 
+## Exploring the Code
+
+This project demonstrates modern document analysis application architecture with ML-powered text processing:
+
+**Architecture Highlights:**
+- Feature-based module organization for scalable development
+- Zustand state management with React Server Components
+- TensorFlow.js integration for client-side machine learning
+- Wink NLP for natural language processing pipelines
+- Real-time synchronization with Supabase subscriptions
+
+**ML/NLP Pipeline Implementation:**
+- Sentiment analysis using pre-trained models
+- Keyword extraction with TF-IDF algorithms
+- Named entity recognition for document indexing
+- OCR integration via Tesseract.js for image-based documents
+
+**Testing Strategy:**
+- Unit tests for individual components and utilities
+- Integration tests for feature workflows
+- End-to-end tests with Playwright for critical paths
+- 95%+ coverage target with comprehensive mocking
+
+**For Technical Review:**
+
+Those interested in the implementation details can explore:
+- `/src/features/` for feature-based architecture patterns
+- `/src/services/` for ML pipeline integration
+- `/src/hooks/` for custom React hooks (annotation, search, sync)
+- `/tests/` for testing patterns at all levels
+- `/.github/workflows/` for CI/CD pipeline configuration
+
 ### Code Style
 
 This project uses:
@@ -313,4 +345,4 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ---
 
-Built with ❤️ using React and Supabase
+Built using React and Supabase
