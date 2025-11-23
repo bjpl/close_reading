@@ -45,7 +45,7 @@ export const CitationExportModal: React.FC<CitationExportModalProps> = ({
   const citations = useMemo(() => {
     if (!currentDocument?.paragraphs) return [];
 
-    const citationAnnotations: any[] = [];
+    const citationAnnotations: Array<{ text: string; note: string; citation_text: string }> = [];
 
     currentDocument.paragraphs.forEach((paragraph) => {
       if (paragraph.annotations) {
@@ -66,7 +66,7 @@ export const CitationExportModal: React.FC<CitationExportModalProps> = ({
 
   // Generate metadata for each citation
   const citationMetadata = useMemo((): CitationMetadata[] => {
-    return citations.map((citation: any) => ({
+    return citations.map((citation) => ({
       title: currentDocument?.title || 'Untitled Document',
       author: currentDocument?.author || 'Unknown',
       year: new Date(currentDocument?.created_at || Date.now()).getFullYear(),

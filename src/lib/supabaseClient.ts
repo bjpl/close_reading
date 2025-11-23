@@ -43,7 +43,7 @@ export class SupabaseError extends Error {
   constructor(
     message: string,
     public code?: string,
-    public details?: any
+    public details?: unknown
   ) {
     super(message);
     this.name = 'SupabaseError';
@@ -55,7 +55,7 @@ export class SupabaseError extends Error {
  */
 export const handleSupabaseResponse = <T>(response: {
   data: T | null;
-  error: any;
+  error: { message: string; code?: string; details?: unknown } | null;
 }): T => {
   if (response.error) {
     throw new SupabaseError(

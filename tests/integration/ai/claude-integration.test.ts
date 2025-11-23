@@ -314,14 +314,14 @@ describe('Claude Integration Tests', () => {
           Despite this counterargument, the consensus among climate scientists is clear.
         `;
 
-        const arguments = await service.mineArguments(argumentativeText, {
+        const args = await service.mineArguments(argumentativeText, {
           includeCounterArguments: true,
           generateMap: true,
         });
 
-        expect(arguments.data.mainClaim).toBeDefined();
-        expect(arguments.data.mainClaim.text).toBeTruthy();
-        expect(arguments.data.structure.coherence).toBeGreaterThan(0);
+        expect(args.data.mainClaim).toBeDefined();
+        expect(args.data.mainClaim.text).toBeTruthy();
+        expect(args.data.structure.coherence).toBeGreaterThan(0);
       },
       30000
     );

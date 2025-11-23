@@ -26,7 +26,7 @@ interface DocumentMetadataEditorProps {
 }
 
 export const DocumentMetadataEditor: React.FC<DocumentMetadataEditorProps> = ({
-  documentId,
+  documentId: _documentId,
   currentTitle,
   currentAuthor = '',
   onSave,

@@ -231,7 +231,7 @@ export class MockAuthService {
    * @param email - Email address to send reset link to
    * @returns Success response (mock implementation, doesn't send actual email)
    */
-  async resetPasswordForEmail(email: string): Promise<SupabaseResponse<{}>> {
+  async resetPasswordForEmail(email: string): Promise<SupabaseResponse<Record<string, never>>> {
     logger.info({ email }, 'Mock auth: Password reset requested');
     return { data: {}, error: null };
   }

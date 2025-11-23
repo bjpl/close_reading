@@ -8,19 +8,14 @@ export default defineConfig({
     globals: true,
     environment: 'happy-dom',
     setupFiles: ['./tests/setup.ts'],
-    // Use threads pool for better WSL2/Node.js 22 compatibility
-    pool: 'threads',
+    // Use vmThreads pool for better WSL2/Node.js 22 compatibility
+    // vmThreads avoids the worker startup timeout issues
+    pool: 'vmThreads',
     poolOptions: {
-      threads: {
-        singleThread: false,
-        isolate: true,
-        // Increase startup timeout for WSL2 environments
-        execArgv: ['--experimental-vm-modules'],
+      vmThreads: {
+        // Shared memory for faster test execution
+        useAtomics: true,
       },
-      forks: {
-        // Fallback settings if forks pool is used
-        isolate: true,
-      }
     },
     // Increase timeouts for CI/WSL2 environments
     testTimeout: 30000,

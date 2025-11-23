@@ -181,7 +181,7 @@ class LocalDatabase {
    * @returns Sanitized user object without password
    */
   private sanitizeUser(user: LocalDBSchema['users']['value']) {
-    const { password, ...sanitized } = user;
+    const { password: _password, ...sanitized } = user;
     localStorage.setItem('currentUser', JSON.stringify(sanitized));
     return sanitized;
   }

@@ -53,7 +53,7 @@ export class PrivacyManager {
       },
       {
         type: 'date-of-birth',
-        pattern: /\b(0?[1-9]|1[0-2])[\/\-](0?[1-9]|[12]\d|3[01])[\/\-](19|20)\d{2}\b/g,
+        pattern: /\b(0?[1-9]|1[0-2])[/-](0?[1-9]|[12]\d|3[01])[/-](19|20)\d{2}\b/g,
         description: 'Dates of birth',
       },
       {
@@ -198,7 +198,7 @@ export class PrivacyManager {
       : this.piiPatterns;
 
     for (const pattern of patterns) {
-      sanitized = sanitized.replace(pattern.pattern, (_match) => {
+      sanitized = sanitized.replace(pattern.pattern, () => {
         // Replace with [REDACTED_TYPE]
         return `[REDACTED_${pattern.type.toUpperCase().replace('-', '_')}]`;
       });

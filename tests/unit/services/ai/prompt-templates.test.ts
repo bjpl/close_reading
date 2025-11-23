@@ -213,10 +213,10 @@ describe('PromptTemplateSystem', () => {
 
     it('should have analysis templates', () => {
       const themes = system.getTemplate('themes-interpretive');
-      const arguments = system.getTemplate('arguments-analysis');
+      const argumentsTemplate = system.getTemplate('arguments-analysis');
 
       expect(themes).toBeDefined();
-      expect(arguments).toBeDefined();
+      expect(argumentsTemplate).toBeDefined();
     });
 
     it('should have pedagogy templates', () => {
