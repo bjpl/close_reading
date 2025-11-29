@@ -20,6 +20,7 @@ import {
 import { Accordion } from '@chakra-ui/react/accordion';
 import { Switch } from '@chakra-ui/react';
 import type { ClaudeService } from '../../services/ai';
+import { logger } from '../../utils/logger';
 
 interface Feature {
   id: string;
@@ -123,6 +124,7 @@ export const ClaudeFeaturePanel: React.FC<ClaudeFeaturePanelProps> = ({
     if (claudeService && documentText) {
       updateCostEstimates();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [claudeService, documentText]);
 
   const updateCostEstimates = () => {
@@ -233,7 +235,7 @@ export const ClaudeFeaturePanel: React.FC<ClaudeFeaturePanelProps> = ({
         duration: 3000,
       });
     } catch (error) {
-      console.error(`Error executing ${featureId}:`, error);
+      logger.error({ error, featureId }, 'Error executing feature');
       toaster.create({
         title: 'Error',
         description: error instanceof Error ? error.message : 'An error occurred',

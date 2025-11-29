@@ -71,7 +71,7 @@ export interface Annotation {
     citationId?: string; // Link to bibliography entry
     importance?: 1 | 2 | 3 | 4 | 5; // Rating
     reviewed?: boolean;
-    [key: string]: any;
+    [key: string]: unknown;
   };
 }
 

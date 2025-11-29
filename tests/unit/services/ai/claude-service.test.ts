@@ -3,24 +3,32 @@
  * Test all 8 premium features and error handling
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { ClaudeService } from '../../../../src/services/ai/ClaudeService';
 import type { ClaudeConfig } from '../../../../src/services/ai/types';
 
-// Mock Anthropic SDK
-vi.mock('@anthropic-ai/sdk', () => ({
-  default: vi.fn().mockImplementation(() => ({
-    messages: {
-      create: vi.fn(),
+// Create a shared mock for messages.create
+const mockMessagesCreate = vi.fn();
+
+// Mock Anthropic SDK with a proper class mock
+vi.mock('@anthropic-ai/sdk', () => {
+  return {
+    default: class MockAnthropic {
+      messages = {
+        create: mockMessagesCreate,
+      };
+      constructor() {}
     },
-  })),
-}));
+  };
+});
 
 describe('ClaudeService', () => {
   let service: ClaudeService;
   let mockConfig: ClaudeConfig;
 
   beforeEach(() => {
+    vi.clearAllMocks();
+
     mockConfig = {
       apiKey: 'sk-ant-test-key',
       model: 'claude-sonnet-4-20250514',
@@ -82,9 +90,7 @@ describe('ClaudeService', () => {
         },
       };
 
-      vi.mocked(service['client'].messages.create).mockResolvedValue(
-        mockResponse as never
-      );
+      mockMessagesCreate.mockResolvedValue(mockResponse);
 
       const result = await service.summarize('Test document', {
         style: 'academic',
@@ -113,9 +119,7 @@ describe('ClaudeService', () => {
         usage: { input_tokens: 50, output_tokens: 25 },
       };
 
-      vi.mocked(service['client'].messages.create).mockResolvedValue(
-        mockResponse as never
-      );
+      mockMessagesCreate.mockResolvedValue(mockResponse);
 
       const result = await service.summarize('Short text', {
         style: 'brief',
@@ -143,9 +147,7 @@ describe('ClaudeService', () => {
         usage: { input_tokens: 100, output_tokens: 60 },
       };
 
-      vi.mocked(service['client'].messages.create).mockResolvedValue(
-        mockResponse as never
-      );
+      mockMessagesCreate.mockResolvedValue(mockResponse);
 
       const result = await service.summarize('Document', {
         style: 'detailed',
@@ -182,9 +184,7 @@ describe('ClaudeService', () => {
         usage: { input_tokens: 200, output_tokens: 100 },
       };
 
-      vi.mocked(service['client'].messages.create).mockResolvedValue(
-        mockResponse as never
-      );
+      mockMessagesCreate.mockResolvedValue(mockResponse);
 
       const result = await service.answerQuestion(
         'What is the main topic?',
@@ -215,9 +215,7 @@ describe('ClaudeService', () => {
         usage: { input_tokens: 150, output_tokens: 50 },
       };
 
-      vi.mocked(service['client'].messages.create).mockResolvedValue(
-        mockResponse as never
-      );
+      mockMessagesCreate.mockResolvedValue(mockResponse);
 
       const result = await service.answerQuestion('Simple question?', 'Context', {
         includeEvidence: false,
@@ -255,9 +253,7 @@ describe('ClaudeService', () => {
         usage: { input_tokens: 500, output_tokens: 300 },
       };
 
-      vi.mocked(service['client'].messages.create).mockResolvedValue(
-        mockResponse as never
-      );
+      mockMessagesCreate.mockResolvedValue(mockResponse);
 
       const result = await service.extractThemes('Document text', {
         minThemes: 2,
@@ -293,9 +289,7 @@ describe('ClaudeService', () => {
         usage: { input_tokens: 400, output_tokens: 200 },
       };
 
-      vi.mocked(service['client'].messages.create).mockResolvedValue(
-        mockResponse as never
-      );
+      mockMessagesCreate.mockResolvedValue(mockResponse);
 
       const result = await service.suggestAnnotations('Document', {
         minPedagogicalValue: 0.7,
@@ -350,9 +344,7 @@ describe('ClaudeService', () => {
         usage: { input_tokens: 600, output_tokens: 400 },
       };
 
-      vi.mocked(service['client'].messages.create).mockResolvedValue(
-        mockResponse as never
-      );
+      mockMessagesCreate.mockResolvedValue(mockResponse);
 
       const result = await service.mineArguments('Argumentative text', {
         includeCounterArguments: true,
@@ -387,9 +379,7 @@ describe('ClaudeService', () => {
         usage: { input_tokens: 300, output_tokens: 150 },
       };
 
-      vi.mocked(service['client'].messages.create).mockResolvedValue(
-        mockResponse as never
-      );
+      mockMessagesCreate.mockResolvedValue(mockResponse);
 
       const result = await service.generateQuestions('Document', {
         count: 5,
@@ -439,9 +429,7 @@ describe('ClaudeService', () => {
         usage: { input_tokens: 500, output_tokens: 300 },
       };
 
-      vi.mocked(service['client'].messages.create).mockResolvedValue(
-        mockResponse as never
-      );
+      mockMessagesCreate.mockResolvedValue(mockResponse);
 
       const result = await service.extractRelationships('Narrative text', {
         includePowerDynamics: true,
@@ -483,9 +471,7 @@ describe('ClaudeService', () => {
         usage: { input_tokens: 800, output_tokens: 500 },
       };
 
-      vi.mocked(service['client'].messages.create).mockResolvedValue(
-        mockResponse as never
-      );
+      mockMessagesCreate.mockResolvedValue(mockResponse);
 
       const result = await service.compareDocuments(
         [
@@ -502,7 +488,7 @@ describe('ClaudeService', () => {
 
   describe('Error Handling', () => {
     it('should handle authentication errors', async () => {
-      vi.mocked(service['client'].messages.create).mockRejectedValue({
+      mockMessagesCreate.mockRejectedValue({
         status: 401,
         message: 'Invalid API key',
       });
@@ -514,7 +500,7 @@ describe('ClaudeService', () => {
 
     it('should retry on rate limit errors', async () => {
       let attempts = 0;
-      vi.mocked(service['client'].messages.create).mockImplementation(() => {
+      mockMessagesCreate.mockImplementation(() => {
         attempts++;
         if (attempts < 2) {
           return Promise.reject({ status: 429, message: 'Rate limit' });
@@ -532,7 +518,7 @@ describe('ClaudeService', () => {
             },
           ],
           usage: { input_tokens: 10, output_tokens: 10 },
-        }) as never;
+        });
       });
 
       const result = await service.summarize('Test', {
@@ -545,7 +531,7 @@ describe('ClaudeService', () => {
 
     it('should handle server errors with retry', async () => {
       let attempts = 0;
-      vi.mocked(service['client'].messages.create).mockImplementation(() => {
+      mockMessagesCreate.mockImplementation(() => {
         attempts++;
         if (attempts < 2) {
           return Promise.reject({ status: 500, message: 'Server error' });
@@ -563,10 +549,10 @@ describe('ClaudeService', () => {
             },
           ],
           usage: { input_tokens: 10, output_tokens: 10 },
-        }) as never;
+        });
       });
 
-      const result = await service.summarize('Test', {
+      await service.summarize('Test', {
         style: 'brief',
         level: 'document',
       });

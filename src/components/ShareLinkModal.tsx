@@ -44,6 +44,7 @@ export const ShareLinkModal: React.FC<ShareLinkModalProps> = ({
     if (isOpen && documentId) {
       loadExistingShareLink();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen, documentId]);
 
   const loadExistingShareLink = async () => {

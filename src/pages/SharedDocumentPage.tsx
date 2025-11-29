@@ -23,7 +23,7 @@ import {
 import { FiExternalLink, FiLock } from 'react-icons/fi';
 import DOMPurify from 'dompurify';
 import { useSharing } from '../hooks/useSharing';
-import { SharedDocument } from '../services/sharing';
+import { SharedDocument, SharedAnnotation } from '../services/sharing';
 import { formatSimpleDate } from '../utils/dateUtils';
 
 export const SharedDocumentPage: React.FC = () => {
@@ -172,7 +172,7 @@ export const SharedDocumentPage: React.FC = () => {
                 </HStack>
                 <Separator />
                 <VStack align="stretch" gap={4}>
-                  {document.annotations.map((annotation: any, index: number) => (
+                  {document.annotations.map((annotation: SharedAnnotation, index: number) => (
                     <Box
                       key={annotation.id || index}
                       p={4}

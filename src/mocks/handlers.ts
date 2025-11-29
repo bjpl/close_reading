@@ -1,8 +1,6 @@
 import { http, HttpResponse } from 'msw';
 import { localDB } from './localDB';
 
-const SUPABASE_URL = 'https://*.supabase.co';
-
 export const handlers = [
   // Auth endpoints
   http.post('*/auth/v1/token', async ({ request }) => {
@@ -10,7 +8,7 @@ export const handlers = [
 
     if (body.grant_type === 'password') {
       const { email, password } = body;
-      const user = await localDB.authenticateUser(email, password);
+      const user = await localDB.authenticateUser(email as string, password as string);
 
       if (user) {
         return HttpResponse.json({
@@ -35,7 +33,7 @@ export const handlers = [
     const body = await request.json() as any;
     const { email, password } = body;
 
-    const user = await localDB.createUser(email, password);
+    const user = await localDB.createUser(email as string, password as string);
 
     return HttpResponse.json({
       access_token: `mock_token_${user.id}`,
@@ -65,8 +63,7 @@ export const handlers = [
   }),
 
   // Database REST API endpoints
-  http.get('*/rest/v1/documents', async ({ request }) => {
-    const url = new URL(request.url);
+  http.get('*/rest/v1/documents', async () => {
     const userId = localDB.getCurrentUser()?.id;
 
     if (!userId) {
@@ -174,7 +171,7 @@ export const handlers = [
   }),
 
   // Projects endpoints
-  http.get('*/rest/v1/projects', async ({ request }) => {
+  http.get('*/rest/v1/projects', async () => {
     const userId = localDB.getCurrentUser()?.id;
 
     if (!userId) {

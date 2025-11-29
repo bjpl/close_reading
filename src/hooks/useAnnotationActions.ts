@@ -9,6 +9,7 @@ import { createToaster } from '@chakra-ui/react';
 
 const toaster = createToaster({ placement: 'top-end' });
 import type { Annotation } from '../types';
+import { logger } from '../utils/logger';
 
 interface UseAnnotationActionsOptions {
   deleteAnnotation: (annotationId: string) => void;
@@ -34,7 +35,7 @@ export const useAnnotationActions = ({
   const handleDelete = useCallback(
     async (annotationId: string) => {
       try {
-        console.log('🗑️ Deleting annotation:', annotationId);
+        logger.info({ annotationId }, '🗑️ Deleting annotation');
 
         // Delete from Zustand store (immediate UI update)
         deleteAnnotation(annotationId);
@@ -42,9 +43,9 @@ export const useAnnotationActions = ({
         // Delete from database (persistence)
         await deleteAnnotationDB(annotationId);
 
-        console.log('✅ Annotation deleted successfully');
+        logger.info('✅ Annotation deleted successfully');
       } catch (error) {
-        console.error('❌ Failed to delete annotation:', error);
+        logger.error({ error }, '❌ Failed to delete annotation');
         toaster.create({
           title: 'Failed to delete annotation',
           description: error instanceof Error ? error.message : 'Unknown error',
@@ -62,7 +63,7 @@ export const useAnnotationActions = ({
   const handleUpdate = useCallback(
     async (annotationId: string, updates: Partial<Annotation>) => {
       try {
-        console.log('✏️ Updating annotation:', annotationId, updates);
+        logger.info({ annotationId, updates }, '✏️ Updating annotation');
 
         // Update in Zustand store (immediate UI update)
         updateAnnotation(annotationId, updates);
@@ -70,9 +71,9 @@ export const useAnnotationActions = ({
         // Update in database (persistence)
         await updateAnnotationDB(annotationId, updates);
 
-        console.log('✅ Annotation updated successfully');
+        logger.info('✅ Annotation updated successfully');
       } catch (error) {
-        console.error('❌ Failed to update annotation:', error);
+        logger.error({ error }, '❌ Failed to update annotation');
         toaster.create({
           title: 'Failed to update annotation',
           description: error instanceof Error ? error.message : 'Unknown error',

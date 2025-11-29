@@ -6,20 +6,31 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { CostTracker } from '../../../../src/services/ai/CostTracker';
 import 'fake-indexeddb/auto';
 
+// Generate unique database name per test to avoid IndexedDB state leakage
+let testCounter = 0;
+const getUniqueDbName = () => `cost-tracker-test-${Date.now()}-${++testCounter}`;
+
 describe('CostTracker', () => {
   let tracker: CostTracker;
 
   beforeEach(async () => {
+    // Use unique database name per test to avoid IndexedDB conflicts
     tracker = new CostTracker({
       monthlyBudget: 100,
       alertThreshold: 80,
       enableAlerts: true,
+      dbName: getUniqueDbName(),
     });
     await tracker.initialize();
   });
 
   afterEach(async () => {
-    await tracker.clearAllRecords();
+    try {
+      await tracker.clearAllRecords();
+      tracker.close();
+    } catch {
+      // Ignore errors during cleanup
+    }
   });
 
   describe('Usage Recording', () => {
@@ -92,7 +103,8 @@ describe('CostTracker', () => {
 
       expect(stats.totalRequests).toBe(3);
       expect(stats.totalCost).toBeCloseTo(0.075, 3);
-      expect(stats.totalTokens).toBe(8250);
+      // (1000+500) + (1500+750) + (3000+2000) = 1500 + 2250 + 5000 = 8750
+      expect(stats.totalTokens).toBe(8750);
     });
 
     it('should group by feature', async () => {

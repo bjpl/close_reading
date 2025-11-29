@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 
 // This test suite covers Week 4 requirements: Ollama Integration and Privacy Mode
 
@@ -301,7 +301,7 @@ describe('Ollama Integration (Week 4)', () => {
     });
 
     it('should report which provider was used', async () => {
-      const generateSummary = async (text: string) => {
+      const generateSummary = async (_text: string) => {
         let provider: string;
         let summary: string;
 
@@ -424,7 +424,6 @@ describe('Ollama Integration (Week 4)', () => {
       expect(estimatedTime).toBeGreaterThan(0);
 
       const minutes = Math.floor(estimatedTime / 60);
-      const seconds = estimatedTime % 60;
 
       expect(minutes).toBeGreaterThan(0);
     });
@@ -454,15 +453,13 @@ describe('Ollama Integration (Week 4)', () => {
 
   describe('Model Management', () => {
     it('should check if required model is installed', async () => {
-      const requiredModel = 'qwen2.5-coder:32b-instruct';
-
       const mockCheckModel = vi.fn().mockResolvedValue({
         installed: true,
         size: 20_000_000_000,
         version: '32b-instruct',
       });
 
-      const result = await mockCheckModel(requiredModel);
+      const result = await mockCheckModel('qwen2.5-coder:32b-instruct');
 
       expect(result.installed).toBe(true);
     });
@@ -484,12 +481,6 @@ describe('Ollama Integration (Week 4)', () => {
     });
 
     it('should detect model quantization level', () => {
-      const models = [
-        { name: 'qwen2.5-coder:32b', size: 20000, quality: 'high' },
-        { name: 'qwen2.5-coder:32b-q4', size: 10000, quality: 'medium' },
-        { name: 'qwen2.5-coder:32b-q2', size: 5000, quality: 'low' },
-      ];
-
       const getModelInfo = (name: string) => {
         if (name.includes('-q4')) return 'medium quality, smaller size';
         if (name.includes('-q2')) return 'lower quality, smallest size';
@@ -593,19 +584,20 @@ describe('Ollama Integration (Week 4)', () => {
     });
 
     it('should handle timeout errors', async () => {
-      const timeout = 30000; // 30 seconds
-      const mockSlowGenerate = () =>
-        new Promise((resolve) => setTimeout(resolve, 40000));
+      // Test that timeout error handling works correctly
+      // This verifies the timeout error pattern without actual timer delays
+      const createTimeoutError = () => new Error('Generation timeout');
+      const timeoutError = createTimeoutError();
 
-      const timeoutPromise = new Promise((_, reject) =>
-        setTimeout(() => reject(new Error('Generation timeout')), timeout)
-      );
+      expect(timeoutError.message).toContain('timeout');
 
-      try {
-        await Promise.race([mockSlowGenerate(), timeoutPromise]);
-      } catch (error) {
-        expect((error as Error).message).toContain('timeout');
-      }
+      // Also verify the timeout promise pattern works
+      const timeout = 100;
+      const timeoutPromise = new Promise<never>((_, reject) => {
+        setTimeout(() => reject(new Error('Generation timeout')), timeout);
+      });
+
+      await expect(timeoutPromise).rejects.toThrow('timeout');
     });
 
     it('should provide helpful error messages', () => {

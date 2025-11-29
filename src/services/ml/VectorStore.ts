@@ -15,6 +15,7 @@
  */
 
 import { openDB, DBSchema, IDBPDatabase } from 'idb';
+import { logger } from '../../utils/logger';
 
 /**
  * Stored vector with metadata
@@ -121,9 +122,9 @@ export class VectorStore {
         },
       });
 
-      console.log('[VectorStore] IndexedDB initialized');
+      logger.info('[VectorStore] IndexedDB initialized');
     } catch (error) {
-      console.error('[VectorStore] Failed to initialize IndexedDB:', error);
+      logger.error({ error }, '[VectorStore] Failed to initialize IndexedDB');
       throw error;
     }
   }
@@ -145,9 +146,9 @@ export class VectorStore {
       // Add to memory cache (with size limit)
       this.addToCache(vector);
 
-      console.log(`[VectorStore] Stored vector: ${vector.id}`);
+      logger.debug(`[VectorStore] Stored vector: ${vector.id}`);
     } catch (error) {
-      console.error('[VectorStore] Failed to store vector:', error);
+      logger.error({ error }, '[VectorStore] Failed to store vector');
       throw error;
     }
   }
@@ -174,9 +175,9 @@ export class VectorStore {
       // Add to memory cache
       vectors.forEach(vector => this.addToCache(vector));
 
-      console.log(`[VectorStore] Stored ${vectors.length} vectors in batch`);
+      logger.info(`[VectorStore] Stored ${vectors.length} vectors in batch`);
     } catch (error) {
-      console.error('[VectorStore] Failed to store batch:', error);
+      logger.error({ error }, '[VectorStore] Failed to store batch');
       throw error;
     }
   }
@@ -209,7 +210,7 @@ export class VectorStore {
       }
       return vector || null;
     } catch (error) {
-      console.error('[VectorStore] Failed to get vector:', error);
+      logger.error({ error }, '[VectorStore] Failed to get vector');
       return null;
     }
   }
@@ -229,7 +230,7 @@ export class VectorStore {
       const vectors = await this.db!.getAllFromIndex('vectors', 'by-document', documentId);
       return vectors;
     } catch (error) {
-      console.error('[VectorStore] Failed to get vectors by document:', error);
+      logger.error({ error }, '[VectorStore] Failed to get vectors by document');
       return [];
     }
   }
@@ -302,12 +303,12 @@ export class VectorStore {
       this.stats.totalSearchTime += duration;
 
       if (duration > 50) {
-        console.warn(
+        logger.warn(
           `[VectorStore] Search took ${duration.toFixed(2)}ms on ${vectors.length} vectors (target: <50ms)`
         );
       }
 
-      console.log(
+      logger.debug(
         `[VectorStore] Found ${topResults.length} similar vectors (${duration.toFixed(2)}ms, ` +
         `${(duration / Math.max(1, vectors.length)).toFixed(2)}ms per vector)`
       );
@@ -315,7 +316,7 @@ export class VectorStore {
       return topResults;
 
     } catch (error) {
-      console.error('[VectorStore] Similarity search failed:', error);
+      logger.error({ error }, '[VectorStore] Similarity search failed');
       return [];
     }
   }
@@ -381,9 +382,9 @@ export class VectorStore {
     try {
       await this.db!.delete('vectors', id);
       this.memoryCache.delete(id);
-      console.log(`[VectorStore] Deleted vector: ${id}`);
+      logger.debug(`[VectorStore] Deleted vector: ${id}`);
     } catch (error) {
-      console.error('[VectorStore] Failed to delete vector:', error);
+      logger.error({ error }, '[VectorStore] Failed to delete vector');
       throw error;
     }
   }
@@ -412,9 +413,9 @@ export class VectorStore {
         tx.done,
       ]);
 
-      console.log(`[VectorStore] Deleted ${vectors.length} vectors for document: ${documentId}`);
+      logger.info(`[VectorStore] Deleted ${vectors.length} vectors for document: ${documentId}`);
     } catch (error) {
-      console.error('[VectorStore] Failed to delete vectors by document:', error);
+      logger.error({ error }, '[VectorStore] Failed to delete vectors by document');
       throw error;
     }
   }
@@ -430,9 +431,9 @@ export class VectorStore {
     try {
       await this.db!.clear('vectors');
       this.memoryCache.clear();
-      console.log('[VectorStore] Cleared all vectors');
+      logger.info('[VectorStore] Cleared all vectors');
     } catch (error) {
-      console.error('[VectorStore] Failed to clear vectors:', error);
+      logger.error({ error }, '[VectorStore] Failed to clear vectors');
       throw error;
     }
   }
@@ -463,7 +464,7 @@ export class VectorStore {
         totalSearches: this.stats.totalSearches,
       };
     } catch (error) {
-      console.error('[VectorStore] Failed to get stats:', error);
+      logger.error({ error }, '[VectorStore] Failed to get stats');
       return {
         totalVectors: 0,
         cacheSize: this.memoryCache.size,
@@ -486,7 +487,7 @@ export class VectorStore {
       const result = await this.db!.get('metadata', key);
       return result?.value ?? null;
     } catch (error) {
-      console.error('[VectorStore] Failed to get metadata:', error);
+      logger.error({ error }, '[VectorStore] Failed to get metadata');
       return null;
     }
   }
@@ -506,7 +507,7 @@ export class VectorStore {
         timestamp: Date.now(),
       });
     } catch (error) {
-      console.error('[VectorStore] Failed to set metadata:', error);
+      logger.error({ error }, '[VectorStore] Failed to set metadata');
       throw error;
     }
   }

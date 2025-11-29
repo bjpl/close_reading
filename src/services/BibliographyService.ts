@@ -11,6 +11,7 @@
 import { Cite } from '@citation-js/core';
 import '@citation-js/plugin-bibtex';
 import '@citation-js/plugin-csl';
+import logger from '@/lib/logger';
 
 /**
  * Supported citation formats for import/export
@@ -40,7 +41,7 @@ export interface Citation {
   ISBN?: string;
   ISSN?: string;
   abstract?: string;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 /**
@@ -97,10 +98,11 @@ export class BibliographyService {
    */
   async importBibliography(
     data: string,
-    format: CitationFormat
+    _format: CitationFormat
   ): Promise<BibliographyEntry[]> {
     try {
-      const cite = new Cite(data, { format: format });
+      // Citation-js auto-detects most formats, no need to specify format
+      const cite = new Cite(data);
       const citations = cite.data as Citation[];
 
       const entries: BibliographyEntry[] = citations.map((citation) => {
@@ -143,7 +145,7 @@ export class BibliographyService {
       // Map format to citation-js output format
       const outputFormat = format === 'csl-json' ? 'data' : format;
 
-      return cite.format(outputFormat as any, {
+      return cite.format(outputFormat as string, {
         format: 'text',
       });
     } catch (error) {
@@ -173,7 +175,7 @@ export class BibliographyService {
         lang: 'en-US',
       });
     } catch (error) {
-      console.error('Citation formatting error:', error);
+      logger.error({ error }, 'Citation formatting error');
       return this.formatCitationFallback(citation);
     }
   }

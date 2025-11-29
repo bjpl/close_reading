@@ -4,6 +4,7 @@
  * Provides AI-powered paragraph linking suggestions using semantic similarity.
  */
 import { supabase } from '../lib/supabase';
+import logger from '../lib/logger';
 
 export interface LinkSuggestion {
   sourceParagraphId: string;
@@ -56,7 +57,7 @@ export const getLinkSuggestions = async (
 
     return suggestions.sort((a, b) => b.similarity - a.similarity).slice(0, 10);
   } catch (error) {
-    console.error('Error generating link suggestions:', error);
+    logger.error({ error }, 'Error generating link suggestions');
     return [];
   }
 };

@@ -16,6 +16,7 @@
 
 import { getOnnxEmbeddingService } from './OnnxEmbeddingService';
 import { getVectorStore } from './VectorStore';
+import logger from '../../lib/logger';
 
 /**
  * Semantic search result with context
@@ -87,9 +88,9 @@ export class SemanticSearchService {
         this.embeddingService.initialize(),
         this.vectorStore.initialize(),
       ]);
-      console.log('[SemanticSearch] Service initialized');
+      logger.info('[SemanticSearch] Service initialized');
     } catch (error) {
-      console.error('[SemanticSearch] Initialization failed:', error);
+      logger.error({ error }, '[SemanticSearch] Initialization failed');
       throw error;
     }
   }
@@ -111,7 +112,7 @@ export class SemanticSearchService {
     } = options;
 
     try {
-      console.log(`[SemanticSearch] Searching for: "${query}"`);
+      logger.debug(`[SemanticSearch] Searching for: "${query}"`);
 
       // Optionally expand query with synonyms/related terms
       const expandedQuery = expandQuery ? await this.expandQuery(query) : query;
@@ -141,12 +142,12 @@ export class SemanticSearchService {
         metadata: result.metadata,
       }));
 
-      console.log(`[SemanticSearch] Found ${results.length} results`);
+      logger.info(`[SemanticSearch] Found ${results.length} results`);
 
       return results;
 
     } catch (error) {
-      console.error('[SemanticSearch] Search failed:', error);
+      logger.error({ error }, '[SemanticSearch] Search failed');
       return [];
     }
   }
@@ -197,12 +198,12 @@ export class SemanticSearchService {
           reason: this.generateSimilarityReason(result.similarity),
         }));
 
-      console.log(`[SemanticSearch] Found ${passages.length} similar passages`);
+      logger.info(`[SemanticSearch] Found ${passages.length} similar passages`);
 
       return passages;
 
     } catch (error) {
-      console.error('[SemanticSearch] Similar passages search failed:', error);
+      logger.error({ error }, '[SemanticSearch] Similar passages search failed');
       return [];
     }
   }
@@ -231,7 +232,7 @@ export class SemanticSearchService {
     this.indexingProgress.set(documentId, progress);
 
     try {
-      console.log(`[SemanticSearch] Indexing document ${documentId} (${paragraphs.length} paragraphs)`);
+      logger.info(`[SemanticSearch] Indexing document ${documentId} (${paragraphs.length} paragraphs)`);
 
       // Generate embeddings in batch
       const texts = paragraphs.map(p => p.text);
@@ -258,13 +259,13 @@ export class SemanticSearchService {
       progress.progress = 100;
       progress.status = 'completed';
 
-      console.log(
+      logger.info(
         `[SemanticSearch] Indexed ${paragraphs.length} paragraphs ` +
         `(${batchResult.cached} cached, ${batchResult.computed} computed)`
       );
 
     } catch (error) {
-      console.error('[SemanticSearch] Indexing failed:', error);
+      logger.error({ error }, '[SemanticSearch] Indexing failed');
       progress.status = 'error';
       progress.error = error instanceof Error ? error.message : 'Unknown error';
       throw error;
@@ -290,9 +291,9 @@ export class SemanticSearchService {
     try {
       await this.vectorStore.deleteByDocument(documentId);
       this.indexingProgress.delete(documentId);
-      console.log(`[SemanticSearch] Deleted index for document: ${documentId}`);
+      logger.info(`[SemanticSearch] Deleted index for document: ${documentId}`);
     } catch (error) {
-      console.error('[SemanticSearch] Failed to delete document index:', error);
+      logger.error({ error }, '[SemanticSearch] Failed to delete document index');
       throw error;
     }
   }
@@ -309,7 +310,7 @@ export class SemanticSearchService {
     threshold = 0.7
   ): Promise<SimilarPassage[]> {
     try {
-      console.log(`[SemanticSearch] Finding cross-document links across ${documentIds.length} documents`);
+      logger.info(`[SemanticSearch] Finding cross-document links across ${documentIds.length} documents`);
 
       const allLinks: SimilarPassage[] = [];
 
@@ -348,12 +349,12 @@ export class SemanticSearchService {
       // Sort by similarity and remove duplicates
       allLinks.sort((a, b) => b.similarity - a.similarity);
 
-      console.log(`[SemanticSearch] Found ${allLinks.length} cross-document links`);
+      logger.info(`[SemanticSearch] Found ${allLinks.length} cross-document links`);
 
       return allLinks;
 
     } catch (error) {
-      console.error('[SemanticSearch] Cross-document link search failed:', error);
+      logger.error({ error }, '[SemanticSearch] Cross-document link search failed');
       return [];
     }
   }

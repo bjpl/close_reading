@@ -184,6 +184,11 @@ export const useDocuments = (projectId?: string, userId?: string) => {
         linkCount: linkMap.size
       });
 
+      // Define types for database rows
+      type ParagraphRow = NonNullable<typeof paragraphs>[number];
+      type AnnotationRow = NonNullable<typeof annotations>[number];
+      type SentenceRow = NonNullable<typeof sentences>[number];
+
       // Transform to app format
       const transformedDocument = {
         id: doc.id,
@@ -198,20 +203,20 @@ export const useDocuments = (projectId?: string, userId?: string) => {
         fileType: doc.file_type,
         processing_status: doc.processing_status,
         processingStatus: doc.processing_status,
-        paragraphs: (paragraphs || []).map((p: any) => ({
+        paragraphs: (paragraphs || []).map((p: ParagraphRow) => ({
           id: p.id,
           content: p.content,
           order: p.position,
           pageNumber: p.page_number || undefined,
-          linkedParagraphs: linkMap.get(p.id) || [],
+          linkedParagraphs: linkMap.get(p.id as string) || [],
           annotations: (annotations || [])
-            .filter((a: any) => a.paragraph_id === p.id)
-            .map((a: any) => ({
+            .filter((a: AnnotationRow) => a.paragraph_id === p.id)
+            .map((a: AnnotationRow) => ({
               id: a.id,
               type: a.annotation_type,
               text: a.content || '',
               note: a.content,
-              color: (a.highlight_color as any) || 'yellow',
+              color: (a.highlight_color as string) || 'yellow',
               startOffset: a.start_offset || 0,
               endOffset: a.end_offset || 0,
               paragraphId: a.paragraph_id || '',
@@ -219,7 +224,7 @@ export const useDocuments = (projectId?: string, userId?: string) => {
               updatedAt: new Date(a.updated_at),
             })),
         })),
-        sentences: (sentences || []).map((s: any) => ({
+        sentences: (sentences || []).map((s: SentenceRow) => ({
           id: s.id,
           paragraphId: s.paragraph_id,
           content: s.content,
@@ -234,7 +239,7 @@ export const useDocuments = (projectId?: string, userId?: string) => {
         content: '', // Not loading full content for now
       };
 
-      setDocument(transformedDocument as any);
+      setDocument(transformedDocument as Parameters<typeof setDocument>[0]);
       setError(null);
       return transformedDocument;
     } catch (err) {
@@ -310,6 +315,7 @@ export const useDocuments = (projectId?: string, userId?: string) => {
         }
       };
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [projectId, userId]);
 
   return {

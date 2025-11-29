@@ -5,7 +5,7 @@ import { describe, it, expect } from 'vitest';
 describe('Performance Benchmarks', () => {
   describe('Embedding Generation Performance', () => {
     it('should generate embeddings within acceptable time', async () => {
-      const mockGenerateEmbedding = async (text: string) => {
+      const mockGenerateEmbedding = async (_text: string) => {
         const startTime = performance.now();
 
         // Simulate embedding generation (ONNX)
@@ -29,7 +29,7 @@ describe('Performance Benchmarks', () => {
       const startTime = performance.now();
 
       // Mock batch processing
-      const embeddings = texts.map((text) => ({
+      const _batch = texts.map((text) => ({
         text,
         vector: Array.from({ length: 512 }, () => Math.random()),
       }));
@@ -37,7 +37,7 @@ describe('Performance Benchmarks', () => {
       const duration = performance.now() - startTime;
       const avgTimePerEmbedding = duration / texts.length;
 
-      expect(embeddings.length).toBe(100);
+      expect(_batch.length).toBe(100);
       expect(avgTimePerEmbedding).toBeLessThan(10); // < 10ms per embedding on average
     });
 
@@ -471,8 +471,8 @@ describe('Performance Benchmarks', () => {
 
       // Process in batches
       for (let i = 0; i < operations.length; i += batchSize) {
-        const batch = operations.slice(i, i + batchSize);
-        // Mock: await db.insertBatch(batch);
+        const _batch = operations.slice(i, i + batchSize);
+        // Mock: await db.insertBatch(_batch);
         await new Promise((resolve) => setTimeout(resolve, 10));
       }
 

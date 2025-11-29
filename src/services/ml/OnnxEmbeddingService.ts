@@ -16,6 +16,7 @@
 
 import * as ort from 'onnxruntime-web';
 import { EmbeddingCache } from './cache';
+import logger from '../../lib/logger';
 
 /**
  * Configuration for ONNX embedding service
@@ -156,12 +157,12 @@ export class OnnxEmbeddingService {
 
     this.initPromise = (async () => {
       try {
-        console.log('[ONNX] Initializing embedding service...');
-        console.log('[ONNX] Model path:', this.config.modelPath);
+        logger.info('[ONNX] Initializing embedding service...');
+        logger.debug({ modelPath: this.config.modelPath }, '[ONNX] Model path');
 
         // Initialize cache
         await this.cache.initialize();
-        console.log('[ONNX] Cache initialized');
+        logger.info('[ONNX] Cache initialized');
 
         // Load ONNX model with WASM backend
         const startTime = performance.now();
@@ -172,12 +173,12 @@ export class OnnxEmbeddingService {
         });
 
         const duration = performance.now() - startTime;
-        console.log(`[ONNX] Model loaded successfully in ${duration.toFixed(2)}ms`);
-        console.log('[ONNX] Input names:', this.session.inputNames);
-        console.log('[ONNX] Output names:', this.session.outputNames);
+        logger.info(`[ONNX] Model loaded successfully in ${duration.toFixed(2)}ms`);
+        logger.debug({ inputNames: this.session.inputNames }, '[ONNX] Input names');
+        logger.debug({ outputNames: this.session.outputNames }, '[ONNX] Output names');
 
       } catch (error) {
-        console.error('[ONNX] Initialization failed:', error);
+        logger.error({ error }, '[ONNX] Initialization failed');
         this.isInitializing = false;
         this.initPromise = null;
         throw new Error(`Failed to load ONNX model: ${error instanceof Error ? error.message : String(error)}`);
@@ -249,7 +250,7 @@ export class OnnxEmbeddingService {
       this.stats.totalDuration += duration;
 
       if (duration > 100) {
-        console.warn(`[ONNX] Embedding took ${duration.toFixed(2)}ms (target: <100ms)`);
+        logger.warn(`[ONNX] Embedding took ${duration.toFixed(2)}ms (target: <100ms)`);
       }
 
       const result: EmbeddingVector = {
@@ -267,7 +268,7 @@ export class OnnxEmbeddingService {
       return result;
 
     } catch (error) {
-      console.error('[ONNX] Embedding generation failed:', error);
+      logger.error({ error }, '[ONNX] Embedding generation failed');
       throw new Error(`Failed to generate embedding: ${error instanceof Error ? error.message : String(error)}`);
     }
   }
@@ -339,7 +340,7 @@ export class OnnxEmbeddingService {
     const duration = performance.now() - startTime;
     const cacheHitRate = texts.length > 0 ? cached / texts.length : 0;
 
-    console.log(
+    logger.info(
       `[ONNX] Batch complete: ${texts.length} texts, ${cached} cached (${(cacheHitRate * 100).toFixed(1)}%), ` +
       `${computed} computed in ${duration.toFixed(2)}ms (${(duration / texts.length).toFixed(2)}ms per text)`
     );

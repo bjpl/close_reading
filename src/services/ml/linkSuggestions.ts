@@ -14,6 +14,7 @@
 
 import { getEmbeddingService, EmbeddingVector } from './embeddings';
 import { findSimilarParagraphs, SimilarityOptions } from './similarity';
+import logger from '../../lib/logger';
 
 export interface LinkSuggestion {
   sourceParagraphId: string;
@@ -87,11 +88,11 @@ export class LinkSuggestionsService {
       return suggestions;
 
     } catch (error) {
-      console.error('[LinkSuggestions] ML approach failed:', error);
+      logger.error({ error }, '[LinkSuggestions] ML approach failed');
 
       // Fallback to TF-IDF if enabled
       if (useFallback) {
-        console.log('[LinkSuggestions] Using TF-IDF fallback');
+        logger.info('[LinkSuggestions] Using TF-IDF fallback');
         return this.getTFIDFSuggestions(
           paragraphId,
           paragraphText,

@@ -5,7 +5,7 @@
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
-import { ChakraProvider } from '@chakra-ui/react';
+import { ChakraProvider, defaultSystem } from '@chakra-ui/react';
 import { DocumentViewer } from '../../../src/components/DocumentViewer';
 
 vi.mock('../../../src/stores/documentStore', () => ({
@@ -68,7 +68,7 @@ vi.mock('../../../src/components/SentenceView', () => ({
 }));
 
 const renderWithChakra = (component: React.ReactElement) => {
-  return render(<ChakraProvider>{component}</ChakraProvider>);
+  return render(<ChakraProvider value={defaultSystem}>{component}</ChakraProvider>);
 };
 
 describe('DocumentViewer', () => {

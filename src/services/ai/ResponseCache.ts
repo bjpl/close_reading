@@ -22,18 +22,22 @@ export class ResponseCache {
     size: 0,
     entries: 0,
   };
+  private dbName: string;
 
   constructor(
     private maxSize = MAX_CACHE_SIZE,
-    private defaultTTL = DEFAULT_TTL
-  ) {}
+    private defaultTTL = DEFAULT_TTL,
+    dbName?: string // Allow custom database name for testing
+  ) {
+    this.dbName = dbName || DB_NAME;
+  }
 
   // ==========================================================================
   // Initialization
   // ==========================================================================
 
   async initialize(): Promise<void> {
-    this.db = await openDB(DB_NAME, 1, {
+    this.db = await openDB(this.dbName, 1, {
       upgrade(db) {
         if (!db.objectStoreNames.contains(STORE_NAME)) {
           const store = db.createObjectStore(STORE_NAME, { keyPath: 'key' });
@@ -170,6 +174,18 @@ export class ResponseCache {
     if (this.db) {
       await this.db.clear(STORE_NAME);
     }
+  }
+
+  /**
+   * Close the database connection. Call this before deleting the database.
+   */
+  close(): void {
+    if (this.db) {
+      this.db.close();
+      this.db = null;
+    }
+    this.memoryCache.clear();
+    this.accessLog.clear();
   }
 
   // ==========================================================================

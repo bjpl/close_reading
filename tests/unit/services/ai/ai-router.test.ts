@@ -279,6 +279,15 @@ describe('AIRouter', () => {
 
   describe('quality metrics', () => {
     it('should track success metrics', async () => {
+      // Must enable metrics tracking
+      router = new AIRouter(
+        new Map([
+          ['ollama', ollamaProvider],
+          ['claude', claudeProvider],
+        ]),
+        { trackMetrics: true }
+      );
+
       await router.summarize('Test');
 
       const metrics = router.getQualityMetrics();

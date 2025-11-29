@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import {
   generateShareLink,
   validateShareToken,
@@ -71,9 +71,6 @@ describe('Sharing Service', () => {
     });
   });
 
-  afterEach(() => {
-    vi.restoreAllMocks();
-  });
 
   describe('generateShareLink', () => {
     it('should generate a unique share link', async () => {
@@ -92,12 +89,9 @@ describe('Sharing Service', () => {
       });
 
       // Mock delete existing links
-      const deleteMock = vi.fn().mockReturnThis();
       const deleteEqMock = vi.fn().mockResolvedValue({ error: null });
 
       // Mock insert new link
-      const insertMock = vi.fn().mockReturnThis();
-      const insertSelectMock = vi.fn().mockReturnThis();
       const insertSingleMock = vi.fn().mockResolvedValue({
         data: mockShareLink,
         error: null,
@@ -138,8 +132,6 @@ describe('Sharing Service', () => {
         data: { user: mockUser as any },
         error: null,
       });
-
-      const mockWithExpiry = { ...mockShareLink, expires_at: '2024-01-08T00:00:00Z' };
 
       vi.mocked(supabase.from).mockImplementation(() => {
         return {
@@ -208,8 +200,11 @@ describe('Sharing Service', () => {
         error: null,
       });
 
-      const deleteMock = vi.fn().mockReturnThis();
       const deleteEqMock = vi.fn().mockResolvedValue({ error: null });
+      const insertSelectSingleMock = vi.fn().mockResolvedValue({
+        data: mockShareLink,
+        error: null,
+      });
 
       vi.mocked(supabase.from).mockImplementation((table: string) => {
         if (table === 'documents') {
@@ -224,7 +219,11 @@ describe('Sharing Service', () => {
             delete: () => ({
               eq: deleteEqMock,
             }),
-            insert: vi.fn().mockReturnThis(),
+            insert: () => ({
+              select: () => ({
+                single: insertSelectSingleMock,
+              }),
+            }),
           } as any;
         }
         return {} as any;
@@ -306,7 +305,7 @@ describe('Sharing Service', () => {
 
   describe('getSharedDocument', () => {
     it('should return document with annotations for valid token', async () => {
-      // Mock validateShareToken
+      // Mock 1: validateShareToken - share_links select
       vi.mocked(supabase.from).mockReturnValueOnce({
         select: vi.fn().mockReturnThis(),
         eq: vi.fn().mockReturnThis(),
@@ -316,7 +315,7 @@ describe('Sharing Service', () => {
         }),
       } as any);
 
-      // Mock get share link
+      // Mock 2: getSharedDocument get share link - share_links select
       vi.mocked(supabase.from).mockReturnValueOnce({
         select: vi.fn().mockReturnThis(),
         eq: vi.fn().mockReturnThis(),
@@ -326,7 +325,23 @@ describe('Sharing Service', () => {
         }),
       } as any);
 
-      // Mock get document
+      // Mock 3: incrementAccessCount get access_count - share_links select
+      vi.mocked(supabase.from).mockReturnValueOnce({
+        select: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockReturnThis(),
+        single: vi.fn().mockResolvedValue({
+          data: { access_count: 0 },
+          error: null,
+        }),
+      } as any);
+
+      // Mock 4: incrementAccessCount update - share_links update
+      vi.mocked(supabase.from).mockReturnValueOnce({
+        update: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockResolvedValue({ error: null }),
+      } as any);
+
+      // Mock 5: getSharedDocument get document - documents select
       vi.mocked(supabase.from).mockReturnValueOnce({
         select: vi.fn().mockReturnThis(),
         eq: vi.fn().mockReturnThis(),
@@ -339,7 +354,7 @@ describe('Sharing Service', () => {
         }),
       } as any);
 
-      // Mock get annotations
+      // Mock 6: getSharedDocument get annotations - annotations select/order
       vi.mocked(supabase.from).mockReturnValueOnce({
         select: vi.fn().mockReturnThis(),
         eq: vi.fn().mockReturnThis(),
@@ -359,14 +374,17 @@ describe('Sharing Service', () => {
     });
 
     it('should return null for invalid token', async () => {
-      vi.mocked(supabase.from).mockReturnValue({
+      // Use mockImplementation for consistent behavior across retries
+      vi.mocked(supabase.from).mockImplementation(() => ({
         select: vi.fn().mockReturnThis(),
         eq: vi.fn().mockReturnThis(),
         single: vi.fn().mockResolvedValue({
           data: null,
           error: { message: 'Not found' },
         }),
-      } as any);
+        // Include update in case validation passes unexpectedly
+        update: vi.fn().mockReturnThis(),
+      } as any));
 
       const result = await getSharedDocument('invalid-token');
 
@@ -374,8 +392,6 @@ describe('Sharing Service', () => {
     });
 
     it('should increment access count when document is accessed', async () => {
-      const incrementMock = vi.fn();
-
       // Mock successful validation and document retrieval
       vi.mocked(supabase.from)
         .mockReturnValueOnce({
@@ -409,12 +425,11 @@ describe('Sharing Service', () => {
         error: null,
       });
 
-      const deleteMock = vi.fn().mockReturnThis();
       const eqMock = vi.fn().mockReturnThis();
 
       vi.mocked(supabase.from).mockReturnValue({
         delete: () => ({
-          eq: (field: string, value: string) => ({
+          eq: (_field: string, _value: string) => ({
             eq: eqMock.mockResolvedValue({ error: null }),
           }),
         }),
@@ -534,7 +549,9 @@ describe('Sharing Service', () => {
       for (let i = 0; i < 100; i++) {
         const array = new Uint8Array(32);
         crypto.getRandomValues(array);
-        const token = Array.from(array, byte => byte.toString(36).padStart(2, '0')).join('');
+        const token = Array.from(array, (byte) =>
+          byte.toString(36).padStart(2, '0')
+        ).join('');
         tokens.add(token);
       }
 
@@ -545,7 +562,9 @@ describe('Sharing Service', () => {
     it('should generate tokens of sufficient length', () => {
       const array = new Uint8Array(32);
       crypto.getRandomValues(array);
-      const token = Array.from(array, byte => byte.toString(36).padStart(2, '0')).join('');
+      const token = Array.from(array, (byte) =>
+        byte.toString(36).padStart(2, '0')
+      ).join('');
 
       expect(token.length).toBeGreaterThanOrEqual(32);
     });

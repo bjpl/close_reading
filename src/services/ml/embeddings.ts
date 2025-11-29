@@ -14,6 +14,7 @@
 import * as tf from '@tensorflow/tfjs';
 import * as use from '@tensorflow-models/universal-sentence-encoder';
 import { EmbeddingCache } from './cache';
+import logger from '../../lib/logger';
 
 export interface EmbeddingVector {
   text: string;
@@ -63,22 +64,22 @@ export class EmbeddingService {
 
     this.initPromise = (async () => {
       try {
-        console.log('[Embeddings] Initializing TensorFlow.js Universal Sentence Encoder...');
+        logger.info('[Embeddings] Initializing TensorFlow.js Universal Sentence Encoder...');
 
         // Set TensorFlow.js backend
         await tf.ready();
-        console.log('[Embeddings] TensorFlow.js backend:', tf.getBackend());
+        logger.debug({ backend: tf.getBackend() }, '[Embeddings] TensorFlow.js backend');
 
         // Load Universal Sentence Encoder
         this.model = await use.load();
-        console.log('[Embeddings] Model loaded successfully');
+        logger.info('[Embeddings] Model loaded successfully');
 
         // Initialize cache
         await this.cache.initialize();
-        console.log('[Embeddings] Cache initialized');
+        logger.info('[Embeddings] Cache initialized');
 
       } catch (error) {
-        console.error('[Embeddings] Initialization failed:', error);
+        logger.error({ error }, '[Embeddings] Initialization failed');
         this.isInitializing = false;
         this.initPromise = null;
         throw error;
@@ -113,7 +114,7 @@ export class EmbeddingService {
       embeddings.dispose(); // Clean up tensors
 
       const duration = performance.now() - startTime;
-      console.log(`[Embeddings] Generated embedding in ${duration.toFixed(2)}ms`);
+      logger.debug(`[Embeddings] Generated embedding in ${duration.toFixed(2)}ms`);
 
       const result: EmbeddingVector = {
         text,
@@ -127,7 +128,7 @@ export class EmbeddingService {
 
       return result;
     } catch (error) {
-      console.error('[Embeddings] Failed to generate embedding:', error);
+      logger.error({ error }, '[Embeddings] Failed to generate embedding');
       throw error;
     }
   }
@@ -198,14 +199,14 @@ export class EmbeddingService {
         await Promise.all(cachePromises);
 
       } catch (error) {
-        console.error('[Embeddings] Batch generation failed:', error);
+        logger.error({ error }, '[Embeddings] Batch generation failed');
         throw error;
       }
     }
 
     const duration = performance.now() - startTime;
 
-    console.log(
+    logger.info(
       `[Embeddings] Batch complete: ${cached} cached, ${computed} computed in ${duration.toFixed(2)}ms`
     );
 

@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { LinkSuggestionsService } from '@/services/ml/linkSuggestions';
-import type { EmbeddingService, EmbeddingVector } from '@/services/ml/embeddings';
+import type { EmbeddingVector } from '@/services/ml/embeddings';
 
 // Mock the embedding service
 const mockEmbeddingService = {

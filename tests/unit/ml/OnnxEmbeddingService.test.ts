@@ -4,7 +4,7 @@
  * Tests model loading, embedding generation, caching, and performance
  */
 
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { OnnxEmbeddingService } from '../../../src/services/ml/OnnxEmbeddingService';
 
 describe('OnnxEmbeddingService', () => {

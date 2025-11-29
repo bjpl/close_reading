@@ -8,6 +8,7 @@
 
 import { IDBPDatabase } from 'idb';
 import { MockDB, MockUser } from './types';
+import { logger } from '../../utils/logger';
 
 /**
  * Mock database service class
@@ -125,9 +126,9 @@ export class MockDatabaseService {
               try {
                 // @ts-ignore - Dynamic table name requires type assertion
                 items = await self.db.getAllFromIndex(table as any, 'by-document' as any, docIdFilter.value);
-                console.log(`🔍 Query ${table} by document_id=${docIdFilter.value}: found ${items.length} items`);
+                logger.debug(`🔍 Query ${table} by document_id=${docIdFilter.value}: found ${items.length} items`);
               } catch (err) {
-                console.error(`❌ Error querying ${table} by document_id:`, err);
+                logger.error(`❌ Error querying ${table} by document_id:`, err);
                 items = [];
               }
             }
@@ -164,7 +165,7 @@ export class MockDatabaseService {
 
           return { data: items, error: null };
         } catch (error) {
-          console.error('Query error:', error);
+          logger.error('Query error:', error);
           return { data: this._isSingle ? null : [], error: { message: 'Query failed' } };
         }
       },
@@ -227,16 +228,16 @@ export class MockDatabaseService {
               for (const record of records) {
                 await self.db.add(table as any, record);
                 if (table === 'paragraphs' || table === 'sentences') {
-                  console.log(`✅ Created ${table} record:`, record.id, 'document_id:', record.document_id);
+                  logger.debug(`✅ Created ${table} record:`, record.id, 'document_id:', record.document_id);
                 } else {
-                  console.log(`✅ Created ${table} record:`, record.id);
+                  logger.debug(`✅ Created ${table} record:`, record.id);
                 }
               }
 
               const result = isArray ? records : records[0];
               return { data: result, error: null };
             } catch (error) {
-              console.error(`❌ Insert error for ${table}:`, error);
+              logger.error(`❌ Insert error for ${table}:`, error);
               return { data: null, error: { message: 'Insert failed', details: error } };
             }
           },
@@ -273,7 +274,7 @@ export class MockDatabaseService {
               await self.db.put(table as any, updated);
               return { data: updated, error: null };
             } catch (error) {
-              console.error('Update error:', error);
+              logger.error('Update error:', error);
               return { data: null, error: { message: 'Update failed' } };
             }
           },

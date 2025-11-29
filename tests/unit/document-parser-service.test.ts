@@ -4,7 +4,26 @@
  * Unit tests for document parsing and text structure extraction
  */
 
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
+
+// Mock pdf-parse to avoid module resolution issues in test environment
+// Mock both the base module and the specific path import
+vi.mock('pdf-parse', () => ({
+  default: vi.fn(() => Promise.resolve({
+    text: 'Mock PDF content',
+    numpages: 1,
+    info: { Title: 'Mock PDF' },
+  })),
+}));
+
+vi.mock('pdf-parse/lib/pdf-parse.js', () => ({
+  default: vi.fn(() => Promise.resolve({
+    text: 'Mock PDF content',
+    numpages: 1,
+    info: { Title: 'Mock PDF' },
+  })),
+}));
+
 import {
   DocumentParserService,
   type ParsedDocument,

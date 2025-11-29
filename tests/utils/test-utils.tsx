@@ -1,11 +1,12 @@
 import { ReactElement } from 'react';
 import { render, RenderOptions } from '@testing-library/react';
-import { ChakraProvider } from '@chakra-ui/react';
+import { ChakraProvider, defaultSystem } from '@chakra-ui/react';
 
 // Custom render function that includes providers
+// Chakra UI v3 requires a 'value' prop with the system configuration
 const AllTheProviders = ({ children }: { children: React.ReactNode }) => {
   return (
-    <ChakraProvider>
+    <ChakraProvider value={defaultSystem}>
       {children}
     </ChakraProvider>
   );

@@ -9,6 +9,7 @@
 
 import mammoth from 'mammoth';
 import DOMPurify from 'dompurify';
+// Logger available if needed: import logger from '@/lib/logger';
 
 /**
  * Supported document formats
@@ -388,6 +389,44 @@ export class DocumentParserService {
 
   private generateSentenceId(index: number): string {
     return `s-${index.toString().padStart(6, '0')}`;
+  }
+
+  /**
+   * Parse raw text into structured document
+   *
+   * @param text - Raw text to parse
+   * @param options - Parsing options
+   * @returns Parsed document structure
+   */
+  parseText(
+    text: string,
+    options?: Partial<ParserOptions>
+  ): ParsedDocument {
+    // Use lower minParagraphLength for raw text unless explicitly specified
+    const textDefaults = { ...this.defaultOptions, minParagraphLength: 1 };
+    const mergedOptions = { ...textDefaults, ...options };
+
+    // Normalize text
+    const rawText = mergedOptions.preserveWhitespace
+      ? text.replace(/\r\n/g, '\n')
+      : this.normalizeWhitespace(text);
+
+    // Parse structure
+    const paragraphs = this.extractParagraphs(rawText, mergedOptions);
+    const sentences = this.extractSentences(paragraphs);
+
+    const metadata: DocumentMetadata = {
+      format: 'txt',
+      wordCount: this.countWords(rawText),
+      characterCount: rawText.length,
+    };
+
+    return {
+      metadata,
+      paragraphs,
+      sentences,
+      rawText,
+    };
   }
 
   /**

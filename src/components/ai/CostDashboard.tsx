@@ -19,6 +19,7 @@ import { Progress } from '@chakra-ui/react/progress';
 import { Stat } from '@chakra-ui/react/stat';
 import { Alert } from '@chakra-ui/react/alert';
 import type { CostTracker, UsageStats, BudgetAlert } from '../../services/ai';
+import { logger } from '../../utils/logger';
 
 interface CostDashboardProps {
   costTracker: CostTracker;
@@ -44,6 +45,7 @@ export const CostDashboard: React.FC<CostDashboardProps> = ({ costTracker }) => 
     return () => {
       costTracker.removeListener(listener);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [costTracker]);
 
   const loadStats = async () => {
@@ -65,7 +67,7 @@ export const CostDashboard: React.FC<CostDashboardProps> = ({ costTracker }) => 
       setRemainingBudget(remaining);
       setProjectedSpend(projected);
     } catch (error) {
-      console.error('Error loading cost stats:', error);
+      logger.error({ error }, 'Error loading cost stats');
     }
   };
 

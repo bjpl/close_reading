@@ -17,6 +17,7 @@ import { Tooltip } from '@chakra-ui/react/tooltip';
 import { Alert } from '@chakra-ui/react/alert';
 import { FiCloud, FiMonitor, FiGlobe, FiLock } from 'react-icons/fi';
 import { AIRouter } from '@/services/ai/AIRouter';
+import { logger } from '@/utils/logger';
 
 // Types
 type AIProviderType = 'ollama' | 'claude' | 'browser-ml';
@@ -57,6 +58,7 @@ export const ProviderSelector: React.FC<ProviderSelectorProps> = ({
 
   useEffect(() => {
     loadProviders();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [router]);
 
   useEffect(() => {
@@ -69,9 +71,9 @@ export const ProviderSelector: React.FC<ProviderSelectorProps> = ({
     try {
       setLoading(true);
       const status = await router.getProviderStatus();
-      setProviders(status);
+      setProviders(status as unknown as ProviderOption[]);
     } catch (error) {
-      console.error('Failed to load providers:', error);
+      logger.error({ error }, 'Failed to load providers');
     } finally {
       setLoading(false);
     }

@@ -6,8 +6,6 @@ import {
   calculateSimilarityMatrix,
   clusterBySimilarity,
   getSimilarityStats,
-  type SimilarityResult,
-  type Cluster,
 } from '@/services/ml/similarity';
 import type { EmbeddingVector } from '@/services/ml/embeddings';
 
@@ -100,17 +98,20 @@ describe('Similarity Service', () => {
     });
 
     it('should sort results by score in descending order', () => {
-      const queryVector = [1, 1, 1];
+      // Use vectors with different directions, not just different magnitudes
+      // Parallel vectors have identical cosine similarity regardless of magnitude
+      const queryVector = [1, 0, 0];
       const targets = [
-        { id: '1', text: 'Low', vector: [0.1, 0.1, 0.1] },
-        { id: '2', text: 'High', vector: [1, 1, 1] },
-        { id: '3', text: 'Medium', vector: [0.5, 0.5, 0.5] },
+        { id: '1', text: 'Low', vector: [0, 1, 0] }, // Orthogonal - similarity 0
+        { id: '2', text: 'High', vector: [1, 0, 0] }, // Identical direction - similarity 1
+        { id: '3', text: 'Medium', vector: [0.7, 0.7, 0] }, // Partial - similarity ~0.7
       ];
 
       const results = calculateSimilarities(queryVector, targets);
 
-      expect(results[0].score).toBeGreaterThan(results[1].score);
-      expect(results[1].score).toBeGreaterThan(results[2].score);
+      // Results should be sorted descending: High (1.0), Medium (~0.7), Low (0)
+      expect(results[0].score).toBeGreaterThanOrEqual(results[1].score);
+      expect(results[1].score).toBeGreaterThanOrEqual(results[2].score);
     });
 
     it('should include text and paragraph ID in results', () => {

@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import { createMockClient } from './mockSupabase';
+import { logger } from '../utils/logger';
 
 const enableMockMode = import.meta.env.VITE_ENABLE_MOCK_MODE === 'true';
 
@@ -13,9 +14,9 @@ const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 const useMockMode = enableMockMode || !supabaseUrl || !supabaseAnonKey;
 
 if (useMockMode) {
-  console.log('Running in MOCK MODE - no Supabase account needed');
+  logger.info('Running in MOCK MODE - no Supabase account needed');
   if (!supabaseUrl || !supabaseAnonKey) {
-    console.warn('Supabase credentials not found. Using mock client. Set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY to use real Supabase.');
+    logger.warn('Supabase credentials not found. Using mock client. Set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY to use real Supabase.');
   }
   supabase = createMockClient();
 } else {

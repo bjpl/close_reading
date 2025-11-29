@@ -15,6 +15,7 @@ import {
   ThemeExtractionResult,
   PrivacySettings,
 } from './types';
+import logger from '../../lib/logger';
 
 interface ProviderQualityMetrics {
   provider: AIProviderType;
@@ -130,7 +131,7 @@ export class AIRouter implements IAIProvider {
         }
       } catch (error) {
         // Provider not available, continue to next
-        console.warn(`Provider ${providerType} unavailable:`, error);
+        logger.warn({ providerType, error }, `Provider ${providerType} unavailable`);
       }
     }
 
@@ -253,7 +254,7 @@ export class AIRouter implements IAIProvider {
   async initialize(): Promise<void> {
     const initPromises = Array.from(this.providers.values()).map(provider =>
       provider.initialize().catch(err => {
-        console.warn(`Failed to initialize provider:`, err);
+        logger.warn({ err }, `Failed to initialize provider`);
       })
     );
 
@@ -363,7 +364,7 @@ export class AIRouter implements IAIProvider {
     Array<{
       type: AIProviderType;
       available: boolean;
-      metadata: any;
+      metadata: Record<string, unknown>;
       metrics?: ProviderQualityMetrics;
     }>
   > {
@@ -397,7 +398,7 @@ export class AIRouter implements IAIProvider {
   async dispose(): Promise<void> {
     const disposePromises = Array.from(this.providers.values()).map(provider =>
       provider.dispose().catch(err => {
-        console.warn('Failed to dispose provider:', err);
+        logger.warn({ err }, 'Failed to dispose provider');
       })
     );
 

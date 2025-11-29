@@ -1,6 +1,14 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { EmbeddingService } from '@/services/ml/embeddings';
-import type { EmbeddingCache } from '@/services/ml/cache';
+
+// Use vi.hoisted() to ensure mock functions are available when vi.mock() is hoisted
+const { mockEmbed, mockCacheGet, mockCacheSet, mockCacheClear, mockCacheGetStats, mockCacheInitialize } = vi.hoisted(() => ({
+  mockEmbed: vi.fn(),
+  mockCacheGet: vi.fn(),
+  mockCacheSet: vi.fn(),
+  mockCacheClear: vi.fn(),
+  mockCacheGetStats: vi.fn(),
+  mockCacheInitialize: vi.fn(),
+}));
 
 // Mock TensorFlow.js and Universal Sentence Encoder
 vi.mock('@tensorflow/tfjs', () => ({
@@ -10,8 +18,45 @@ vi.mock('@tensorflow/tfjs', () => ({
 
 vi.mock('@tensorflow-models/universal-sentence-encoder', () => ({
   load: vi.fn().mockResolvedValue({
-    embed: vi.fn((texts: string[]) => {
-      // Create mock embeddings (512 dimensions for USE)
+    embed: mockEmbed,
+  }),
+}));
+
+// Mock the cache - use function (not arrow) to allow 'new' keyword
+vi.mock('@/services/ml/cache', () => ({
+  EmbeddingCache: vi.fn().mockImplementation(function(this: any) {
+    this.initialize = mockCacheInitialize;
+    this.get = mockCacheGet;
+    this.set = mockCacheSet;
+    this.clear = mockCacheClear;
+    this.getStats = mockCacheGetStats;
+  }),
+}));
+
+import { EmbeddingService } from '@/services/ml/embeddings';
+
+describe('EmbeddingService', () => {
+  let service: EmbeddingService;
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+
+    // Reset all mock implementations to defaults
+    mockCacheInitialize.mockResolvedValue(undefined);
+    mockCacheGet.mockResolvedValue(null);
+    mockCacheSet.mockResolvedValue(undefined);
+    mockCacheClear.mockResolvedValue(undefined);
+    mockCacheGetStats.mockResolvedValue({
+      memorySize: 0,
+      indexedDBSize: 0,
+      supabaseSize: 0,
+      hitRate: 0,
+      totalRequests: 0,
+      totalHits: 0,
+    });
+
+    // Default embed mock - creates mock embeddings (512 dimensions for USE)
+    mockEmbed.mockImplementation((texts: string[]) => {
       const mockVectors = texts.map(() =>
         Array.from({ length: 512 }, () => Math.random())
       );
@@ -20,40 +65,13 @@ vi.mock('@tensorflow-models/universal-sentence-encoder', () => ({
         array: vi.fn().mockResolvedValue(mockVectors),
         dispose: vi.fn(),
       });
-    }),
-  }),
-}));
+    });
 
-// Mock the cache
-vi.mock('@/services/ml/cache', () => ({
-  EmbeddingCache: vi.fn().mockImplementation(() => ({
-    initialize: vi.fn().mockResolvedValue(undefined),
-    get: vi.fn().mockResolvedValue(null),
-    set: vi.fn().mockResolvedValue(undefined),
-    clear: vi.fn().mockResolvedValue(undefined),
-    getStats: vi.fn().mockResolvedValue({
-      memorySize: 0,
-      indexedDBSize: 0,
-      supabaseSize: 0,
-      hitRate: 0,
-      totalRequests: 0,
-      totalHits: 0,
-    }),
-  })),
-}));
-
-describe('EmbeddingService', () => {
-  let service: EmbeddingService;
-  let mockCache: EmbeddingCache;
-
-  beforeEach(() => {
-    vi.clearAllMocks();
     service = new EmbeddingService();
-    mockCache = (service as any).cache;
   });
 
   afterEach(() => {
-    service.dispose();
+    service?.dispose();
   });
 
   describe('Initialization', () => {
@@ -61,7 +79,7 @@ describe('EmbeddingService', () => {
       await service.initialize();
 
       expect(service.isReady()).toBe(true);
-      expect(mockCache.initialize).toHaveBeenCalled();
+      expect(mockCacheInitialize).toHaveBeenCalled();
     });
 
     it('should not reinitialize if already initialized', async () => {
@@ -69,7 +87,7 @@ describe('EmbeddingService', () => {
       await service.initialize();
 
       // Should only initialize once
-      expect(mockCache.initialize).toHaveBeenCalledTimes(1);
+      expect(mockCacheInitialize).toHaveBeenCalledTimes(1);
     });
 
     it('should handle concurrent initialization calls', async () => {
@@ -117,20 +135,20 @@ describe('EmbeddingService', () => {
         timestamp: Date.now(),
       };
 
-      vi.mocked(mockCache.get).mockResolvedValueOnce(cachedEmbedding);
+      mockCacheGet.mockResolvedValueOnce(cachedEmbedding);
 
       const result = await service.embed(text);
 
       expect(result).toEqual(cachedEmbedding);
-      expect(mockCache.get).toHaveBeenCalledWith(text, 'tfjs-use-v1');
+      expect(mockCacheGet).toHaveBeenCalledWith(text, 'tfjs-use-v1');
     });
 
     it('should cache newly generated embeddings', async () => {
       const text = 'New text to cache';
       await service.embed(text);
 
-      expect(mockCache.set).toHaveBeenCalled();
-      const setCalls = vi.mocked(mockCache.set).mock.calls;
+      expect(mockCacheSet).toHaveBeenCalled();
+      const setCalls = mockCacheSet.mock.calls;
       expect(setCalls[0][0]).toBe(text);
       expect(setCalls[0][1]).toHaveProperty('vector');
     });
@@ -160,9 +178,7 @@ describe('EmbeddingService', () => {
     });
 
     it('should handle embedding generation errors', async () => {
-      const use = await import('@tensorflow-models/universal-sentence-encoder');
-      const mockModel = await use.load();
-      vi.mocked(mockModel.embed).mockRejectedValueOnce(new Error('Embedding failed'));
+      mockEmbed.mockRejectedValueOnce(new Error('Embedding failed'));
 
       await expect(service.embed('Test')).rejects.toThrow('Embedding failed');
     });
@@ -208,7 +224,7 @@ describe('EmbeddingService', () => {
         timestamp: Date.now(),
       };
 
-      vi.mocked(mockCache.get)
+      mockCacheGet
         .mockResolvedValueOnce(cachedEmbedding1)
         .mockResolvedValueOnce(null)
         .mockResolvedValueOnce(cachedEmbedding2);
@@ -255,13 +271,11 @@ describe('EmbeddingService', () => {
       const texts = ['Text 1', 'Text 2', 'Text 3'];
       await service.embedBatch(texts);
 
-      expect(mockCache.set).toHaveBeenCalledTimes(3);
+      expect(mockCacheSet).toHaveBeenCalledTimes(3);
     });
 
     it('should handle batch generation errors', async () => {
-      const use = await import('@tensorflow-models/universal-sentence-encoder');
-      const mockModel = await use.load();
-      vi.mocked(mockModel.embed).mockRejectedValueOnce(new Error('Batch failed'));
+      mockEmbed.mockRejectedValueOnce(new Error('Batch failed'));
 
       await expect(service.embedBatch(['Test 1', 'Test 2'])).rejects.toThrow('Batch failed');
     });
@@ -275,7 +289,7 @@ describe('EmbeddingService', () => {
     it('should clear cache', async () => {
       await service.clearCache();
 
-      expect(mockCache.clear).toHaveBeenCalled();
+      expect(mockCacheClear).toHaveBeenCalled();
     });
 
     it('should get cache statistics', async () => {
@@ -285,7 +299,7 @@ describe('EmbeddingService', () => {
       expect(stats).toHaveProperty('indexedDBSize');
       expect(stats).toHaveProperty('supabaseSize');
       expect(stats).toHaveProperty('hitRate');
-      expect(mockCache.getStats).toHaveBeenCalled();
+      expect(mockCacheGetStats).toHaveBeenCalled();
     });
   });
 
@@ -366,7 +380,7 @@ describe('EmbeddingService', () => {
         modelVersion: 'tfjs-use-v1',
         timestamp: Date.now(),
       };
-      vi.mocked(mockCache.get).mockResolvedValueOnce(cachedResult);
+      mockCacheGet.mockResolvedValueOnce(cachedResult);
 
       // Second call - cached (should be faster)
       const startTime = performance.now();

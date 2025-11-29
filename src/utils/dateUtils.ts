@@ -4,6 +4,8 @@
  * Provides safe date parsing and formatting to prevent "Invalid Date" errors.
  */
 
+import { logger } from './logger';
+
 /**
  * Safely parse a date value and return a Date object
  * @param dateValue - Date value to parse (string, Date, or number)
@@ -11,7 +13,7 @@
  */
 export function safeParseDate(dateValue: string | Date | number | null | undefined): Date {
   if (!dateValue) {
-    console.warn('⚠️ Empty date value provided, using current date');
+    logger.warn('⚠️ Empty date value provided, using current date');
     return new Date();
   }
 
@@ -20,13 +22,13 @@ export function safeParseDate(dateValue: string | Date | number | null | undefin
 
     // Check if date is valid
     if (isNaN(date.getTime())) {
-      console.warn('⚠️ Invalid date value:', dateValue, '- using current date');
+      logger.warn({ dateValue }, '⚠️ Invalid date value - using current date');
       return new Date();
     }
 
     return date;
   } catch (error) {
-    console.error('❌ Error parsing date:', dateValue, error);
+    logger.error({ dateValue, error }, '❌ Error parsing date');
     return new Date();
   }
 }
@@ -47,7 +49,7 @@ export function formatAnnotationDate(dateValue: string | Date | number | null | 
       minute: '2-digit',
     });
   } catch (error) {
-    console.error('❌ Error formatting date:', error);
+    logger.error({ error }, '❌ Error formatting date');
     return 'Just now';
   }
 }
@@ -63,7 +65,7 @@ export function formatSimpleDate(dateValue: string | Date | number | null | unde
   try {
     return date.toLocaleDateString();
   } catch (error) {
-    console.error('❌ Error formatting simple date:', error);
+    logger.error({ error }, '❌ Error formatting simple date');
     return new Date().toLocaleDateString();
   }
 }

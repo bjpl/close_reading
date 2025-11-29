@@ -15,6 +15,7 @@ import { AnnotationToolbar } from '../components/AnnotationToolbar';
 import { ParagraphLinkingPanel } from '../components/ParagraphLinkingPanel';
 import { DocumentMetadataEditor } from '../components/DocumentMetadataEditor';
 import { AnnotationReviewPanel } from '../components/AnnotationReviewPanel';
+import { logger } from '../utils/logger';
 
 export const DocumentPage: React.FC = () => {
   const { documentId } = useParams<{ documentId: string }>();
@@ -25,11 +26,12 @@ export const DocumentPage: React.FC = () => {
 
   useEffect(() => {
     if (documentId && user) {
-      console.log('📄 Loading document:', documentId);
+      logger.info({ documentId }, '📄 Loading document');
       getDocumentWithContent(documentId).catch(err => {
-        console.error('❌ Failed to load document:', err);
+        logger.error({ error: err }, '❌ Failed to load document');
       });
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [documentId, user]);
 
   if (!documentId) {
@@ -81,7 +83,7 @@ export const DocumentPage: React.FC = () => {
             <DocumentMetadataEditor
               documentId={currentDocument.id}
               currentTitle={currentDocument.title}
-              currentAuthor={(currentDocument as any).metadata?.author}
+              currentAuthor={(currentDocument as { metadata?: { author?: string } }).metadata?.author}
               onSave={handleSaveMetadata}
             />
           </Box>

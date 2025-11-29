@@ -16,6 +16,7 @@
 import { openDB, DBSchema, IDBPDatabase } from 'idb';
 import { supabase } from '../../lib/supabase';
 import { EmbeddingVector } from './embeddings';
+import { logger } from '../../utils/logger';
 
 interface EmbeddingCacheDB extends DBSchema {
   embeddings: {
@@ -84,12 +85,12 @@ export class EmbeddingCache {
         },
       });
 
-      console.log('[Cache] IndexedDB initialized');
+      logger.info('[Cache] IndexedDB initialized');
 
       // Clean up expired entries
       await this.cleanupExpired();
     } catch (error) {
-      console.error('[Cache] Failed to initialize IndexedDB:', error);
+      logger.error({ error }, '[Cache] Failed to initialize IndexedDB');
       // Continue without IndexedDB - memory cache still works
     }
   }
@@ -144,7 +145,7 @@ export class EmbeddingCache {
           }
         }
       } catch (error) {
-        console.error('[Cache] IndexedDB lookup failed:', error);
+        logger.error({ error }, '[Cache] IndexedDB lookup failed');
       }
     }
 
@@ -183,7 +184,7 @@ export class EmbeddingCache {
         }
       }
     } catch (error) {
-      console.error('[Cache] Supabase lookup failed:', error);
+      logger.error({ error }, '[Cache] Supabase lookup failed');
     }
 
     // Cache miss
@@ -219,7 +220,7 @@ export class EmbeddingCache {
         });
       }
     } catch (error) {
-      console.error('[Cache] Supabase write failed:', error);
+      logger.error({ error }, '[Cache] Supabase write failed');
       // Continue - local caching still works
     }
   }
@@ -255,7 +256,7 @@ export class EmbeddingCache {
         lastAccessed: Date.now(),
       });
     } catch (error) {
-      console.error('[Cache] IndexedDB write failed:', error);
+      logger.error({ error }, '[Cache] IndexedDB write failed');
     }
   }
 
@@ -271,7 +272,7 @@ export class EmbeddingCache {
       try {
         await this.db.clear('embeddings');
       } catch (error) {
-        console.error('[Cache] Failed to clear IndexedDB:', error);
+        logger.error({ error }, '[Cache] Failed to clear IndexedDB');
       }
     }
 
@@ -286,10 +287,10 @@ export class EmbeddingCache {
           .eq('user_id', user.id);
       }
     } catch (error) {
-      console.error('[Cache] Failed to clear Supabase cache:', error);
+      logger.error({ error }, '[Cache] Failed to clear Supabase cache');
     }
 
-    console.log('[Cache] All caches cleared');
+    logger.info('[Cache] All caches cleared');
   }
 
   /**
@@ -316,10 +317,10 @@ export class EmbeddingCache {
       await tx.done;
 
       if (deletedCount > 0) {
-        console.log(`[Cache] Cleaned up ${deletedCount} expired entries`);
+        logger.info(`[Cache] Cleaned up ${deletedCount} expired entries`);
       }
     } catch (error) {
-      console.error('[Cache] Cleanup failed:', error);
+      logger.error({ error }, '[Cache] Cleanup failed');
     }
   }
 
@@ -335,7 +336,7 @@ export class EmbeddingCache {
       try {
         indexedDBSize = await this.db.count('embeddings');
       } catch (error) {
-        console.error('[Cache] Failed to count IndexedDB entries:', error);
+        logger.error({ error }, '[Cache] Failed to count IndexedDB entries');
       }
     }
 
@@ -352,7 +353,7 @@ export class EmbeddingCache {
         supabaseSize = count || 0;
       }
     } catch (error) {
-      console.error('[Cache] Failed to count Supabase entries:', error);
+      logger.error({ error }, '[Cache] Failed to count Supabase entries');
     }
 
     const totalHits = this.stats.memoryHits + this.stats.indexedDBHits + this.stats.supabaseHits;

@@ -8,13 +8,12 @@ export default defineConfig({
     globals: true,
     environment: 'happy-dom',
     setupFiles: ['./tests/setup.ts'],
-    // Use vmThreads pool for better WSL2/Node.js 22 compatibility
-    // vmThreads avoids the worker startup timeout issues
-    pool: 'vmThreads',
+    // Use forks pool for stability (vmThreads was causing segmentation faults)
+    pool: 'forks',
     poolOptions: {
-      vmThreads: {
-        // Shared memory for faster test execution
-        useAtomics: true,
+      forks: {
+        // Single fork for more stable execution
+        singleFork: true,
       },
     },
     // Increase timeouts for CI/WSL2 environments
@@ -22,8 +21,8 @@ export default defineConfig({
     hookTimeout: 30000,
     // Retry failed tests once to handle flaky tests
     retry: 1,
-    // Disable isolation for faster test runs (tests should be independent anyway)
-    isolate: false,
+    // Enable isolation to prevent IndexedDB and mock state leaking between tests
+    isolate: true,
     // Sequence tests for more predictable execution
     sequence: {
       shuffle: false,
@@ -34,6 +33,7 @@ export default defineConfig({
       exclude: [
         'node_modules/',
         'tests/',
+        'src/__tests__/',
         '**/*.d.ts',
         '**/*.config.*',
         '**/mockData',
@@ -46,7 +46,7 @@ export default defineConfig({
         lines: 80
       }
     },
-    include: ['tests/**/*.test.{ts,tsx}'],
+    include: ['tests/**/*.test.{ts,tsx}', 'src/__tests__/**/*.test.{ts,tsx}'],
     // Exclude node_modules test files
     exclude: ['**/node_modules/**', '**/dist/**'],
   },
@@ -57,7 +57,9 @@ export default defineConfig({
       '@stores': path.resolve(__dirname, './src/stores'),
       '@types': path.resolve(__dirname, './src/types'),
       '@utils': path.resolve(__dirname, './src/utils'),
-      '@tests': path.resolve(__dirname, './tests')
+      '@tests': path.resolve(__dirname, './tests'),
+      // Mock pdf-parse subpath for test environment - the package doesn't export this path properly
+      'pdf-parse/lib/pdf-parse.js': path.resolve(__dirname, './tests/__mocks__/pdf-parse.ts')
     }
   }
 });

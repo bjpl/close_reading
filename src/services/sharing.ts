@@ -32,6 +32,8 @@ export interface SharedAnnotation {
   highlight_color: string | null;
   start_offset: number | null;
   end_offset: number | null;
+  selected_text?: string | null;
+  tags?: string[];
   created_at: string;
 }
 
@@ -211,7 +213,7 @@ export async function getSharedDocument(token: string): Promise<SharedDocument |
     .order('created_at', { ascending: true });
 
   const projectTitle = document.projects
-    ? (Array.isArray(document.projects) ? document.projects[0]?.title : (document.projects as any)?.title)
+    ? (Array.isArray(document.projects) ? document.projects[0]?.title : (document.projects as Record<string, unknown>)?.title)
     : undefined;
 
   return {

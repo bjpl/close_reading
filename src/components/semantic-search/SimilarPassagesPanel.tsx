@@ -18,6 +18,7 @@ import {
 import { Card } from '@chakra-ui/react/card';
 import { FiLink } from 'react-icons/fi';
 import { getSemanticSearchService, SimilarPassage } from '../../services/ml/SemanticSearchService';
+import { logger } from '../../utils/logger';
 
 export interface SimilarPassagesPanelProps {
   sourceText: string;
@@ -62,7 +63,7 @@ export const SimilarPassagesPanel: React.FC<SimilarPassagesPanelProps> = ({
       }
 
     } catch (err) {
-      console.error('Failed to find similar passages:', err);
+      logger.error({ error: err }, 'Failed to find similar passages');
       setError(err instanceof Error ? err.message : 'Search failed');
     } finally {
       setIsLoading(false);

@@ -11,6 +11,7 @@ const toaster = createToaster({ placement: 'top-end' });
 import { useDocumentStore } from '../stores/documentStore';
 import { useAnnotations } from './useAnnotations';
 import { useAuth } from './useAuth';
+import { logger } from '../utils/logger';
 
 interface UseParagraphAnnotationsReturn {
   handleDeleteAnnotation: (annotationId: string) => Promise<void>;
@@ -37,7 +38,7 @@ export const useParagraphAnnotations = (): UseParagraphAnnotationsReturn => {
   const handleDeleteAnnotation = async (annotationId: string): Promise<void> => {
     setIsDeleting(true);
     try {
-      console.log('🗑️ Deleting annotation:', annotationId);
+      logger.info({ annotationId }, '🗑️ Deleting annotation');
 
       // Delete from Zustand store (immediate UI update)
       deleteAnnotation(annotationId);
@@ -51,7 +52,7 @@ export const useParagraphAnnotations = (): UseParagraphAnnotationsReturn => {
         duration: 2000,
       });
     } catch (error) {
-      console.error('❌ Failed to delete annotation:', error);
+      logger.error({ error }, '❌ Failed to delete annotation');
       toaster.create({
         title: 'Failed to delete annotation',
         description: error instanceof Error ? error.message : 'Unknown error',
@@ -73,15 +74,15 @@ export const useParagraphAnnotations = (): UseParagraphAnnotationsReturn => {
   ): Promise<void> => {
     setIsEditing(true);
     try {
-      console.log('✏️ Updating annotation note:', annotationId);
+      logger.info({ annotationId }, '✏️ Updating annotation note');
 
       const updates = { note: newNote };
 
       // Update in Zustand store (immediate UI update)
-      updateAnnotation(annotationId, updates as any);
+      updateAnnotation(annotationId, updates as Record<string, unknown>);
 
       // Update in database (persistence)
-      await updateAnnotationDB(annotationId, updates as any);
+      await updateAnnotationDB(annotationId, updates as Record<string, unknown>);
 
       toaster.create({
         title: 'Note updated',
@@ -89,7 +90,7 @@ export const useParagraphAnnotations = (): UseParagraphAnnotationsReturn => {
         duration: 2000,
       });
     } catch (error) {
-      console.error('❌ Failed to update annotation:', error);
+      logger.error({ error }, '❌ Failed to update annotation');
       toaster.create({
         title: 'Failed to update note',
         description: error instanceof Error ? error.message : 'Unknown error',

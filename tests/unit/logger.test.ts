@@ -12,42 +12,45 @@ import logger, {
   logDataOperation,
   startTimer,
   sanitizeLogData,
-  info,
-  error,
-  warn,
-  debug,
 } from '@/lib/logger';
 
 describe('Logger Service', () => {
-  let consoleLogSpy: ReturnType<typeof vi.spyOn>;
+  let infoSpy: ReturnType<typeof vi.spyOn>;
+  let errorSpy: ReturnType<typeof vi.spyOn>;
+  let warnSpy: ReturnType<typeof vi.spyOn>;
+  let debugSpy: ReturnType<typeof vi.spyOn>;
 
   beforeEach(() => {
-    consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+    // Mock Pino logger methods instead of console
+    infoSpy = vi.spyOn(logger, 'info').mockImplementation(() => logger);
+    errorSpy = vi.spyOn(logger, 'error').mockImplementation(() => logger);
+    warnSpy = vi.spyOn(logger, 'warn').mockImplementation(() => logger);
+    debugSpy = vi.spyOn(logger, 'debug').mockImplementation(() => logger);
   });
 
   afterEach(() => {
-    consoleLogSpy.mockRestore();
+    vi.restoreAllMocks();
   });
 
   describe('Basic logging', () => {
     it('should log info messages', () => {
-      info('Test info message', { context: 'test' });
-      expect(consoleLogSpy).toHaveBeenCalled();
+      logger.info('Test info message', { context: 'test' });
+      expect(infoSpy).toHaveBeenCalled();
     });
 
     it('should log error messages', () => {
-      error('Test error message', { context: 'test' });
-      expect(consoleLogSpy).toHaveBeenCalled();
+      logger.error('Test error message', { context: 'test' });
+      expect(errorSpy).toHaveBeenCalled();
     });
 
     it('should log warn messages', () => {
-      warn('Test warning message', { context: 'test' });
-      expect(consoleLogSpy).toHaveBeenCalled();
+      logger.warn('Test warning message', { context: 'test' });
+      expect(warnSpy).toHaveBeenCalled();
     });
 
     it('should log debug messages', () => {
-      debug('Test debug message', { context: 'test' });
-      expect(consoleLogSpy).toHaveBeenCalled();
+      logger.debug('Test debug message', { context: 'test' });
+      expect(debugSpy).toHaveBeenCalled();
     });
   });
 
@@ -60,8 +63,9 @@ describe('Logger Service', () => {
 
     it('should include context in child logger', () => {
       const childLogger = createLogger({ component: 'TestComponent' });
+      const childInfoSpy = vi.spyOn(childLogger, 'info');
       childLogger.info('Test message');
-      expect(consoleLogSpy).toHaveBeenCalled();
+      expect(childInfoSpy).toHaveBeenCalled();
     });
   });
 
@@ -69,30 +73,30 @@ describe('Logger Service', () => {
     it('should log Error objects with stack trace', () => {
       const testError = new Error('Test error');
       logError(testError, { context: 'test' });
-      expect(consoleLogSpy).toHaveBeenCalled();
+      expect(errorSpy).toHaveBeenCalled();
     });
 
     it('should log error strings', () => {
       logError('String error message', { context: 'test' });
-      expect(consoleLogSpy).toHaveBeenCalled();
+      expect(errorSpy).toHaveBeenCalled();
     });
 
     it('should include additional context', () => {
       const testError = new Error('Test error');
       logError(testError, { operation: 'testOperation', userId: '123' });
-      expect(consoleLogSpy).toHaveBeenCalled();
+      expect(errorSpy).toHaveBeenCalled();
     });
   });
 
   describe('logPerformance', () => {
     it('should log performance metrics', () => {
       logPerformance('testOperation', 123.45);
-      expect(consoleLogSpy).toHaveBeenCalled();
+      expect(infoSpy).toHaveBeenCalled();
     });
 
     it('should include additional context', () => {
       logPerformance('testOperation', 123.45, { documentId: 'doc123' });
-      expect(consoleLogSpy).toHaveBeenCalled();
+      expect(infoSpy).toHaveBeenCalled();
     });
   });
 
@@ -106,71 +110,69 @@ describe('Logger Service', () => {
       const endTimer = startTimer('testOperation');
       await new Promise(resolve => setTimeout(resolve, 10));
       endTimer();
-      expect(consoleLogSpy).toHaveBeenCalled();
+      expect(infoSpy).toHaveBeenCalled();
     });
 
     it('should include context in timer', () => {
       const endTimer = startTimer('testOperation', { documentId: 'doc123' });
       endTimer();
-      expect(consoleLogSpy).toHaveBeenCalled();
+      expect(infoSpy).toHaveBeenCalled();
     });
   });
 
   describe('logApiCall', () => {
     it('should log successful API calls', () => {
       logApiCall('GET', '/api/documents', 200, 123.45);
-      expect(consoleLogSpy).toHaveBeenCalled();
+      expect(infoSpy).toHaveBeenCalled();
     });
 
     it('should log failed API calls with error level', () => {
-      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
       logApiCall('POST', '/api/documents', 500, 123.45);
-      expect(consoleLogSpy).toHaveBeenCalled();
-      consoleErrorSpy.mockRestore();
+      expect(errorSpy).toHaveBeenCalled();
     });
 
     it('should include additional context', () => {
       logApiCall('GET', '/api/documents', 200, 123.45, { requestId: 'req123' });
-      expect(consoleLogSpy).toHaveBeenCalled();
+      expect(infoSpy).toHaveBeenCalled();
     });
   });
 
   describe('logUserAction', () => {
     it('should log user actions', () => {
       logUserAction('export-annotations');
-      expect(consoleLogSpy).toHaveBeenCalled();
+      expect(infoSpy).toHaveBeenCalled();
     });
 
     it('should include additional context', () => {
       logUserAction('export-annotations', { documentId: 'doc123', format: 'csv' });
-      expect(consoleLogSpy).toHaveBeenCalled();
+      expect(infoSpy).toHaveBeenCalled();
     });
   });
 
   describe('logDataOperation', () => {
     it('should log create operations', () => {
       logDataOperation('create', 'project');
-      expect(consoleLogSpy).toHaveBeenCalled();
+      expect(infoSpy).toHaveBeenCalled();
     });
 
     it('should log read operations', () => {
       logDataOperation('read', 'document');
-      expect(consoleLogSpy).toHaveBeenCalled();
+      expect(infoSpy).toHaveBeenCalled();
     });
 
     it('should log update operations', () => {
       logDataOperation('update', 'annotation');
-      expect(consoleLogSpy).toHaveBeenCalled();
+      expect(infoSpy).toHaveBeenCalled();
     });
 
     it('should log delete operations', () => {
       logDataOperation('delete', 'project');
-      expect(consoleLogSpy).toHaveBeenCalled();
+      expect(infoSpy).toHaveBeenCalled();
     });
 
     it('should include additional context', () => {
       logDataOperation('create', 'project', { projectId: 'proj123' });
-      expect(consoleLogSpy).toHaveBeenCalled();
+      expect(infoSpy).toHaveBeenCalled();
     });
   });
 
@@ -256,7 +258,7 @@ describe('Logger Service', () => {
       expect(logger).toBeDefined();
       // Logger should work regardless of environment
       logger.info('Environment test');
-      expect(consoleLogSpy).toHaveBeenCalled();
+      expect(infoSpy).toHaveBeenCalled();
     });
   });
 });

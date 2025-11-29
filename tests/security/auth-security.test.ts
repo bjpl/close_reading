@@ -10,14 +10,13 @@
  * - Input sanitization
  */
 
-import { describe, it, expect, beforeEach, afterEach, vi, Mock } from 'vitest';
+import { describe, it, expect, beforeEach, vi, Mock } from 'vitest';
 import { MockAuthService } from '@/lib/mock/auth';
 import { MockDB, MockUser } from '@/lib/mock/types';
 import { IDBPDatabase } from 'idb';
 import {
   validateEmail,
   validatePassword,
-  validateAuthInputs,
 } from '@/hooks/useAuth';
 
 // Mock logger
@@ -102,7 +101,7 @@ describe('Authentication Security Tests', () => {
     );
 
     it('should not execute SQL in signup email field', async () => {
-      const result = await authService.signUp({
+      await authService.signUp({
         email: "admin'; DROP TABLE users;--",
         password: 'password123',
       });
@@ -139,13 +138,12 @@ describe('Authentication Security Tests', () => {
     it.each(xssPayloads)(
       'XSS payload should not pass through unchanged in signUp',
       async () => {
-        let authService: MockAuthService;
         const mockDb = {
           getFromIndex: vi.fn().mockResolvedValue(undefined),
           add: vi.fn().mockResolvedValue(undefined),
         };
 
-        authService = new MockAuthService(
+        const authService = new MockAuthService(
           mockDb as any,
           () => 'generated-id',
           () => null,
@@ -338,13 +336,12 @@ describe('Authentication Security Tests', () => {
 
   describe('Brute Force Protection Simulation', () => {
     it('should track failed login attempts (simulation)', async () => {
-      let authService: MockAuthService;
       const mockDb = {
         getFromIndex: vi.fn().mockResolvedValue(undefined),
         add: vi.fn(),
       };
 
-      authService = new MockAuthService(
+      const authService = new MockAuthService(
         mockDb as any,
         () => 'generated-id',
         () => null,
@@ -392,16 +389,13 @@ describe('Authentication Security Tests', () => {
     });
 
     it('should not reveal whether email exists on login failure', async () => {
-      let mockDb: any;
-      let authService: MockAuthService;
-
       // Create fresh service for this test
-      mockDb = {
+      const mockDb: any = {
         getFromIndex: vi.fn(),
         add: vi.fn(),
       };
 
-      authService = new MockAuthService(
+      const testAuthService = new MockAuthService(
         mockDb,
         () => 'generated-id',
         () => null,
@@ -410,7 +404,7 @@ describe('Authentication Security Tests', () => {
 
       // Test with non-existent email
       mockDb.getFromIndex.mockResolvedValue(undefined);
-      const result1 = await authService.signInWithPassword({
+      const result1 = await testAuthService.signInWithPassword({
         email: 'nonexistent@example.com',
         password: 'password123',
       });
@@ -423,7 +417,7 @@ describe('Authentication Security Tests', () => {
         created_at: new Date().toISOString(),
         user_metadata: {},
       });
-      const result2 = await authService.signInWithPassword({
+      const result2 = await testAuthService.signInWithPassword({
         email: 'existing@example.com',
         password: 'wrongpassword',
       });

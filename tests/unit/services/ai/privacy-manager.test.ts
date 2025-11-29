@@ -245,10 +245,18 @@ describe('PrivacyManager', () => {
         updated_at: '2025-01-01T00:00:00Z',
       };
 
-      (supabase.from as any)().select().eq().single.mockResolvedValueOnce({
-        data: mockSettings,
-        error: null,
+      const mockFrom = vi.fn().mockReturnValue({
+        select: vi.fn().mockReturnValue({
+          eq: vi.fn().mockReturnValue({
+            single: vi.fn().mockResolvedValue({
+              data: mockSettings,
+              error: null,
+            }),
+          }),
+        }),
       });
+
+      (supabase.from as any) = mockFrom;
 
       const settings = await manager.loadSettings('user123');
 
@@ -270,10 +278,20 @@ describe('PrivacyManager', () => {
         data_retention_days: 90,
       };
 
-      (supabase.from as any)().update().eq().select().single.mockResolvedValueOnce({
-        data: updatedSettings,
-        error: null,
+      const mockFrom = vi.fn().mockReturnValue({
+        update: vi.fn().mockReturnValue({
+          eq: vi.fn().mockReturnValue({
+            select: vi.fn().mockReturnValue({
+              single: vi.fn().mockResolvedValue({
+                data: updatedSettings,
+                error: null,
+              }),
+            }),
+          }),
+        }),
       });
+
+      (supabase.from as any) = mockFrom;
 
       const settings = await manager.updateSettings('user123', {
         privacy_mode_enabled: true,
@@ -287,14 +305,30 @@ describe('PrivacyManager', () => {
     it('should allow local provider in privacy mode', async () => {
       const { supabase } = await import('@/lib/supabase');
 
-      (supabase.from as any)().select().eq().single.mockResolvedValueOnce({
-        data: {
-          user_id: 'user123',
-          privacy_mode_enabled: true,
-          pii_detection_enabled: false,
-        },
-        error: null,
+      const mockFrom = vi.fn().mockReturnValue({
+        select: vi.fn().mockReturnValue({
+          eq: vi.fn().mockReturnValue({
+            single: vi.fn().mockResolvedValue({
+              data: {
+                user_id: 'user123',
+                privacy_mode_enabled: true,
+                pii_detection_enabled: false,
+              },
+              error: null,
+            }),
+          }),
+        }),
+        insert: vi.fn().mockReturnValue({
+          select: vi.fn().mockReturnValue({
+            single: vi.fn().mockResolvedValue({
+              data: null,
+              error: null,
+            }),
+          }),
+        }),
       });
+
+      (supabase.from as any) = mockFrom;
 
       const result = await manager.validateForProcessing(
         'Clean text',
@@ -308,14 +342,30 @@ describe('PrivacyManager', () => {
     it('should block cloud provider in privacy mode', async () => {
       const { supabase } = await import('@/lib/supabase');
 
-      (supabase.from as any)().select().eq().single.mockResolvedValueOnce({
-        data: {
-          user_id: 'user123',
-          privacy_mode_enabled: true,
-          pii_detection_enabled: false,
-        },
-        error: null,
+      const mockFrom = vi.fn().mockReturnValue({
+        select: vi.fn().mockReturnValue({
+          eq: vi.fn().mockReturnValue({
+            single: vi.fn().mockResolvedValue({
+              data: {
+                user_id: 'user123',
+                privacy_mode_enabled: true,
+                pii_detection_enabled: false,
+              },
+              error: null,
+            }),
+          }),
+        }),
+        insert: vi.fn().mockReturnValue({
+          select: vi.fn().mockReturnValue({
+            single: vi.fn().mockResolvedValue({
+              data: null,
+              error: null,
+            }),
+          }),
+        }),
       });
+
+      (supabase.from as any) = mockFrom;
 
       const result = await manager.validateForProcessing(
         'Clean text',
@@ -330,19 +380,26 @@ describe('PrivacyManager', () => {
     it('should sanitize PII when detected', async () => {
       const { supabase } = await import('@/lib/supabase');
 
-      (supabase.from as any)().select().eq().single.mockResolvedValueOnce({
-        data: {
-          user_id: 'user123',
-          privacy_mode_enabled: false,
-          pii_detection_enabled: true,
-        },
-        error: null,
+      const mockFrom = vi.fn().mockReturnValue({
+        select: vi.fn().mockReturnValue({
+          eq: vi.fn().mockReturnValue({
+            single: vi.fn().mockResolvedValue({
+              data: {
+                user_id: 'user123',
+                privacy_mode_enabled: false,
+                pii_detection_enabled: true,
+              },
+              error: null,
+            }),
+          }),
+        }),
+        insert: vi.fn().mockResolvedValue({
+          data: null,
+          error: null,
+        }),
       });
 
-      (supabase.from as any)().insert.mockResolvedValue({
-        data: null,
-        error: null,
-      });
+      (supabase.from as any) = mockFrom;
 
       const result = await manager.validateForProcessing(
         'Email: test@example.com',
@@ -360,9 +417,9 @@ describe('PrivacyManager', () => {
     it('should report GDPR compliance', () => {
       manager['settings'] = {
         user_id: 'user123',
-        privacy_mode_enabled: false,
+        privacy_mode_enabled: true,
         preferred_provider: 'ollama',
-        allow_cloud_processing: true,
+        allow_cloud_processing: false,
         require_confirmation_for_cloud: true,
         pii_detection_enabled: true,
         data_retention_days: 90,
@@ -486,19 +543,33 @@ describe('PrivacyManager', () => {
         },
       ];
 
-      (supabase.from as any)().select().eq().single.mockResolvedValueOnce({
-        data: mockSettings,
-        error: null,
+      const mockFrom = vi.fn((table: string) => {
+        if (table === 'privacy_settings') {
+          return {
+            select: vi.fn().mockReturnValue({
+              eq: vi.fn().mockReturnValue({
+                single: vi.fn().mockResolvedValue({
+                  data: mockSettings,
+                  error: null,
+                }),
+              }),
+            }),
+          };
+        } else if (table === 'privacy_audit_log') {
+          return {
+            select: vi.fn().mockReturnValue({
+              eq: vi.fn().mockReturnValue({
+                order: vi.fn().mockResolvedValue({
+                  data: mockAuditLog,
+                  error: null,
+                }),
+              }),
+            }),
+          };
+        }
       });
 
-      (supabase.from as any)()
-        .select()
-        .eq()
-        .order()
-        .mockResolvedValueOnce({
-          data: mockAuditLog,
-          error: null,
-        });
+      (supabase.from as any) = mockFrom;
 
       const exported = await manager.exportPrivacyData('user123');
 
@@ -509,10 +580,16 @@ describe('PrivacyManager', () => {
     it('should delete privacy data', async () => {
       const { supabase } = await import('@/lib/supabase');
 
-      (supabase.from as any)().delete().eq.mockResolvedValue({
-        data: null,
-        error: null,
+      const mockFrom = vi.fn().mockReturnValue({
+        delete: vi.fn().mockReturnValue({
+          eq: vi.fn().mockResolvedValue({
+            data: null,
+            error: null,
+          }),
+        }),
       });
+
+      (supabase.from as any) = mockFrom;
 
       await manager.deletePrivacyData('user123');
 

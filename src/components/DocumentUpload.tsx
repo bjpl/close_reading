@@ -60,7 +60,7 @@ export const DocumentUpload: React.FC<DocumentUploadProps> = ({
     setIsDragging(false);
   }, []);
 
-  const processFile = async (file: File) => {
+  const processFile = useCallback(async (file: File) => {
     // Use ref values to get the latest state
     const currentUser = userRef.current;
     const currentAuthLoading = authLoadingRef.current;
@@ -128,26 +128,26 @@ export const DocumentUpload: React.FC<DocumentUploadProps> = ({
     setUploadProgress(0);
 
     try {
-      console.log('🚀 Starting processDocument with projectId:', projectId);
+      logger.info({ projectId }, '🚀 Starting processDocument with projectId');
 
       // Process document with progress updates
       const result = await processDocument(file, projectId, (progress) => {
-        console.log('📊 Progress:', progress.stage, progress.progress + '%', progress.message);
+        logger.debug({ stage: progress.stage, progress: progress.progress + '%', message: progress.message }, '📊 Progress');
         setUploadProgress(progress.progress);
       });
 
-      console.log('✅ processDocument result:', result);
+      logger.debug({ result }, '✅ processDocument result');
 
       if (!result.success || !result.document) {
-        console.error('❌ Processing failed:', result.error);
+        logger.error({ error: result.error }, '❌ Processing failed');
         throw new Error(result.error || 'Processing failed');
       }
 
-      console.log('🎉 Document fully processed!', {
+      logger.info({
         documentId: result.document.id,
         paragraphs: result.paragraphs?.length,
         sentences: result.sentences?.length
-      });
+      }, '🎉 Document fully processed!');
 
       toaster.create({
         title: 'Upload successful',
@@ -158,7 +158,7 @@ export const DocumentUpload: React.FC<DocumentUploadProps> = ({
 
       onUploadComplete(result.document.id);
     } catch (error) {
-      console.error('💥 Upload error:', error);
+      logger.error({ error }, '💥 Upload error');
       toaster.create({
         title: 'Upload failed',
         description: error instanceof Error ? error.message : 'An error occurred while uploading your document.',
@@ -169,7 +169,7 @@ export const DocumentUpload: React.FC<DocumentUploadProps> = ({
       setIsUploading(false);
       setTimeout(() => setUploadProgress(0), 1000);
     }
-  };
+  }, [projectId, onUploadComplete]);
 
   const handleDrop = useCallback(
     async (e: React.DragEvent) => {
@@ -181,7 +181,7 @@ export const DocumentUpload: React.FC<DocumentUploadProps> = ({
         await processFile(files[0]);
       }
     },
-    [projectId]
+    [processFile]
   );
 
   const handleFileSelect = useCallback(
@@ -191,7 +191,7 @@ export const DocumentUpload: React.FC<DocumentUploadProps> = ({
         await processFile(files[0]);
       }
     },
-    [projectId]
+    [processFile]
   );
 
   return (

@@ -11,6 +11,7 @@ import {
   PrivacyAuditLog,
   AIProviderType,
 } from './ai/types';
+import logger from '@/lib/logger';
 
 interface PIIPattern {
   type: PIIType;
@@ -91,7 +92,7 @@ export class PrivacyManager {
       this.settings = data;
       return data;
     } catch (error) {
-      console.error('Failed to load privacy settings:', error);
+      logger.error({ error }, 'Failed to load privacy settings');
       // Return default settings on error
       return this.createDefaultSettings(userId);
     }
@@ -123,7 +124,7 @@ export class PrivacyManager {
       this.settings = data;
       return data;
     } catch (error) {
-      console.error('Failed to create default privacy settings:', error);
+      logger.error({ error }, 'Failed to create default privacy settings');
       // Return the default settings even if DB insert fails
       return defaultSettings;
     }
@@ -152,7 +153,7 @@ export class PrivacyManager {
       this.settings = data;
       return data;
     } catch (error) {
-      console.error('Failed to update privacy settings:', error);
+      logger.error({ error }, 'Failed to update privacy settings');
       throw error;
     }
   }
@@ -241,10 +242,10 @@ export class PrivacyManager {
       ]);
 
       if (error) {
-        console.error('Failed to log privacy audit entry:', error);
+        logger.error({ error }, 'Failed to log privacy audit entry');
       }
     } catch (error) {
-      console.error('Failed to log privacy audit entry:', error);
+      logger.error({ error }, 'Failed to log privacy audit entry');
     }
   }
 
@@ -287,7 +288,7 @@ export class PrivacyManager {
 
       return data || [];
     } catch (error) {
-      console.error('Failed to get audit log:', error);
+      logger.error({ error }, 'Failed to get audit log');
       return [];
     }
   }
@@ -450,7 +451,7 @@ export class PrivacyManager {
 
       this.settings = undefined;
     } catch (error) {
-      console.error('Failed to delete privacy data:', error);
+      logger.error({ error }, 'Failed to delete privacy data');
       throw error;
     }
   }

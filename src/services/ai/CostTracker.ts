@@ -11,6 +11,7 @@ import type {
   DailyUsage,
   CostEstimate,
 } from './types';
+import logger from '../../lib/logger';
 
 const DB_NAME = 'claude-cost-tracker';
 const STORE_NAME = 'usage-records';
@@ -20,14 +21,17 @@ export interface CostTrackerConfig {
   monthlyBudget?: number;
   alertThreshold?: number;
   enableAlerts?: boolean;
+  dbName?: string; // Allow custom database name for testing
 }
 
 export class CostTracker {
   private db: IDBPDatabase | null = null;
-  private config: Required<CostTrackerConfig>;
+  private config: Required<Omit<CostTrackerConfig, 'dbName'>>;
+  private dbName: string;
   private listeners: Set<(stats: UsageStats) => void> = new Set();
 
   constructor(config: CostTrackerConfig = {}) {
+    this.dbName = config.dbName || DB_NAME;
     this.config = {
       monthlyBudget: config.monthlyBudget || 200,
       alertThreshold: config.alertThreshold || ALERT_THRESHOLD,
@@ -40,17 +44,21 @@ export class CostTracker {
   // ==========================================================================
 
   async initialize(): Promise<void> {
-    this.db = await openDB(DB_NAME, 1, {
-      upgrade(db) {
+    this.db = await openDB(this.dbName, 2, {
+      upgrade(db, oldVersion) {
+        // Drop and recreate store if upgrading from v1
+        if (oldVersion < 2 && db.objectStoreNames.contains(STORE_NAME)) {
+          db.deleteObjectStore(STORE_NAME);
+        }
         if (!db.objectStoreNames.contains(STORE_NAME)) {
+          // Use auto-generated key (out-of-line) to avoid duplicate timestamp conflicts
           const store = db.createObjectStore(STORE_NAME, {
-            keyPath: 'timestamp',
             autoIncrement: true,
           });
           store.createIndex('feature', 'feature');
           store.createIndex('documentId', 'documentId');
           store.createIndex('model', 'model');
-          store.createIndex('date', 'timestamp');
+          store.createIndex('timestamp', 'timestamp');
         }
       },
     });
@@ -424,7 +432,7 @@ export class CostTracker {
       try {
         listener(stats);
       } catch (error) {
-        console.error('Error in cost tracker listener:', error);
+        logger.error({ error }, 'Error in cost tracker listener');
       }
     }
   }
@@ -441,14 +449,17 @@ export class CostTracker {
     const cutoff = Date.now() - olderThanDays * 24 * 60 * 60 * 1000;
     const tx = this.db.transaction(STORE_NAME, 'readwrite');
     const store = tx.objectStore(STORE_NAME);
-    const records = await store.getAll();
 
+    // Use cursor to iterate and delete with out-of-line keys
+    let cursor = await store.openCursor();
     let deleted = 0;
-    for (const record of records) {
-      if (record.timestamp < cutoff) {
-        await store.delete(record.timestamp);
+
+    while (cursor) {
+      if (cursor.value.timestamp < cutoff) {
+        await cursor.delete();
         deleted++;
       }
+      cursor = await cursor.continue();
     }
 
     return deleted;
@@ -460,6 +471,17 @@ export class CostTracker {
     }
 
     await this.db.clear(STORE_NAME);
+  }
+
+  /**
+   * Close the database connection. Call this before deleting the database.
+   */
+  close(): void {
+    if (this.db) {
+      this.db.close();
+      this.db = null;
+    }
+    this.listeners.clear();
   }
 }
 

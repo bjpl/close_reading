@@ -10,7 +10,7 @@ import {
   getMimeType,
   getFileExtension,
 } from '../../../src/services/citation/utils';
-import type { CitationMetadata, CitationExportFormat } from '../../../src/services/citation/types';
+import type { CitationMetadata } from '../../../src/services/citation/types';
 
 describe('Citation Utils', () => {
   describe('generateCitationKey', () => {

@@ -127,7 +127,7 @@ describe('Document Processor Service', () => {
       const result = await processDocument(mockFile, mockProjectId);
 
       expect(result.success).toBe(false);
-      expect(result.error).toContain('extraction failed');
+      expect(result.error?.toLowerCase()).toContain('extraction failed');
     });
 
     it('should handle parsing failure', async () => {

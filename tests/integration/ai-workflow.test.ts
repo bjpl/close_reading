@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 
 // Integration tests for end-to-end AI workflows
 
@@ -463,7 +463,7 @@ describe('AI Research Workflow Integration Tests', () => {
       expect(duration).toBeLessThan(1000); // Should complete in reasonable time
     });
 
-    it('should cache frequently accessed data', () => {
+    it('should cache frequently accessed data', async () => {
       const cache = new Map<string, any>();
 
       const getCachedOrCompute = async (key: string, computeFn: () => any) => {
@@ -477,12 +477,14 @@ describe('AI Research Workflow Integration Tests', () => {
       };
 
       // First call - compute
-      const result1 = getCachedOrCompute('key1', () => 'computed value');
+      const result1 = await getCachedOrCompute('key1', () => 'computed value');
 
       // Second call - cached
-      const result2 = getCachedOrCompute('key1', () => 'computed value');
+      const result2 = await getCachedOrCompute('key1', () => 'computed value');
 
       expect(cache.size).toBe(1);
+      expect(result1.cached).toBe(false);
+      expect(result2.cached).toBe(true);
     });
   });
 

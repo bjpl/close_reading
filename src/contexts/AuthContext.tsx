@@ -24,19 +24,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const auth = useAuth();
 
   // Memoize the context value to prevent unnecessary re-renders
-  const value = useMemo(() => auth, [
-    auth.user,
-    auth.session,
-    auth.loading,
-    auth.error,
-    auth.isAuthenticated,
-    auth.signIn,
-    auth.signUp,
-    auth.signOut,
-    auth.resetPassword,
-    auth.clearError,
-    auth.validateInputs,
-  ]);
+  const value = useMemo(() => auth, [auth]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };

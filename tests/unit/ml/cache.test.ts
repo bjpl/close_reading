@@ -1,45 +1,48 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { EmbeddingCache } from '@/services/ml/cache';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import type { EmbeddingVector } from '@/services/ml/embeddings';
 
-// Mock IndexedDB
-const mockDB = {
-  get: vi.fn(),
-  put: vi.fn(),
-  clear: vi.fn(),
-  count: vi.fn(),
-  transaction: vi.fn(),
-  objectStore: vi.fn(),
-  createObjectStore: vi.fn(),
-  createIndex: vi.fn(),
-};
+// Use vi.hoisted() to ensure mock variables are available when vi.mock() is hoisted
+const { mockDB, mockSupabase } = vi.hoisted(() => ({
+  mockDB: {
+    get: vi.fn(),
+    put: vi.fn(),
+    clear: vi.fn(),
+    count: vi.fn(),
+    transaction: vi.fn(),
+    objectStore: vi.fn(),
+    createObjectStore: vi.fn(),
+    createIndex: vi.fn(),
+  },
+  mockSupabase: {
+    auth: {
+      getUser: vi.fn().mockResolvedValue({
+        data: { user: { id: 'test-user-id' } },
+        error: null,
+      }),
+    },
+    from: vi.fn(() => ({
+      select: vi.fn().mockReturnThis(),
+      insert: vi.fn().mockReturnThis(),
+      upsert: vi.fn().mockResolvedValue({ data: null, error: null }),
+      delete: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis(),
+      single: vi.fn().mockResolvedValue({ data: null, error: null }),
+    })),
+  },
+}));
 
+// Mock IndexedDB
 vi.mock('idb', () => ({
   openDB: vi.fn().mockResolvedValue(mockDB),
   deleteDB: vi.fn(),
 }));
 
 // Mock Supabase
-const mockSupabase = {
-  auth: {
-    getUser: vi.fn().mockResolvedValue({
-      data: { user: { id: 'test-user-id' } },
-      error: null,
-    }),
-  },
-  from: vi.fn(() => ({
-    select: vi.fn().mockReturnThis(),
-    insert: vi.fn().mockReturnThis(),
-    upsert: vi.fn().mockResolvedValue({ data: null, error: null }),
-    delete: vi.fn().mockReturnThis(),
-    eq: vi.fn().mockReturnThis(),
-    single: vi.fn().mockResolvedValue({ data: null, error: null }),
-  })),
-};
-
 vi.mock('@/lib/supabase', () => ({
   supabase: mockSupabase,
 }));
+
+import { EmbeddingCache } from '@/services/ml/cache';
 
 describe('EmbeddingCache', () => {
   let cache: EmbeddingCache;
@@ -109,7 +112,7 @@ describe('EmbeddingCache', () => {
     it('should handle different model versions', async () => {
       await cache.set(testEmbedding.text, testEmbedding);
 
-      const result = await cache.get(testEmbedding.text, 'different-version');
+      await cache.get(testEmbedding.text, 'different-version');
 
       // Should not find with different version
       expect(mockDB.get).toHaveBeenCalled();
@@ -142,8 +145,8 @@ describe('EmbeddingCache', () => {
 
       await cache.set(testEmbedding.text, updatedEmbedding);
 
-      const result = await cache.get(testEmbedding.text, testEmbedding.modelVersion);
-      expect(result?.timestamp).toBe(updatedEmbedding.timestamp);
+      const retrieved = await cache.get(testEmbedding.text, testEmbedding.modelVersion);
+      expect(retrieved?.timestamp).toBe(updatedEmbedding.timestamp);
     });
   });
 

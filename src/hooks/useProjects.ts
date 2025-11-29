@@ -130,6 +130,7 @@ export const useProjects = (userId?: string) => {
         channel.unsubscribe();
       }
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userId]);
 
   return {

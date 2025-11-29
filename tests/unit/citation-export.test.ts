@@ -199,7 +199,8 @@ ER  -`;
 
     it('should extract year from text', () => {
       const text = 'Previous research (Jones, 2024) shows...';
-      const yearMatch = text.match(/\((\d{4})\)/);
+      // Match year in citation format like "(Author, year)" or just "(year)"
+      const yearMatch = text.match(/\([^)]*?(\d{4})\)/);
 
       expect(yearMatch).not.toBeNull();
       expect(yearMatch?.[1]).toBe('2024');

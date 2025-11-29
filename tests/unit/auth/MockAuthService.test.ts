@@ -13,7 +13,7 @@
 
 import { describe, it, expect, beforeEach, afterEach, vi, Mock } from 'vitest';
 import { MockAuthService } from '@/lib/mock/auth';
-import { MockDB, MockUser, MockSession } from '@/lib/mock/types';
+import { MockDB, MockUser } from '@/lib/mock/types';
 import { IDBPDatabase } from 'idb';
 
 // Mock logger
@@ -105,7 +105,7 @@ describe('MockAuthService', () => {
       });
 
       // Sign in to establish a session
-      const signInResult = await authService.signInWithPassword({
+      await authService.signInWithPassword({
         email: testUser.email,
         password: testUser.password,
       });

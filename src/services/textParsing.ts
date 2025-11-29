@@ -1,5 +1,6 @@
 import { supabase } from '../lib/supabase';
 import type { Paragraph, Sentence } from '../types';
+import logger from '../lib/logger';
 
 export interface ParsedDocument {
   paragraphs: ParsedParagraph[];
@@ -127,8 +128,8 @@ export async function storeParagraphs(
       position: p.position
     }));
 
-    console.log('💾 Storing paragraphs with documentId:', documentId, 'Records:', paragraphRecords.length);
-    console.log('💾 First paragraph record:', paragraphRecords[0]);
+    logger.debug({ documentId, recordCount: paragraphRecords.length }, '💾 Storing paragraphs with documentId');
+    logger.debug({ firstRecord: paragraphRecords[0] }, '💾 First paragraph record');
 
     const { data, error } = await supabase
       .from('paragraphs')
@@ -185,7 +186,7 @@ export async function storeSentences(
       });
     });
 
-    console.log('💾 Storing sentences, first record:', sentenceRecords[0]);
+    logger.debug({ firstRecord: sentenceRecords[0] }, '💾 Storing sentences, first record');
 
     const { data, error } = await supabase
       .from('sentences')

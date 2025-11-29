@@ -5,7 +5,7 @@
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import { ChakraProvider } from '@chakra-ui/react';
+import { ChakraProvider, defaultSystem } from '@chakra-ui/react';
 import { BrowserRouter } from 'react-router-dom';
 import { ProjectDashboard } from '../../../src/components/ProjectDashboard';
 
@@ -51,7 +51,7 @@ vi.mock('../../../src/hooks/useAuth', () => ({
 
 const renderWithProviders = (component: React.ReactElement) => {
   return render(
-    <ChakraProvider>
+    <ChakraProvider value={defaultSystem}>
       <BrowserRouter>{component}</BrowserRouter>
     </ChakraProvider>
   );

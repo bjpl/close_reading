@@ -21,6 +21,7 @@ import { Alert } from '@chakra-ui/react/alert';
 import { Slider } from '@chakra-ui/react/slider';
 import { FiSearch } from 'react-icons/fi';
 import { getSemanticSearchService, SearchResult } from '../../services/ml/SemanticSearchService';
+import { logger } from '../../utils/logger';
 
 export interface SemanticSearchPanelProps {
   documentId?: string;
@@ -75,7 +76,7 @@ export const SemanticSearchPanel: React.FC<SemanticSearchPanelProps> = ({
       }
 
     } catch (err) {
-      console.error('Search failed:', err);
+      logger.error({ error: err }, 'Search failed');
       setError(err instanceof Error ? err.message : 'Search failed');
     } finally {
       setIsSearching(false);

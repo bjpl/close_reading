@@ -22,6 +22,7 @@ import { NumberInput } from '@chakra-ui/react/number-input';
 import { Alert } from '@chakra-ui/react/alert';
 import { FaEye, FaEyeSlash } from 'react-icons/fa';
 import type { ClaudeService, ClaudeConfig } from '../../services/ai';
+import { logger } from '../../utils/logger';
 
 interface ApiKeySettingsProps {
   onConfigUpdate: (config: ClaudeConfig) => void;
@@ -57,7 +58,7 @@ export const ApiKeySettings: React.FC<ApiKeySettingsProps> = ({
         setConfig(parsed);
         validateConfig(parsed);
       } catch (error) {
-        console.error('Error loading saved config:', error);
+        logger.error({ error }, 'Error loading saved config');
       }
     }
   }, []);

@@ -7,7 +7,6 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import {
   AnnotationService,
-  type Annotation,
   type AnnotationFilter,
 } from '../../src/services/AnnotationService';
 
@@ -87,7 +86,8 @@ describe('AnnotationService', () => {
       expect(updated!.content).toBe('Added a note');
       expect(updated!.color).toBe('green');
       expect(updated!.tags).toContain('reviewed');
-      expect(updated!.updatedAt.getTime()).toBeGreaterThan(created.createdAt.getTime());
+      // Note: Using >= because operations can complete within same millisecond
+      expect(updated!.updatedAt.getTime()).toBeGreaterThanOrEqual(created.createdAt.getTime());
     });
 
     it('should delete an annotation', () => {

@@ -10,6 +10,21 @@ export default defineConfig({
       '@': path.resolve(__dirname, './src'),
     },
   },
+  build: {
+    chunkSizeWarningLimit: 600, // Slightly increase limit for ML-heavy app
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'vendor-react': ['react', 'react-dom', 'react-router-dom'],
+          'vendor-ui': ['@chakra-ui/react', '@emotion/react'],
+          'vendor-ml': ['onnxruntime-web'],
+          'vendor-citation': ['citation-js', '@citation-js/core', '@citation-js/plugin-bibtex', '@citation-js/plugin-csl'],
+          'vendor-supabase': ['@supabase/supabase-js'],
+          'vendor-icons': ['react-icons'],
+        }
+      }
+    }
+  },
   test: {
     globals: true,
     environment: 'jsdom',

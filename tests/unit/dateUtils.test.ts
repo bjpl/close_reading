@@ -5,7 +5,7 @@
  * Target: 90%+ coverage with edge cases
  */
 
-import { describe, it, expect, vi, beforeEach, afterAll } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import {
   safeParseDate,
   formatAnnotationDate,
@@ -15,19 +15,22 @@ import {
   formatRelativeTime,
 } from '../../src/utils/dateUtils';
 
-// Mock console methods to avoid cluttering test output
-const mockConsoleWarn = vi.spyOn(console, 'warn').mockImplementation(() => {});
-const mockConsoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
+// Mock the logger module used by dateUtils
+vi.mock('../../src/utils/logger', () => ({
+  logger: {
+    warn: vi.fn(),
+    error: vi.fn(),
+    info: vi.fn(),
+    debug: vi.fn(),
+  },
+}));
+
+// Import the mocked logger
+import { logger } from '../../src/utils/logger';
 
 describe('dateUtils', () => {
   beforeEach(() => {
-    mockConsoleWarn.mockClear();
-    mockConsoleError.mockClear();
-  });
-
-  afterAll(() => {
-    mockConsoleWarn.mockRestore();
-    mockConsoleError.mockRestore();
+    vi.clearAllMocks();
   });
 
   describe('safeParseDate', () => {
@@ -73,7 +76,7 @@ describe('dateUtils', () => {
       expect(result).toBeInstanceOf(Date);
       expect(result.getTime()).toBeGreaterThanOrEqual(before);
       expect(result.getTime()).toBeLessThanOrEqual(after);
-      expect(mockConsoleWarn).toHaveBeenCalledWith('⚠️ Empty date value provided, using current date');
+      expect(logger.warn).toHaveBeenCalledWith('⚠️ Empty date value provided, using current date');
     });
 
     it('should fallback to current date for undefined', () => {
@@ -90,10 +93,10 @@ describe('dateUtils', () => {
       const result = safeParseDate('not-a-date');
 
       expect(result).toBeInstanceOf(Date);
-      expect(mockConsoleWarn).toHaveBeenCalledWith(
-        '⚠️ Invalid date value:',
-        'not-a-date',
-        '- using current date'
+      // The logger is called with an object and message
+      expect(logger.warn).toHaveBeenCalledWith(
+        { dateValue: 'not-a-date' },
+        '⚠️ Invalid date value - using current date'
       );
     });
 
@@ -101,7 +104,7 @@ describe('dateUtils', () => {
       const result = safeParseDate('Invalid Date');
 
       expect(result).toBeInstanceOf(Date);
-      expect(mockConsoleWarn).toHaveBeenCalled();
+      expect(logger.warn).toHaveBeenCalled();
     });
 
     it('should parse very old dates', () => {

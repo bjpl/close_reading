@@ -35,14 +35,57 @@ const createMockLogger = () => ({
   silent: vi.fn(),
 });
 
+// Helper function for sanitizing sensitive data
+const mockSanitizeLogData = (data: Record<string, unknown>): Record<string, unknown> => {
+  const sensitiveKeys = ['password', 'token', 'apiKey', 'secret', 'authorization', 'cookie'];
+  const sanitized: Record<string, unknown> = {};
+
+  for (const [key, value] of Object.entries(data)) {
+    if (sensitiveKeys.some(sk => key.toLowerCase().includes(sk.toLowerCase()))) {
+      sanitized[key] = '[REDACTED]';
+    } else if (typeof value === 'object' && value !== null) {
+      sanitized[key] = mockSanitizeLogData(value as Record<string, unknown>);
+    } else {
+      sanitized[key] = value;
+    }
+  }
+
+  return sanitized;
+};
+
+const mockLogger = createMockLogger();
+
 vi.mock('../src/lib/logger', () => ({
-  default: createMockLogger(),
-  logError: vi.fn(),
-  logUserAction: vi.fn(),
-  logDataOperation: vi.fn(),
-  logPerformance: vi.fn(),
-  sanitizeLogData: vi.fn((data) => data),
+  default: mockLogger,
+  logError: vi.fn((error: Error | string, context?: Record<string, unknown>) => {
+    mockLogger.error({ error, ...context });
+  }),
+  logUserAction: vi.fn((action: string, context?: Record<string, unknown>) => {
+    mockLogger.info({ type: 'user-action', action, ...context });
+  }),
+  logDataOperation: vi.fn((operation: string, entity: string, context?: Record<string, unknown>) => {
+    mockLogger.info({ type: 'data-operation', operation, entity, ...context });
+  }),
+  logPerformance: vi.fn((operation: string, duration: number, context?: Record<string, unknown>) => {
+    mockLogger.info({ type: 'performance', operation, duration, ...context });
+  }),
+  startTimer: vi.fn((operation: string, context?: Record<string, unknown>) => {
+    return vi.fn(() => {
+      mockLogger.info({ type: 'performance', operation, ...context });
+    });
+  }),
+  logApiCall: vi.fn((method: string, url: string, status: number, duration: number, context?: Record<string, unknown>) => {
+    const level = status >= 400 ? 'error' : status >= 300 ? 'warn' : 'info';
+    mockLogger[level]({ type: 'api-call', method, url, status, duration, ...context });
+  }),
+  sanitizeLogData: vi.fn(mockSanitizeLogData),
   createLogger: vi.fn(() => createMockLogger()),
+  info: mockLogger.info,
+  error: mockLogger.error,
+  warn: mockLogger.warn,
+  debug: mockLogger.debug,
+  trace: mockLogger.trace,
+  fatal: mockLogger.fatal,
 }));
 
 // Mock Supabase client with comprehensive chainable methods

@@ -40,6 +40,7 @@ export const PrivacySettingsPanel: React.FC<PrivacySettingsPanelProps> = ({
 
   useEffect(() => {
     loadSettings();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userId]);
 
   const loadSettings = async () => {

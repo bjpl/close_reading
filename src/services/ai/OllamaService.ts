@@ -223,9 +223,9 @@ KEY POINTS:
       prompt,
       stream: false,
       options: {
-        temperature: options?.temperature || 0.7,
-        top_p: options?.topP || 0.9,
-        num_predict: options?.maxTokens || 500,
+        temperature: (options?.temperature as number | undefined) || 0.7,
+        top_p: (options?.topP as number | undefined) || 0.9,
+        num_predict: (options?.maxTokens as number | undefined) || 500,
       },
     };
 
@@ -273,9 +273,9 @@ Provide a clear, accurate answer based only on the information in the text. If t
       prompt,
       stream: false,
       options: {
-        temperature: options?.temperature || 0.3,
-        top_p: options?.topP || 0.9,
-        num_predict: options?.maxTokens || 300,
+        temperature: (options?.temperature as number | undefined) || 0.3,
+        top_p: (options?.topP as number | undefined) || 0.9,
+        num_predict: (options?.maxTokens as number | undefined) || 300,
       },
     };
 
@@ -308,9 +308,9 @@ Themes:`;
       prompt,
       stream: false,
       options: {
-        temperature: options?.temperature || 0.5,
-        top_p: options?.topP || 0.9,
-        num_predict: options?.maxTokens || 200,
+        temperature: (options?.temperature as number | undefined) || 0.5,
+        top_p: (options?.topP as number | undefined) || 0.9,
+        num_predict: (options?.maxTokens as number | undefined) || 200,
       },
     };
 
@@ -359,9 +359,9 @@ Provide specific suggestions for what should be highlighted and why.`;
       prompt,
       stream: false,
       options: {
-        temperature: options?.temperature || 0.6,
-        top_p: options?.topP || 0.9,
-        num_predict: options?.maxTokens || 400,
+        temperature: (options?.temperature as number | undefined) || 0.6,
+        top_p: (options?.topP as number | undefined) || 0.9,
+        num_predict: (options?.maxTokens as number | undefined) || 400,
       },
     };
 
@@ -372,9 +372,9 @@ Provide specific suggestions for what should be highlighted and why.`;
       provider: 'ollama',
       model: this.defaultModel,
       usage: {
-        inputTokens: response.prompt_eval_count || 0,
-        outputTokens: response.eval_count || 0,
-        totalTokens: (response.prompt_eval_count || 0) + (response.eval_count || 0),
+        inputTokens: (response.prompt_eval_count as number) || 0,
+        outputTokens: (response.eval_count as number) || 0,
+        totalTokens: ((response.prompt_eval_count as number) || 0) + ((response.eval_count as number) || 0),
       },
     };
   }
@@ -404,9 +404,9 @@ ${text2}`;
       prompt,
       stream: false,
       options: {
-        temperature: options?.temperature || 0.5,
-        top_p: options?.topP || 0.9,
-        num_predict: options?.maxTokens || 500,
+        temperature: (options?.temperature as number | undefined) || 0.5,
+        top_p: (options?.topP as number | undefined) || 0.9,
+        num_predict: (options?.maxTokens as number | undefined) || 500,
       },
     };
 
@@ -417,9 +417,9 @@ ${text2}`;
       provider: 'ollama',
       model: this.defaultModel,
       usage: {
-        inputTokens: response.prompt_eval_count || 0,
-        outputTokens: response.eval_count || 0,
-        totalTokens: (response.prompt_eval_count || 0) + (response.eval_count || 0),
+        inputTokens: (response.prompt_eval_count as number) || 0,
+        outputTokens: (response.eval_count as number) || 0,
+        totalTokens: ((response.prompt_eval_count as number) || 0) + ((response.eval_count as number) || 0),
       },
     };
   }
@@ -442,9 +442,9 @@ ${text2}`;
       prompt,
       stream: false,
       options: {
-        temperature: options?.temperature || 0.7,
-        top_p: options?.topP || 0.9,
-        num_predict: options?.maxTokens || 400,
+        temperature: (options?.temperature as number | undefined) || 0.7,
+        top_p: (options?.topP as number | undefined) || 0.9,
+        num_predict: (options?.maxTokens as number | undefined) || 400,
       },
     };
 
@@ -455,9 +455,9 @@ ${text2}`;
       provider: 'ollama',
       model: this.defaultModel,
       usage: {
-        inputTokens: response.prompt_eval_count || 0,
-        outputTokens: response.eval_count || 0,
-        totalTokens: (response.prompt_eval_count || 0) + (response.eval_count || 0),
+        inputTokens: (response.prompt_eval_count as number) || 0,
+        outputTokens: (response.eval_count as number) || 0,
+        totalTokens: ((response.prompt_eval_count as number) || 0) + ((response.eval_count as number) || 0),
       },
     };
   }

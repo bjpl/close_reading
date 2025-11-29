@@ -231,7 +231,7 @@ export const LoginPage: React.FC = () => {
                 <VStack gap={4}>
                   {formErrors.general && (
                     <Alert.Root status="error" borderRadius="md">
-                      <Alert.Icon />
+                      <Alert.Indicator />
                       <Alert.Title>{formErrors.general}</Alert.Title>
                     </Alert.Root>
                   )}
@@ -304,7 +304,7 @@ export const LoginPage: React.FC = () => {
                   <VStack gap={4}>
                     {formErrors.general && (
                       <Alert.Root status="error" borderRadius="md">
-                        <Alert.Icon />
+                        <Alert.Indicator />
                         <Alert.Title>{formErrors.general}</Alert.Title>
                       </Alert.Root>
                     )}
@@ -363,7 +363,7 @@ export const LoginPage: React.FC = () => {
                   <VStack gap={4}>
                     {formErrors.general && (
                       <Alert.Root status="error" borderRadius="md">
-                        <Alert.Icon />
+                        <Alert.Indicator />
                         <Alert.Title>{formErrors.general}</Alert.Title>
                       </Alert.Root>
                     )}

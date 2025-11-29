@@ -39,6 +39,7 @@ import {
 } from 'react-icons/fa';
 import type { Annotation } from '../types';
 import { formatAnnotationDate } from '../utils/dateUtils';
+import { logger } from '../utils/logger';
 
 interface AnnotationListItemProps {
   annotation: Annotation;
@@ -87,7 +88,7 @@ export const AnnotationListItem: React.FC<AnnotationListItemProps> = ({
 
   const handleDelete = async () => {
     try {
-      console.log('🗑️ Deleting annotation:', annotation.id);
+      logger.info({ annotationId: annotation.id }, '🗑️ Deleting annotation');
       await onDelete(annotation.id);
       toaster.create({
         title: 'Annotation deleted',
@@ -96,7 +97,7 @@ export const AnnotationListItem: React.FC<AnnotationListItemProps> = ({
       });
       onClose();
     } catch (error) {
-      console.error('❌ Failed to delete annotation:', error);
+      logger.error({ error }, '❌ Failed to delete annotation');
       toaster.create({
         title: 'Failed to delete annotation',
         description: error instanceof Error ? error.message : 'Unknown error',
@@ -108,7 +109,7 @@ export const AnnotationListItem: React.FC<AnnotationListItemProps> = ({
 
   const handleUpdateNote = async () => {
     try {
-      console.log('✏️ Updating annotation note:', annotation.id);
+      logger.info({ annotationId: annotation.id }, '✏️ Updating annotation note');
       await onUpdate(annotation.id, { note: editedNote });
       toaster.create({
         title: 'Note updated',
@@ -117,7 +118,7 @@ export const AnnotationListItem: React.FC<AnnotationListItemProps> = ({
       });
       onEditClose();
     } catch (error) {
-      console.error('❌ Failed to update annotation:', error);
+      logger.error({ error }, '❌ Failed to update annotation');
       toaster.create({
         title: 'Failed to update note',
         description: error instanceof Error ? error.message : 'Unknown error',
@@ -128,7 +129,7 @@ export const AnnotationListItem: React.FC<AnnotationListItemProps> = ({
   };
 
   const handleJumpTo = () => {
-    console.log('🔗 Jumping to annotation:', annotation.id, 'in paragraph:', annotation.paragraph_id);
+    logger.debug({ annotationId: annotation.id, paragraphId: annotation.paragraph_id }, '🔗 Jumping to annotation');
     onJumpTo(annotation.paragraph_id);
   };
 

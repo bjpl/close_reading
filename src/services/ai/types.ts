@@ -504,7 +504,7 @@ export interface AIRequestOptions {
   signal?: AbortSignal;
   timeout?: number;
   retries?: number;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 export interface AIResponse {
@@ -517,7 +517,7 @@ export interface AIResponse {
   };
   provider?: AIProviderType;
   cached?: boolean;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 export interface SummaryResult extends AIResponse {

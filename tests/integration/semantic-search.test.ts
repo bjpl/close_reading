@@ -11,8 +11,8 @@ import { getVectorStore } from '../../src/services/ml/VectorStore';
 
 describe('Semantic Search Integration', () => {
   const searchService = getSemanticSearchService();
-  const embeddingService = getOnnxEmbeddingService();
-  const vectorStore = getVectorStore();
+  const _embeddingService = getOnnxEmbeddingService();
+  const _vectorStore = getVectorStore();
 
   beforeAll(async () => {
     try {
@@ -313,8 +313,8 @@ describe('Semantic Search Integration', () => {
         if (links.length > 0) {
           // Check that links are between different documents
           links.forEach(link => {
-            const sourceDocId = link.sourceId.split('-')[0];
-            const targetDocId = link.targetId.split('-')[0];
+            const _sourceDocId = link.sourceId.split('-')[0];
+            const _targetDocId = link.targetId.split('-')[0];
             // They should be from different documents
             // (Note: may not be true for all links, just checking structure)
             expect(link.sourceText).toBeDefined();
