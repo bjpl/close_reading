@@ -12,7 +12,7 @@
  * @module services/ruvector/VectorService
  */
 
-import type { RuvectorClient } from './client';
+import type { RuvectorClient } from '../client';
 import type {
   Embedding,
   VectorSearchOptions,
@@ -22,8 +22,8 @@ import type {
   VectorDeleteOptions,
   VectorStats,
   ServiceResponse,
-} from './types';
-import { VectorOperationError } from './types';
+} from '../types';
+import { VectorOperationError } from '../types';
 
 // ============================================================================
 // Type for backward compatibility with similarity.ts

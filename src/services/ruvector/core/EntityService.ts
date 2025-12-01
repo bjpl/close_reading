@@ -16,7 +16,7 @@
  * - Entity deduplication across documents
  */
 
-import type { RuvectorClient } from './client';
+import type { RuvectorClient } from '../client';
 import type {
   Entity,
   EntityQueryOptions,
@@ -31,15 +31,28 @@ import type {
   VectorSearchResult,
   GraphNode,
   GraphRelationship,
-} from './types';
+} from '../types';
 import {
   EntityNotFoundError,
   VectorOperationError,
   GraphQueryError,
-} from './types';
+} from '../types';
 
-// Import Claude AI types for integration
-import type { EntityNetwork } from '../ai/types';
+// EntityNetwork type (matches ClaudeService output)
+interface EntityNetwork {
+  entities: Array<{
+    name: string;
+    type: string;
+    mentions: number;
+    significance: 'high' | 'medium' | 'low';
+  }>;
+  relationships: Array<{
+    source: string;
+    target: string;
+    type: string;
+    strength: number;
+  }>;
+}
 
 // ============================================================================
 // Helper Types

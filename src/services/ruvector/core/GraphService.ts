@@ -13,7 +13,7 @@
  * - Comprehensive error handling
  */
 
-import { RuvectorClient } from './client';
+import { RuvectorClient } from '../client';
 import {
   GraphNode,
   GraphRelationship,
@@ -22,7 +22,7 @@ import {
   GraphTraversalOptions,
   CypherQueryOptions,
   GraphQueryError,
-} from './types';
+} from '../types';
 
 /**
  * Cypher query builder for safe parameterized queries

@@ -14,7 +14,7 @@
  * - Optimizes prompts for ClaudeService consumption
  */
 
-import type { RuvectorClient } from './client';
+import type { RuvectorClient } from '../client';
 import type {
   RAGDocument,
   RAGIndexOptions,
@@ -25,9 +25,32 @@ import type {
   VectorSearchOptions,
   BatchOperationResult,
   Embedding,
-} from './types';
-import { RAGError } from './types';
-import { chunkText, estimateTokenCount, RUVECTOR_DEFAULTS } from './index';
+} from '../types';
+import { RAGError } from '../types';
+
+// Local implementations (these would normally be in a shared utils module)
+const RUVECTOR_DEFAULTS = {
+  CHUNK_SIZE: 500,
+  CHUNK_OVERLAP: 50,
+  TOP_K: 10,
+};
+
+function estimateTokenCount(text: string): number {
+  // Rough estimate: ~4 characters per token for English text
+  return Math.ceil(text.length / 4);
+}
+
+function chunkText(text: string, chunkSize: number, overlap: number): string[] {
+  const chunks: string[] = [];
+  let start = 0;
+  while (start < text.length) {
+    const end = Math.min(start + chunkSize, text.length);
+    chunks.push(text.slice(start, end));
+    start = end - overlap;
+    if (start >= text.length - overlap) break;
+  }
+  return chunks;
+}
 
 // ============================================================================
 // Constants

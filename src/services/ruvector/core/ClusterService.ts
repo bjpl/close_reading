@@ -16,7 +16,7 @@
  * @module ClusterService
  */
 
-import { RuvectorClient } from './client';
+import { RuvectorClient } from '../client';
 import type {
   ClusterConfig,
   ClusteringResult,
@@ -27,7 +27,7 @@ import type {
   GNNClusteringOptions,
   Embedding,
   ClusteringError,
-} from './types';
+} from '../types';
 
 // ============================================================================
 // Type Definitions for Theme Discovery
