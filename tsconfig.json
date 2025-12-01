@@ -32,6 +32,6 @@
     }
   },
   "include": ["src"],
-  "exclude": ["tests", "**/*.test.ts", "**/*.test.tsx", "node_modules"],
+  "exclude": ["tests", "**/*.test.ts", "**/*.test.tsx", "node_modules", "src/**/examples/**"],
   "references": [{ "path": "./tsconfig.node.json" }]
 }
