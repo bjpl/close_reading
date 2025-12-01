@@ -33,6 +33,10 @@ const RUVECTOR_DEFAULTS = {
   CHUNK_SIZE: 500,
   CHUNK_OVERLAP: 50,
   TOP_K: 10,
+  DEFAULT_CHUNK_SIZE: 500,
+  DEFAULT_CHUNK_OVERLAP: 50,
+  DEFAULT_TOP_K: 10,
+  MIN_SIMILARITY: 0.5,
 };
 
 function estimateTokenCount(text: string): number {

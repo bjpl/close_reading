@@ -43,15 +43,31 @@ interface EntityNetwork {
   entities: Array<{
     name: string;
     type: string;
-    mentions: number;
-    significance: 'high' | 'medium' | 'low';
+    description?: string;
+    traits?: string[];
+    development?: string;
+    importance?: number;
+    mentions?: number;
+    significance?: 'high' | 'medium' | 'low';
   }>;
   relationships: Array<{
-    source: string;
-    target: string;
+    entity1: string;
+    entity2: string;
     type: string;
+    description?: string;
     strength: number;
+    evolution?: string;
+    evidence?: string[];
   }>;
+  powerDynamics?: Array<{
+    dominant: string;
+    subordinate: string;
+    type: string;
+  }>;
+  socialStructure?: {
+    centrality: Record<string, number>;
+    clusters: string[][];
+  };
 }
 
 // ============================================================================
@@ -1031,7 +1047,9 @@ export class EntityService {
           documentIds: [...new Set(documentIds)],
           // Merge additional properties from Claude
           additionalContext: {
-            ...existing.properties.additionalContext,
+            ...(typeof existing.properties.additionalContext === 'object' && existing.properties.additionalContext !== null
+              ? existing.properties.additionalContext
+              : {}),
             [documentId]: claudeEntity,
           },
         },
