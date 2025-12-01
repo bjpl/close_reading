@@ -97,7 +97,7 @@ export class ClusterService {
 
       switch (algorithm) {
         case 'gnn':
-          result = await this.gnnCluster(embeddingIds, config?.gnnConfig);
+          result = await this.gnnCluster(embeddingIds, config?.gnnConfig as GNNClusteringOptions | undefined);
           break;
         case 'hierarchical':
           const hierarchical = await this.hierarchicalCluster(embeddingIds, config);
@@ -885,7 +885,11 @@ export class ClusterService {
         },
       });
 
-      return response;
+      return {
+        name: response.theme,
+        confidence: response.confidence,
+        keywords: response.keywords,
+      };
     } catch (error) {
       // Fallback to simple keyword extraction
       return {

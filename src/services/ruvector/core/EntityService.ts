@@ -425,7 +425,7 @@ export class EntityService {
             distance: result.distance,
           };
         })
-        .filter((r): r is EntitySearchResult => r !== null);
+        .filter((r): r is { entity: Entity; score: number; distance?: number } => r !== null);
     } catch (error) {
       throw new VectorOperationError(
         `Failed to search entities: ${this.formatError(error)}`,
@@ -1097,19 +1097,19 @@ export class EntityService {
       entities: entities.map((e) => ({
         name: e.name,
         type: e.type,
-        description: e.properties.description || '',
-        traits: e.properties.traits || [],
-        development: e.properties.development || '',
-        importance: e.properties.importance || 0,
+        description: String(e.properties.description || ''),
+        traits: (e.properties.traits as string[]) || [],
+        development: String(e.properties.development || ''),
+        importance: Number(e.properties.importance) || 0,
       })),
       relationships: relationships.map((r) => ({
         entity1: r.sourceEntityId,
         entity2: r.targetEntityId,
         type: r.type,
-        description: r.properties?.description || '',
+        description: String(r.properties?.description || ''),
         strength: r.strength || 1.0,
-        evolution: r.properties?.evolution,
-        evidence: r.properties?.evidence || [],
+        evolution: r.properties?.evolution ? String(r.properties.evolution) : undefined,
+        evidence: (r.properties?.evidence as string[]) || [],
       })),
       powerDynamics: metadata.powerDynamics || [],
       socialStructure: metadata.socialStructure || {
