@@ -415,7 +415,7 @@ export class EntityService {
 
       // Map to search results
       return vectorResults.results
-        .map((result) => {
+        .map((result): EntitySearchResult | null => {
           const entity = entities.find((e) => e.id === result.id);
           if (!entity) return null;
 
@@ -425,7 +425,7 @@ export class EntityService {
             distance: result.distance,
           };
         })
-        .filter((r): r is { entity: Entity; score: number; distance?: number } => r !== null);
+        .filter((r): r is EntitySearchResult => r !== null);
     } catch (error) {
       throw new VectorOperationError(
         `Failed to search entities: ${this.formatError(error)}`,
