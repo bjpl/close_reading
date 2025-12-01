@@ -14,7 +14,9 @@
 // ============================================================================
 
 export interface RuvectorConfig {
-  apiKey: string;
+  /** API key - optional for local/self-hosted Ruvector instances */
+  apiKey?: string;
+  /** Base URL - defaults to http://localhost:8080 for local mode */
   baseUrl?: string;
   timeout?: number;
   retryAttempts?: number;

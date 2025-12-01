@@ -218,7 +218,8 @@ class HttpClient {
   constructor(
     private baseUrl: string,
     private apiKey: string,
-    private timeout = 30000
+    private timeout = 30000,
+    private localMode = false
   ) {}
 
   async request<T>(options: RequestOptions): Promise<T> {
@@ -236,14 +237,21 @@ class HttpClient {
       options.timeout || this.timeout
     );
 
+    // Build headers - skip auth for local mode
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    };
+
+    // Only add authorization header if not in local mode
+    if (!this.localMode && this.apiKey && this.apiKey !== 'local') {
+      headers['Authorization'] = `Bearer ${this.apiKey}`;
+    }
+
     try {
       const response = await fetch(url.toString(), {
         method: options.method,
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${this.apiKey}`,
-          ...options.headers,
-        },
+        headers,
         body: options.body ? JSON.stringify(options.body) : undefined,
         signal: controller.signal,
       });
@@ -281,11 +289,15 @@ export class RuvectorClient {
   private cache: CacheManager;
   private metrics: ServiceMetrics;
   private startTime: number;
+  private localMode: boolean;
 
   private constructor(config: RuvectorClientConfig) {
+    // Ruvector is self-hosted - local mode is default
+    this.localMode = !config.apiKey || config.baseUrl?.includes('localhost') || config.baseUrl?.includes('127.0.0.1');
+
     this.config = {
-      apiKey: config.apiKey,
-      baseUrl: config.baseUrl || 'https://api.ruvector.ai',
+      apiKey: config.apiKey || 'local', // Not required for local instances
+      baseUrl: config.baseUrl || 'http://localhost:8080', // Local Ruvector default
       timeout: config.timeout || 30000,
       retryAttempts: config.retryAttempts || 3,
       retryDelay: config.retryDelay || 1000,
@@ -304,7 +316,8 @@ export class RuvectorClient {
     this.httpClient = new HttpClient(
       this.config.baseUrl,
       this.config.apiKey,
-      this.config.timeout
+      this.config.timeout,
+      this.localMode
     );
 
     this.circuitBreaker = new CircuitBreaker();
@@ -498,9 +511,18 @@ export class RuvectorClient {
   }
 
   /**
-   * Validate API key format
+   * Check if running in local mode (no API key required)
+   */
+  isLocalMode(): boolean {
+    return this.localMode;
+  }
+
+  /**
+   * Validate API key format (only relevant for remote instances)
+   * Returns true for local mode since no API key is needed
    */
   validateApiKey(): boolean {
+    if (this.localMode) return true;
     return /^rv_[a-zA-Z0-9]{32,}$/.test(this.config.apiKey);
   }
 
