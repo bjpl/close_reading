@@ -16,8 +16,6 @@ import { EntityService } from '../../../src/services/ruvector/EntityService';
 import type { RuvectorClient } from '../../../src/services/ruvector/client';
 import type {
   Entity,
-  EntityRelationship,
-  EntitySearchResult,
   GraphNode,
   GraphRelationship,
 } from '../../../src/services/ruvector/types';
@@ -780,7 +778,7 @@ describe('EntityService', () => {
         socialStructure: { centrality: {}, clusters: [] },
       };
 
-      const existingEntity = createMockEntity('existing-1', {
+      const _existingEntity = createMockEntity('existing-1', {
         name: 'Alice Smith',
         type: 'Person',
       });

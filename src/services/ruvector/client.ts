@@ -11,7 +11,6 @@
 
 import type {
   RuvectorClientConfig,
-  RuvectorError,
   ServiceHealth,
   ServiceMetrics,
   CacheEntry,
@@ -547,7 +546,7 @@ export class RuvectorClient {
     return parts.join(':');
   }
 
-  private updateMetrics(duration: number, isError: boolean): void {
+  private updateMetrics(duration: number, _isError: boolean): void {
     this.metrics.requestCount++;
 
     // Update average response time using exponential moving average

@@ -23,12 +23,9 @@ import type {
   ClusteringResult,
   Cluster,
   ClusterAnalysis,
-  ClusterVisualization,
-  HierarchicalCluster,
   GNNClusteringOptions,
 } from '@/services/ruvector/types';
 import type {
-  ThemeDiscoveryResult,
   GNNTrainingData,
   GNNModelMetadata,
 } from '@/services/ruvector/ClusterService';

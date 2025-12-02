@@ -78,6 +78,18 @@ interface EntityWithEmbedding extends Entity {
   embedding: number[];
 }
 
+/** Claude entity from EntityNetwork.entities array */
+type ClaudeEntity = EntityNetwork['entities'][number];
+
+/** Network metadata stored with entities */
+interface NetworkMetadataProperties {
+  documentId: string;
+  powerDynamics?: EntityNetwork['powerDynamics'];
+  socialStructure?: EntityNetwork['socialStructure'];
+  entityMapping: Record<string, string>;
+  timestamp: string;
+}
+
 interface EntityLinkCandidate {
   existingEntity: Entity;
   newEntity: Omit<Entity, 'id'>;
@@ -1004,8 +1016,8 @@ export class EntityService {
   }
 
   private async findEntityLinkCandidates(
-    claudeEntity: any,
-    documentId: string
+    claudeEntity: ClaudeEntity,
+    _documentId: string
   ): Promise<EntityLinkCandidate[]> {
     // Search for similar entities across all documents
     const searchResults = await this.searchEntities(claudeEntity.name, {
@@ -1029,7 +1041,7 @@ export class EntityService {
   private async mergeEntityWithDocument(
     entityId: string,
     documentId: string,
-    claudeEntity: any
+    claudeEntity: ClaudeEntity
   ): Promise<void> {
     const existing = await this.getEntity(entityId);
     if (!existing) return;
@@ -1077,7 +1089,7 @@ export class EntityService {
     });
   }
 
-  private async getNetworkMetadata(documentId: string): Promise<any> {
+  private async getNetworkMetadata(documentId: string): Promise<NetworkMetadataProperties> {
     const result = await this.queryEntities({
       type: 'NetworkMetadata',
       filters: { documentId },
@@ -1090,7 +1102,7 @@ export class EntityService {
   private toClaudeEntityNetwork(
     entities: Entity[],
     relationships: EntityRelationship[],
-    metadata: any
+    metadata: NetworkMetadataProperties
   ): EntityNetwork {
     // Convert back to Claude's format
     return {

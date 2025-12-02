@@ -44,7 +44,7 @@ function estimateTokenCount(text: string): number {
   return Math.ceil(text.length / 4);
 }
 
-function chunkText(text: string, chunkSize: number, overlap: number): string[] {
+function _chunkText(text: string, chunkSize: number, overlap: number): string[] {
   const chunks: string[] = [];
   let start = 0;
   while (start < text.length) {

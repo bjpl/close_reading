@@ -17,6 +17,7 @@
  */
 
 import { RuvectorClient } from '../client';
+import type { VectorService } from './VectorService';
 import type {
   ClusterConfig,
   ClusteringResult,
@@ -66,7 +67,7 @@ export class ClusterService {
 
   constructor(
     private readonly client: RuvectorClient,
-    private readonly vectorService?: any // VectorService will be injected
+    private readonly vectorService?: VectorService // VectorService will be injected
   ) {}
 
   // ==========================================================================
@@ -99,10 +100,11 @@ export class ClusterService {
         case 'gnn':
           result = await this.gnnCluster(embeddingIds, config?.gnnConfig as GNNClusteringOptions | undefined);
           break;
-        case 'hierarchical':
+        case 'hierarchical': {
           const hierarchical = await this.hierarchicalCluster(embeddingIds, config);
           result = this.convertHierarchicalToFlat(hierarchical);
           break;
+        }
         case 'dbscan':
           result = await this.dbscanCluster(embeddings, config);
           break;
@@ -270,7 +272,7 @@ export class ClusterService {
       // Use dimensionality reduction (t-SNE or UMAP) for 2D projection
       const projections = await this.projectTo2D(clusteringResult);
 
-      const nodes = projections.map((proj, idx) => ({
+      const nodes = projections.map((proj, _idx) => ({
         id: proj.id,
         clusterId: proj.clusterId,
         position: { x: proj.x, y: proj.y },

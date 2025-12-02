@@ -192,7 +192,7 @@ describe('Ruvector Services Integration', () => {
     it('should cluster documents and extract entities', async () => {
       const documentIds = ['doc-1', 'doc-2'];
 
-      const mockClusterResult = {
+      const _mockClusterResult = {
         clusters: [
           {
             id: 'cluster-1',
