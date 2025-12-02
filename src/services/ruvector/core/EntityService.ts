@@ -1096,7 +1096,14 @@ export class EntityService {
       limit: 1,
     });
 
-    return result.items[0]?.properties || {};
+    const props = result.items[0]?.properties;
+    return {
+      documentId: props?.documentId ?? documentId,
+      entityMapping: props?.entityMapping ?? {},
+      timestamp: props?.timestamp ?? new Date().toISOString(),
+      powerDynamics: props?.powerDynamics,
+      socialStructure: props?.socialStructure,
+    } as NetworkMetadataProperties;
   }
 
   private toClaudeEntityNetwork(

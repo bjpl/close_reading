@@ -466,4 +466,52 @@ export class MockAuthService {
     logger.info({ email }, 'Mock auth: Password reset requested');
     return { data: {}, error: null };
   }
+
+  /**
+   * Sign in with OAuth provider (mock implementation)
+   *
+   * In mock mode, OAuth is simulated by creating a mock user.
+   * This allows testing OAuth flows without actual provider configuration.
+   *
+   * @param provider - OAuth provider (google, github, etc.)
+   * @returns Success response (mock implementation simulates OAuth)
+   */
+  async signInWithOAuth({ provider }: { provider: string; options?: { redirectTo?: string } }): Promise<SupabaseResponse<Record<string, never>>> {
+    logger.info({ provider }, 'Mock auth: OAuth sign-in requested (mock mode - auto-creating user)');
+
+    if (!this.db) {
+      logger.warn('Mock auth: Database not initialized');
+      return { data: {}, error: { message: 'Database not initialized. Please try again.' } };
+    }
+
+    try {
+      // In mock mode, simulate OAuth by creating a demo user
+      const mockEmail = `demo-${provider}@example.com`;
+      const mockPassword = 'demo123';
+
+      // Check if demo user already exists
+      const existingUser = await this.db.getFromIndex('users', 'by-email', mockEmail);
+
+      if (existingUser) {
+        // Sign in existing demo user
+        const result = await this.signInWithPassword({ email: mockEmail, password: mockPassword });
+        if (result.error) {
+          return { data: {}, error: result.error };
+        }
+      } else {
+        // Create new demo user
+        const result = await this.signUp({ email: mockEmail, password: mockPassword });
+        if (result.error) {
+          return { data: {}, error: result.error };
+        }
+      }
+
+      logger.info({ provider, mockEmail }, 'Mock auth: OAuth simulation completed');
+      return { data: {}, error: null };
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      logger.error({ provider, error: errorMessage }, 'Mock auth: OAuth simulation failed');
+      return { data: {}, error: { message: 'OAuth simulation failed. Please try again.' } };
+    }
+  }
 }

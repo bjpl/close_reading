@@ -94,6 +94,8 @@ export interface UseAuthReturn {
   signUp: (email: string, password: string) => Promise<AuthResult>;
   signOut: () => Promise<void>;
   resetPassword: (email: string) => Promise<AuthResult>;
+  signInWithGoogle: () => Promise<AuthResult>;
+  signInWithGitHub: () => Promise<AuthResult>;
   clearError: () => void;
   validateInputs: (email: string, password: string, isSignUp?: boolean) => ValidationResult;
 }
@@ -340,6 +342,92 @@ export const useAuth = (): UseAuthReturn => {
   }, []);
 
   /**
+   * Sign in with Google OAuth
+   */
+  const signInWithGoogle = useCallback(async (): Promise<AuthResult> => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const { error: oauthError } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/dashboard`,
+        },
+      });
+
+      if (!isMounted.current) {
+        return { success: false, error: 'Component unmounted' };
+      }
+
+      if (oauthError) {
+        logger.warn({ error: oauthError.message }, 'Google OAuth failed');
+        setError(oauthError);
+        return {
+          success: false,
+          error: oauthError.message || 'Failed to sign in with Google',
+        };
+      }
+
+      logger.info('Google OAuth initiated');
+      // OAuth flow will redirect user, so we return success
+      // The actual session will be established after redirect
+      return { success: true };
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'An unexpected error occurred';
+      logger.error({ error: errorMessage }, 'Google OAuth exception');
+      return { success: false, error: errorMessage };
+    } finally {
+      if (isMounted.current) {
+        setLoading(false);
+      }
+    }
+  }, []);
+
+  /**
+   * Sign in with GitHub OAuth
+   */
+  const signInWithGitHub = useCallback(async (): Promise<AuthResult> => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const { error: oauthError } = await supabase.auth.signInWithOAuth({
+        provider: 'github',
+        options: {
+          redirectTo: `${window.location.origin}/dashboard`,
+        },
+      });
+
+      if (!isMounted.current) {
+        return { success: false, error: 'Component unmounted' };
+      }
+
+      if (oauthError) {
+        logger.warn({ error: oauthError.message }, 'GitHub OAuth failed');
+        setError(oauthError);
+        return {
+          success: false,
+          error: oauthError.message || 'Failed to sign in with GitHub',
+        };
+      }
+
+      logger.info('GitHub OAuth initiated');
+      // OAuth flow will redirect user, so we return success
+      // The actual session will be established after redirect
+      return { success: true };
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'An unexpected error occurred';
+      logger.error({ error: errorMessage }, 'GitHub OAuth exception');
+      return { success: false, error: errorMessage };
+    } finally {
+      if (isMounted.current) {
+        setLoading(false);
+      }
+    }
+  }, []);
+
+  /**
    * Validate authentication inputs
    */
   const validateInputs = useCallback((
@@ -360,6 +448,8 @@ export const useAuth = (): UseAuthReturn => {
     signUp,
     signOut,
     resetPassword,
+    signInWithGoogle,
+    signInWithGitHub,
     clearError,
     validateInputs,
   };

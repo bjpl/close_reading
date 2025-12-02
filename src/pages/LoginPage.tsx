@@ -18,7 +18,10 @@ import {
   Tabs,
   Alert,
   Link,
+  HStack,
+  Separator,
 } from '@chakra-ui/react';
+import { FaGoogle, FaGithub } from 'react-icons/fa';
 
 const toaster = createToaster({
   placement: 'top-end',
@@ -44,7 +47,7 @@ export const LoginPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'login' | 'signup'>('login');
   const [showPasswordReset, setShowPasswordReset] = useState(false);
 
-  const { signIn, signUp, resetPassword, isAuthenticated, clearError } = useAuth();
+  const { signIn, signUp, resetPassword, signInWithGoogle, signInWithGitHub, isAuthenticated, clearError } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -211,6 +214,44 @@ export const LoginPage: React.FC = () => {
     }
   };
 
+  /**
+   * Handle Google OAuth sign-in
+   */
+  const handleGoogleSignIn = async () => {
+    setIsLoading(true);
+    const result = await signInWithGoogle();
+
+    if (!result.success) {
+      toaster.create({
+        title: 'Google sign-in failed',
+        description: result.error || 'Please try again later.',
+        type: 'error',
+        duration: 5000,
+      });
+      setIsLoading(false);
+    }
+    // If successful, user will be redirected, so no need to set loading to false
+  };
+
+  /**
+   * Handle GitHub OAuth sign-in
+   */
+  const handleGitHubSignIn = async () => {
+    setIsLoading(true);
+    const result = await signInWithGitHub();
+
+    if (!result.success) {
+      toaster.create({
+        title: 'GitHub sign-in failed',
+        description: result.error || 'Please try again later.',
+        type: 'error',
+        duration: 5000,
+      });
+      setIsLoading(false);
+    }
+    // If successful, user will be redirected, so no need to set loading to false
+  };
+
   // Password reset form
   if (showPasswordReset) {
     return (
@@ -354,6 +395,35 @@ export const LoginPage: React.FC = () => {
                     >
                       Forgot your password?
                     </Link>
+
+                    <HStack width="100%" alignItems="center" my={2}>
+                      <Separator flex="1" />
+                      <Text fontSize="sm" color="gray.500" px={3}>
+                        or continue with
+                      </Text>
+                      <Separator flex="1" />
+                    </HStack>
+
+                    <HStack width="100%" gap={3}>
+                      <Button
+                        variant="outline"
+                        width="100%"
+                        onClick={handleGoogleSignIn}
+                        loading={isLoading}
+                      >
+                        <FaGoogle style={{ marginRight: '8px' }} />
+                        Google
+                      </Button>
+                      <Button
+                        variant="outline"
+                        width="100%"
+                        onClick={handleGitHubSignIn}
+                        loading={isLoading}
+                      >
+                        <FaGithub style={{ marginRight: '8px' }} />
+                        GitHub
+                      </Button>
+                    </HStack>
                   </VStack>
                 </form>
               </Tabs.Content>
@@ -407,6 +477,35 @@ export const LoginPage: React.FC = () => {
                     >
                       Sign Up
                     </Button>
+
+                    <HStack width="100%" alignItems="center" my={2}>
+                      <Separator flex="1" />
+                      <Text fontSize="sm" color="gray.500" px={3}>
+                        or continue with
+                      </Text>
+                      <Separator flex="1" />
+                    </HStack>
+
+                    <HStack width="100%" gap={3}>
+                      <Button
+                        variant="outline"
+                        width="100%"
+                        onClick={handleGoogleSignIn}
+                        loading={isLoading}
+                      >
+                        <FaGoogle style={{ marginRight: '8px' }} />
+                        Google
+                      </Button>
+                      <Button
+                        variant="outline"
+                        width="100%"
+                        onClick={handleGitHubSignIn}
+                        loading={isLoading}
+                      >
+                        <FaGithub style={{ marginRight: '8px' }} />
+                        GitHub
+                      </Button>
+                    </HStack>
                   </VStack>
                 </form>
               </Tabs.Content>

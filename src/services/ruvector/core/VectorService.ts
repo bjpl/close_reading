@@ -467,6 +467,41 @@ export class VectorService {
     }
   }
 
+  /**
+   * Get embeddings by their IDs
+   *
+   * Batch retrieval of embeddings by ID for clustering and analysis.
+   *
+   * @param ids - Array of embedding IDs to retrieve
+   * @returns Array of embeddings matching the given IDs
+   *
+   * @example
+   * ```typescript
+   * const embeddings = await vectorService.getByIds(['emb-1', 'emb-2']);
+   * console.log(`Retrieved ${embeddings.length} embeddings`);
+   * ```
+   */
+  async getByIds(ids: string[]): Promise<Embedding[]> {
+    if (ids.length === 0) {
+      return [];
+    }
+
+    try {
+      const response = await this.client.request<{ embeddings: Embedding[] }>({
+        method: 'POST',
+        path: '/v1/vector/batch-get',
+        body: { ids },
+      });
+
+      return response.embeddings || [];
+    } catch (error) {
+      throw new VectorOperationError(
+        `Batch get operation failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        error
+      );
+    }
+  }
+
   // ============================================================================
   // Backward Compatibility Helpers
   // ============================================================================

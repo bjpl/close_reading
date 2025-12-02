@@ -8,8 +8,8 @@ import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { ChakraProvider, Toaster, createToaster } from '@chakra-ui/react';
 import { system } from './theme';
-import { useAuth } from './hooks/useAuth';
-import { LoginPage, DashboardPage, ProjectPage, DocumentPage } from './pages';
+import { AuthProvider, useAuthContext } from './contexts/AuthContext';
+import { LoginPage, DashboardPage, ProjectPage, DocumentPage, AuthCallbackPage, ProfilePage } from './pages';
 import { SharedDocumentPage } from './pages/SharedDocumentPage';
 import { Box, Spinner, VStack, Text, Button, HStack } from '@chakra-ui/react';
 import { ErrorBoundary, FallbackProps } from './components/ErrorBoundary';
@@ -109,7 +109,7 @@ const handleAppError = (error: Error, errorInfo: React.ErrorInfo) => {
  * Redirects to login if user is not authenticated
  */
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { user, loading } = useAuth();
+  const { user, loading } = useAuthContext();
 
   if (loading) {
     return (
@@ -158,41 +158,52 @@ function App() {
           )}
         </Toaster>
         <BrowserRouter>
-          <Routes>
-            {/* Public Routes */}
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/shared/:token" element={<SharedDocumentPage />} />
+          <AuthProvider>
+            <Routes>
+              {/* Public Routes */}
+              <Route path="/login" element={<LoginPage />} />
+              <Route path="/auth/callback" element={<AuthCallbackPage />} />
+              <Route path="/shared/:token" element={<SharedDocumentPage />} />
 
-            {/* Protected Routes */}
-            <Route
-              path="/dashboard"
-              element={
-                <ProtectedRoute>
-                  <DashboardPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/project/:projectId"
-              element={
-                <ProtectedRoute>
-                  <ProjectPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/document/:documentId"
-              element={
-                <ProtectedRoute>
-                  <DocumentPage />
-                </ProtectedRoute>
-              }
-            />
+              {/* Protected Routes */}
+              <Route
+                path="/profile"
+                element={
+                  <ProtectedRoute>
+                    <ProfilePage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/dashboard"
+                element={
+                  <ProtectedRoute>
+                    <DashboardPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/project/:projectId"
+                element={
+                  <ProtectedRoute>
+                    <ProjectPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/document/:documentId"
+                element={
+                  <ProtectedRoute>
+                    <DocumentPage />
+                  </ProtectedRoute>
+                }
+              />
 
-            {/* Default Route */}
-            <Route path="/" element={<Navigate to="/dashboard" replace />} />
-            <Route path="*" element={<Navigate to="/dashboard" replace />} />
-          </Routes>
+              {/* Default Route */}
+              <Route path="/" element={<Navigate to="/dashboard" replace />} />
+              <Route path="*" element={<Navigate to="/dashboard" replace />} />
+            </Routes>
+          </AuthProvider>
         </BrowserRouter>
       </ChakraProvider>
     </ErrorBoundary>
