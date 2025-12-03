@@ -17,8 +17,6 @@ export const RouteLoader = () => (
       <Spinner
         size="xl"
         color="blue.500"
-        thickness="4px"
-        speed="0.65s"
       />
     </Box>
   </Center>

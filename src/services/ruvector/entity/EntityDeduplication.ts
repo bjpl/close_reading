@@ -84,7 +84,14 @@ export class EntityDeduplication {
         newEntity: {
           type: claudeEntity.type,
           name: claudeEntity.name,
-          properties: claudeEntity,
+          properties: {
+            description: claudeEntity.description,
+            traits: claudeEntity.traits,
+            development: claudeEntity.development,
+            importance: claudeEntity.importance,
+            mentions: claudeEntity.mentions,
+            significance: claudeEntity.significance,
+          },
         },
         similarityScore: result.score,
         shouldMerge: result.score >= this.SIMILARITY_THRESHOLD,
