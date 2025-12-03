@@ -47,7 +47,9 @@ export const DocumentPage: React.FC = () => {
         alignItems="center"
         justifyContent="center"
       >
-        <Spinner size="xl" />
+        <Box role="status" aria-live="polite" aria-label="Loading document">
+          <Spinner size="xl" />
+        </Box>
       </Box>
     );
   }
@@ -96,7 +98,7 @@ export const DocumentPage: React.FC = () => {
         <ParagraphLinkingPanel />
 
         {/* Center: Document Viewer */}
-        <Box flex={1} display="flex" flexDirection="column" overflow="hidden">
+        <Box id="main-content" flex={1} display="flex" flexDirection="column" overflow="hidden">
           <AnnotationToolbar />
           <DocumentViewer />
         </Box>

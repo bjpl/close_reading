@@ -367,6 +367,9 @@ export const AnnotationToolbar: React.FC = () => {
               <Tooltip.Trigger asChild>
                 <Box
                 as="button"
+                role="button"
+                tabIndex={0}
+                aria-label={`Select ${color} highlight color${activeToolType === 'highlight' && activeColor === color ? ' (active)' : ''}`}
                 w={8}
                 h={8}
                 borderRadius="md"
@@ -384,6 +387,22 @@ export const AnnotationToolbar: React.FC = () => {
                     setActiveColor(color);
                     setActiveToolType('highlight');
                     logger.debug({ message: 'Highlight mode ON', color });
+                  }
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    // Toggle highlight mode on/off
+                    if (activeToolType === 'highlight' && activeColor === color) {
+                      // Turn off if clicking same color
+                      setActiveToolType(null);
+                      logger.debug({ message: 'Highlight mode OFF (keyboard)' });
+                    } else {
+                      // Turn on highlight mode with this color
+                      setActiveColor(color);
+                      setActiveToolType('highlight');
+                      logger.debug({ message: 'Highlight mode ON (keyboard)', color });
+                    }
                   }
                 }}
                 cursor="pointer"

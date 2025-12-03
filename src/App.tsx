@@ -4,17 +4,54 @@
  * Sets up routing, authentication, and global providers.
  * Includes global error boundary for graceful error handling.
  */
-import React from 'react';
+import React, { Suspense } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { ChakraProvider, Toaster, createToaster } from '@chakra-ui/react';
 import { system } from './theme';
 import { AuthProvider, useAuthContext } from './contexts/AuthContext';
-import { LoginPage, DashboardPage, ProjectPage, DocumentPage, AuthCallbackPage, ProfilePage } from './pages';
-import { SharedDocumentPage } from './pages/SharedDocumentPage';
+import {
+  RouteLoader,
+  LoginPage,
+  DashboardPage,
+  ProjectPage,
+  DocumentPage,
+  AuthCallbackPage,
+  ProfilePage,
+  SharedDocumentPage
+} from './router/lazyRoutes';
 import { Box, Spinner, VStack, Text, Button, HStack } from '@chakra-ui/react';
 import { ErrorBoundary, FallbackProps } from './components/ErrorBoundary';
 import logger from './lib/logger';
 import './styles/annotations.css';
+
+/**
+ * Skip Navigation Link Component
+ * Allows keyboard users to skip to main content
+ */
+const SkipLink: React.FC = () => (
+  <a
+    href="#main-content"
+    style={{
+      position: 'absolute',
+      left: '-9999px',
+      zIndex: 9999,
+      padding: '1rem',
+      backgroundColor: '#1a365d',
+      color: 'white',
+      textDecoration: 'none',
+      borderRadius: '0.25rem',
+    }}
+    onFocus={(e) => {
+      e.currentTarget.style.left = '1rem';
+      e.currentTarget.style.top = '1rem';
+    }}
+    onBlur={(e) => {
+      e.currentTarget.style.left = '-9999px';
+    }}
+  >
+    Skip to main content
+  </a>
+);
 
 export const toaster = createToaster({
   placement: 'top-end',
@@ -119,7 +156,9 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
         alignItems="center"
         justifyContent="center"
       >
-        <Spinner size="xl" />
+        <Box role="status" aria-live="polite" aria-label="Loading authentication">
+          <Spinner size="xl" />
+        </Box>
       </Box>
     );
   }
@@ -143,6 +182,7 @@ function App() {
       fallback={(props) => <AppErrorFallback {...props} />}
     >
       <ChakraProvider value={system}>
+        <SkipLink />
         <Toaster toaster={toaster}>
           {(toast) => (
             <Box
@@ -159,50 +199,52 @@ function App() {
         </Toaster>
         <BrowserRouter>
           <AuthProvider>
-            <Routes>
-              {/* Public Routes */}
-              <Route path="/login" element={<LoginPage />} />
-              <Route path="/auth/callback" element={<AuthCallbackPage />} />
-              <Route path="/shared/:token" element={<SharedDocumentPage />} />
+            <Suspense fallback={<RouteLoader />}>
+              <Routes>
+                {/* Public Routes */}
+                <Route path="/login" element={<LoginPage />} />
+                <Route path="/auth/callback" element={<AuthCallbackPage />} />
+                <Route path="/shared/:token" element={<SharedDocumentPage />} />
 
-              {/* Protected Routes */}
-              <Route
-                path="/profile"
-                element={
-                  <ProtectedRoute>
-                    <ProfilePage />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/dashboard"
-                element={
-                  <ProtectedRoute>
-                    <DashboardPage />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/project/:projectId"
-                element={
-                  <ProtectedRoute>
-                    <ProjectPage />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/document/:documentId"
-                element={
-                  <ProtectedRoute>
-                    <DocumentPage />
-                  </ProtectedRoute>
-                }
-              />
+                {/* Protected Routes */}
+                <Route
+                  path="/profile"
+                  element={
+                    <ProtectedRoute>
+                      <ProfilePage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/dashboard"
+                  element={
+                    <ProtectedRoute>
+                      <DashboardPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/project/:projectId"
+                  element={
+                    <ProtectedRoute>
+                      <ProjectPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/document/:documentId"
+                  element={
+                    <ProtectedRoute>
+                      <DocumentPage />
+                    </ProtectedRoute>
+                  }
+                />
 
-              {/* Default Route */}
-              <Route path="/" element={<Navigate to="/dashboard" replace />} />
-              <Route path="*" element={<Navigate to="/dashboard" replace />} />
-            </Routes>
+                {/* Default Route */}
+                <Route path="/" element={<Navigate to="/dashboard" replace />} />
+                <Route path="*" element={<Navigate to="/dashboard" replace />} />
+              </Routes>
+            </Suspense>
           </AuthProvider>
         </BrowserRouter>
       </ChakraProvider>

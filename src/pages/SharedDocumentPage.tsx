@@ -57,7 +57,9 @@ export const SharedDocumentPage: React.FC = () => {
         bg="gray.50"
       >
         <VStack gap={4}>
-          <Spinner size="xl" color="blue.500" />
+          <Box role="status" aria-live="polite" aria-label="Loading shared document">
+            <Spinner size="xl" color="blue.500" />
+          </Box>
           <Text color="gray.600">Loading shared document...</Text>
         </VStack>
       </Box>

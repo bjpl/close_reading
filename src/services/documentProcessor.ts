@@ -129,11 +129,13 @@ export async function processDocument(
     // Stage 5: Store parsed structure
     logger.debug({
       documentId: documentRecord.document.id,
+      userId: documentRecord.document.user_id,
       paragraphCount: parseResult.parsed.totalParagraphs,
       sentenceCount: parseResult.parsed.totalSentences
     }, 'Storing parsed document structure');
     const storageResult = await storeParseDocument(
       documentRecord.document.id,
+      documentRecord.document.user_id,
       parseResult.parsed
     );
 

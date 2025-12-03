@@ -119,16 +119,18 @@ export function parseDocument(text: string): ParsingResult {
  */
 export async function storeParagraphs(
   documentId: string,
+  userId: string,
   paragraphs: ParsedParagraph[]
 ): Promise<{ success: boolean; paragraphs?: Paragraph[]; error?: string }> {
   try {
     const paragraphRecords = paragraphs.map(p => ({
       document_id: documentId,
+      user_id: userId,
       content: p.content,
       position: p.position
     }));
 
-    logger.debug({ documentId, recordCount: paragraphRecords.length }, '💾 Storing paragraphs with documentId');
+    logger.debug({ documentId, userId, recordCount: paragraphRecords.length }, '💾 Storing paragraphs with documentId and userId');
     logger.debug({ firstRecord: paragraphRecords[0] }, '💾 First paragraph record');
 
     const { data, error } = await supabase
@@ -171,13 +173,10 @@ export async function storeSentences(
 
     paragraphsData.forEach(({ parsed, stored }) => {
       parsed.sentences.forEach(sentence => {
-        // Note: stored.user_id may not exist on Paragraph type from types/index.ts
-        // but is present on the database Row type. Using type assertion for now.
-        const storedWithUserId = stored as typeof stored & { user_id: string };
         sentenceRecords.push({
           document_id: stored.document_id,
           paragraph_id: stored.id,
-          user_id: storedWithUserId.user_id || '',
+          user_id: stored.user_id,
           content: sentence.content,
           position: sentence.position,
           start_offset: 0, // TODO: Calculate actual offsets from text content
@@ -211,11 +210,12 @@ export async function storeSentences(
  */
 export async function storeParseDocument(
   documentId: string,
+  userId: string,
   parsed: ParsedDocument
 ): Promise<StorageResult> {
   try {
     // Store paragraphs
-    const paragraphResult = await storeParagraphs(documentId, parsed.paragraphs);
+    const paragraphResult = await storeParagraphs(documentId, userId, parsed.paragraphs);
     if (!paragraphResult.success || !paragraphResult.paragraphs) {
       return { success: false, error: paragraphResult.error };
     }

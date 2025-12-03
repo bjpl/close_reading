@@ -158,7 +158,9 @@ export const AuthCallbackPage: React.FC = () => {
           <Box bg="white" p={8} borderRadius="lg" shadow="md" textAlign="center">
             {status === 'loading' && (
               <VStack gap={4}>
-                <Spinner size="xl" color="blue.500" />
+                <Box role="status" aria-live="polite" aria-label="Verifying authentication">
+                  <Spinner size="xl" color="blue.500" />
+                </Box>
                 <Heading size="md">Verifying...</Heading>
                 <Text color="gray.600">
                   Please wait while we verify your authentication.
@@ -175,7 +177,9 @@ export const AuthCallbackPage: React.FC = () => {
                   {getSuccessTitle()}
                 </Heading>
                 <Text color="gray.600">{getSuccessMessage()}</Text>
-                <Spinner size="sm" color="gray.400" />
+                <Box role="status" aria-live="polite" aria-label="Redirecting">
+                  <Spinner size="sm" color="gray.400" />
+                </Box>
               </VStack>
             )}
 

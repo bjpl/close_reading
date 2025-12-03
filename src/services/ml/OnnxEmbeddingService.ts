@@ -16,6 +16,7 @@
 
 import * as ort from 'onnxruntime-web';
 import { EmbeddingCache } from './cache';
+import { getModelLoader } from './ModelLoader';
 import logger from '../../lib/logger';
 
 /**
@@ -142,6 +143,7 @@ export class OnnxEmbeddingService {
   /**
    * Initialize the ONNX model and cache
    * Lazy loading - only initializes on first use
+   * Uses ModelLoader for dynamic model loading
    */
   async initialize(): Promise<void> {
     if (this.session) return;
@@ -164,12 +166,15 @@ export class OnnxEmbeddingService {
         await this.cache.initialize();
         logger.info('[ONNX] Cache initialized');
 
-        // Load ONNX model with WASM backend
+        // Load ONNX model using ModelLoader for lazy loading
         const startTime = performance.now();
+        const modelLoader = getModelLoader();
 
-        this.session = await ort.InferenceSession.create(this.config.modelPath, {
-          executionProviders: ['wasm'],
-          graphOptimizationLevel: 'all',
+        logger.info('[ONNX] Loading model via ModelLoader (lazy loading)...');
+        this.session = await modelLoader.loadModel('all-MiniLM-L6-v2', (progress) => {
+          if (progress.percentage % 10 === 0 || progress.percentage === 100) {
+            logger.info(`[ONNX] Model loading progress: ${progress.percentage.toFixed(1)}%`);
+          }
         });
 
         const duration = performance.now() - startTime;

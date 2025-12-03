@@ -96,6 +96,7 @@ export interface UseAuthReturn {
   resetPassword: (email: string) => Promise<AuthResult>;
   signInWithGoogle: () => Promise<AuthResult>;
   signInWithGitHub: () => Promise<AuthResult>;
+  deleteAccount: (options?: { soft?: boolean }) => Promise<AuthResult>;
   clearError: () => void;
   validateInputs: (email: string, password: string, isSignUp?: boolean) => ValidationResult;
 }
@@ -109,6 +110,100 @@ export const useAuth = (): UseAuthReturn => {
   // Track if component is mounted to prevent state updates after unmount
   const isMounted = useRef(true);
 
+  // Track token refresh timer
+  const refreshTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  /**
+   * Setup automatic token refresh monitoring
+   * Refreshes the session 5 minutes before expiry
+   */
+  const setupTokenRefreshMonitor = useCallback((currentSession: Session | null) => {
+    // Clear existing timer
+    if (refreshTimerRef.current) {
+      clearTimeout(refreshTimerRef.current);
+      refreshTimerRef.current = null;
+    }
+
+    if (!currentSession?.expires_at) {
+      return;
+    }
+
+    const expiresAt = currentSession.expires_at;
+    const expiresAtMs = expiresAt * 1000; // Convert to milliseconds
+    const now = Date.now();
+
+    // Refresh 5 minutes (300000ms) before expiry
+    const REFRESH_BUFFER_MS = 5 * 60 * 1000;
+    const refreshTime = expiresAtMs - REFRESH_BUFFER_MS;
+    const timeUntilRefresh = refreshTime - now;
+
+    logger.info({
+      expiresAt: new Date(expiresAtMs).toISOString(),
+      refreshAt: new Date(refreshTime).toISOString(),
+      timeUntilRefreshMinutes: Math.round(timeUntilRefresh / 60000),
+    }, 'Token refresh monitor setup');
+
+    // Only setup refresh if there's time before expiry
+    if (timeUntilRefresh > 0) {
+      refreshTimerRef.current = setTimeout(async () => {
+        if (!isMounted.current) return;
+
+        logger.info('Attempting automatic token refresh');
+
+        try {
+          const { data, error: refreshError } = await supabase.auth.refreshSession();
+
+          if (!isMounted.current) return;
+
+          if (refreshError) {
+            logger.error({ error: refreshError }, 'Token refresh failed');
+            setError(refreshError);
+
+            // Clear session on refresh failure - user will need to re-authenticate
+            setSession(null);
+            setUser(null);
+
+            // The auth state change listener will handle redirecting to login
+          } else if (data.session) {
+            logger.info('Token refresh successful');
+            setSession(data.session);
+            setUser(data.session.user);
+            setError(null);
+
+            // Setup next refresh
+            setupTokenRefreshMonitor(data.session);
+          }
+        } catch (err) {
+          logger.error({ error: err }, 'Token refresh exception');
+          if (isMounted.current) {
+            setSession(null);
+            setUser(null);
+          }
+        }
+      }, timeUntilRefresh);
+    } else if (timeUntilRefresh <= 0 && expiresAtMs > now) {
+      // Session is about to expire or already expired, refresh immediately
+      logger.warn('Session expiring soon or expired, refreshing immediately');
+
+      supabase.auth.refreshSession().then(({ data, error: refreshError }) => {
+        if (!isMounted.current) return;
+
+        if (refreshError) {
+          logger.error({ error: refreshError }, 'Immediate token refresh failed');
+          setError(refreshError);
+          setSession(null);
+          setUser(null);
+        } else if (data.session) {
+          logger.info('Immediate token refresh successful');
+          setSession(data.session);
+          setUser(data.session.user);
+          setError(null);
+          setupTokenRefreshMonitor(data.session);
+        }
+      });
+    }
+  }, []);
+
   useEffect(() => {
     isMounted.current = true;
 
@@ -121,7 +216,8 @@ export const useAuth = (): UseAuthReturn => {
 
         logger.info({
           hasUser: !!currentSession?.user,
-          userEmail: currentSession?.user?.email
+          userEmail: currentSession?.user?.email,
+          hasExpiry: !!currentSession?.expires_at,
         }, 'Initial session loaded');
 
         if (sessionError) {
@@ -130,6 +226,11 @@ export const useAuth = (): UseAuthReturn => {
         } else {
           setSession(currentSession);
           setUser(currentSession?.user ?? null);
+
+          // Setup token refresh monitoring for initial session
+          if (currentSession) {
+            setupTokenRefreshMonitor(currentSession);
+          }
         }
       } catch (err) {
         logger.error({ error: err }, 'Exception loading initial session');
@@ -151,20 +252,38 @@ export const useAuth = (): UseAuthReturn => {
       logger.info({
         event,
         hasUser: !!newSession?.user,
-        userEmail: newSession?.user?.email
+        userEmail: newSession?.user?.email,
+        hasExpiry: !!newSession?.expires_at,
       }, 'Auth state changed');
 
       setSession(newSession);
       setUser(newSession?.user ?? null);
       setError(null); // Clear errors on successful auth state change
       setLoading(false);
+
+      // Setup/clear token refresh monitoring based on session state
+      if (newSession && (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED')) {
+        setupTokenRefreshMonitor(newSession);
+      } else if (event === 'SIGNED_OUT') {
+        // Clear refresh timer on sign out
+        if (refreshTimerRef.current) {
+          clearTimeout(refreshTimerRef.current);
+          refreshTimerRef.current = null;
+        }
+      }
     });
 
     return () => {
       isMounted.current = false;
       subscription.unsubscribe();
+
+      // Clear refresh timer on cleanup
+      if (refreshTimerRef.current) {
+        clearTimeout(refreshTimerRef.current);
+        refreshTimerRef.current = null;
+      }
     };
-  }, []);
+  }, [setupTokenRefreshMonitor]);
 
   /**
    * Sign in with email and password
@@ -352,7 +471,7 @@ export const useAuth = (): UseAuthReturn => {
       const { error: oauthError } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/dashboard`,
+          redirectTo: `${window.location.origin}/auth/callback`,
         },
       });
 
@@ -395,7 +514,7 @@ export const useAuth = (): UseAuthReturn => {
       const { error: oauthError } = await supabase.auth.signInWithOAuth({
         provider: 'github',
         options: {
-          redirectTo: `${window.location.origin}/dashboard`,
+          redirectTo: `${window.location.origin}/auth/callback`,
         },
       });
 
@@ -438,6 +557,62 @@ export const useAuth = (): UseAuthReturn => {
     return validateAuthInputs(email, password, isSignUp);
   }, []);
 
+  /**
+   * Delete user account and all associated data
+   *
+   * @param options - Deletion options
+   * @param options.soft - If true, soft delete with 30-day recovery period. If false (default), permanent deletion.
+   * @returns Promise with deletion result
+   */
+  const deleteAccount = useCallback(async (options: { soft?: boolean } = {}): Promise<AuthResult> => {
+    if (!user) {
+      return { success: false, error: 'No user is currently signed in' };
+    }
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      // Import the account deletion service dynamically
+      const { deleteAccountPermanently, softDeleteAccount } = await import('../services/accountDeletion');
+
+      let result;
+      if (options.soft) {
+        result = await softDeleteAccount(user.id);
+      } else {
+        result = await deleteAccountPermanently(user.id);
+      }
+
+      if (!isMounted.current) {
+        return { success: false, error: 'Component unmounted' };
+      }
+
+      if (!result.success) {
+        logger.error({ userId: user.id, error: result.error }, 'Account deletion failed');
+        return { success: false, error: result.error };
+      }
+
+      logger.info({ userId: user.id, soft: options.soft }, 'Account deletion successful');
+
+      // Sign out the user after successful deletion
+      await signOut();
+
+      return {
+        success: true,
+        user: null
+      };
+
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'An unexpected error occurred';
+      logger.error({ userId: user.id, error: errorMessage }, 'Account deletion exception');
+      return { success: false, error: errorMessage };
+    } finally {
+      if (isMounted.current) {
+        setLoading(false);
+      }
+    }
+  }, [user, signOut]);
+
   return {
     user,
     session,
@@ -450,6 +625,7 @@ export const useAuth = (): UseAuthReturn => {
     resetPassword,
     signInWithGoogle,
     signInWithGitHub,
+    deleteAccount,
     clearError,
     validateInputs,
   };

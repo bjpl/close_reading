@@ -133,56 +133,38 @@ export async function generateShareLink(
 }
 
 /**
- * Validate a share token
+ * Validate a share token using secure database function
  * @param token - The share token to validate
  * @returns True if valid and not expired, false otherwise
  */
 export async function validateShareToken(token: string): Promise<boolean> {
   const { data, error } = await supabase
-    .from('share_links')
-    .select('id, expires_at')
-    .eq('token', token)
-    .single();
+    .rpc('validate_share_token', { p_token: token });
 
-  if (error || !data) {
+  if (error || !data || data.length === 0) {
     return false;
   }
 
-  // Check if expired
-  if (data.expires_at) {
-    const expiryDate = new Date(data.expires_at);
-    if (expiryDate < new Date()) {
-      return false;
-    }
-  }
-
-  return true;
+  return data[0].is_valid;
 }
 
 /**
- * Get a shared document by token
+ * Get a shared document by token using secure validation
  * @param token - The share token
  * @returns The document data with annotations
  */
 export async function getSharedDocument(token: string): Promise<SharedDocument | null> {
-  // First validate the token
-  const isValid = await validateShareToken(token);
-  if (!isValid) {
+  // Validate the token using secure function
+  const { data: validationData, error: validationError } = await supabase
+    .rpc('validate_share_token', { p_token: token });
+
+  if (validationError || !validationData || validationData.length === 0 || !validationData[0].is_valid) {
     return null;
   }
 
-  // Get the share link
-  const { data: shareLink, error: shareLinkError } = await supabase
-    .from('share_links')
-    .select('document_id, id')
-    .eq('token', token)
-    .single();
+  const documentId = validationData[0].document_id;
 
-  if (shareLinkError || !shareLink) {
-    return null;
-  }
-
-  // Increment access count
+  // Increment access count using secure function
   await incrementAccessCount(token);
 
   // Get the document with annotations
@@ -198,7 +180,7 @@ export async function getSharedDocument(token: string): Promise<SharedDocument |
         title
       )
     `)
-    .eq('id', shareLink.document_id)
+    .eq('id', documentId)
     .single();
 
   if (docError || !document) {
@@ -209,7 +191,7 @@ export async function getSharedDocument(token: string): Promise<SharedDocument |
   const { data: annotations } = await supabase
     .from('annotations')
     .select('*')
-    .eq('document_id', shareLink.document_id)
+    .eq('document_id', documentId)
     .order('created_at', { ascending: true });
 
   const projectTitle = document.projects
@@ -257,38 +239,24 @@ export async function revokeShareLink(documentId: string): Promise<void> {
 }
 
 /**
- * Increment the access count for a share link
+ * Increment the access count for a share link using secure function
  * @param token - The share token
  */
 export async function incrementAccessCount(token: string): Promise<void> {
-  // Get current count
-  const { data: shareLink, error: fetchError } = await supabase
-    .from('share_links')
-    .select('access_count')
-    .eq('token', token)
-    .single();
+  const { error } = await supabase
+    .rpc('increment_share_access_count', { p_token: token });
 
-  if (fetchError || !shareLink) {
-    return;
-  }
-
-  // Increment count
-  const { error: updateError } = await supabase
-    .from('share_links')
-    .update({ access_count: shareLink.access_count + 1 })
-    .eq('token', token);
-
-  if (updateError) {
+  if (error) {
     logger.warn({
       token: token.substring(0, 8) + '...',
-      errorCode: updateError.code,
-      errorMessage: updateError.message
+      errorCode: error.code,
+      errorMessage: error.message
     }, 'Failed to increment access count');
   }
 }
 
 /**
- * Get share link info for a document
+ * Get share link info for a document using secure function
  * @param documentId - ID of the document
  * @returns Share link data if exists
  */
@@ -300,15 +268,11 @@ export async function getShareLinkInfo(documentId: string): Promise<ShareLink | 
   }
 
   const { data, error } = await supabase
-    .from('share_links')
-    .select('*')
-    .eq('document_id', documentId)
-    .eq('created_by', user.id)
-    .single();
+    .rpc('get_share_link_info', { p_document_id: documentId });
 
-  if (error || !data) {
+  if (error || !data || data.length === 0) {
     return null;
   }
 
-  return data;
+  return data[0];
 }

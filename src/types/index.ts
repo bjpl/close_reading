@@ -46,6 +46,7 @@ export interface Document {
 export interface Paragraph {
   id: string;
   document_id: string;
+  user_id: string;
   content: string;
   position: number;
   order?: number;
