@@ -88,7 +88,8 @@ describe('useAuth Hook', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.useFakeTimers();
+    // Note: Don't use fake timers globally - they conflict with waitFor
+    // Only use fake timers in specific tests that need them (Token Refresh section)
 
     // Default mock implementations
     (supabase.auth.getSession as ReturnType<typeof vi.fn>).mockResolvedValue({
@@ -643,6 +644,15 @@ describe('useAuth Hook', () => {
   });
 
   describe('Token Refresh', () => {
+    // Token refresh tests need fake timers to control time advancement
+    beforeEach(() => {
+      vi.useFakeTimers();
+    });
+
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
     it('should setup token refresh timer', async () => {
       const expiresAt = Math.floor(Date.now() / 1000) + 3600; // 1 hour from now
       const mockSession = createMockSession();
@@ -655,9 +665,8 @@ describe('useAuth Hook', () => {
 
       renderHook(() => useAuth());
 
-      await waitFor(() => {
-        expect(supabase.auth.getSession).toHaveBeenCalled();
-      });
+      // Flush pending promises while using fake timers
+      await vi.runAllTimersAsync();
 
       // Timer should be set up (we can't directly test this without exposing internals)
       // But we can verify the session was loaded
@@ -684,16 +693,15 @@ describe('useAuth Hook', () => {
 
       renderHook(() => useAuth());
 
-      await waitFor(() => {
-        expect(supabase.auth.getSession).toHaveBeenCalled();
-      });
+      // Flush initial async work
+      await vi.runAllTimersAsync();
+
+      expect(supabase.auth.getSession).toHaveBeenCalled();
 
       // Fast-forward time to trigger refresh (5 minutes before expiry)
-      vi.advanceTimersByTime(5 * 60 * 1000 + 1000);
+      await vi.advanceTimersByTimeAsync(5 * 60 * 1000 + 1000);
 
-      await waitFor(() => {
-        expect(supabase.auth.refreshSession).toHaveBeenCalled();
-      });
+      expect(supabase.auth.refreshSession).toHaveBeenCalled();
     });
 
     it('should handle token refresh failure', async () => {
@@ -715,16 +723,15 @@ describe('useAuth Hook', () => {
 
       const { result } = renderHook(() => useAuth());
 
-      await waitFor(() => {
-        expect(supabase.auth.getSession).toHaveBeenCalled();
-      });
+      // Flush initial async work
+      await vi.runAllTimersAsync();
+
+      expect(supabase.auth.getSession).toHaveBeenCalled();
 
       // Fast-forward to trigger refresh
-      vi.advanceTimersByTime(5 * 60 * 1000 + 1000);
+      await vi.advanceTimersByTimeAsync(5 * 60 * 1000 + 1000);
 
-      await waitFor(() => {
-        expect(result.current.error).toBeTruthy();
-      });
+      expect(result.current.error).toBeTruthy();
     });
   });
 
@@ -833,6 +840,9 @@ describe('useAuth Hook', () => {
     });
 
     it('should clear refresh timer on unmount', async () => {
+      // This test needs fake timers to verify timer cleanup
+      vi.useFakeTimers();
+
       const expiresAt = Math.floor(Date.now() / 1000) + 3600;
       const mockSession = createMockSession();
       mockSession.expires_at = expiresAt;
@@ -844,16 +854,19 @@ describe('useAuth Hook', () => {
 
       const { unmount } = renderHook(() => useAuth());
 
-      await waitFor(() => {
-        expect(supabase.auth.getSession).toHaveBeenCalled();
-      });
+      // Flush initial async work
+      await vi.runAllTimersAsync();
+
+      expect(supabase.auth.getSession).toHaveBeenCalled();
 
       unmount();
 
       // If timer wasn't cleared, this would trigger refresh
-      vi.advanceTimersByTime(55 * 60 * 1000);
+      await vi.advanceTimersByTimeAsync(55 * 60 * 1000);
 
       expect(supabase.auth.refreshSession).not.toHaveBeenCalled();
+
+      vi.useRealTimers();
     });
   });
 
