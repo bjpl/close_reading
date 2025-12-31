@@ -407,7 +407,7 @@ export const LoginPage: React.FC = () => {
                     <HStack width="100%" gap={3}>
                       <Button
                         variant="outline"
-                        width="100%"
+                        flex="1"
                         onClick={handleGoogleSignIn}
                         loading={isLoading}
                       >
@@ -416,7 +416,7 @@ export const LoginPage: React.FC = () => {
                       </Button>
                       <Button
                         variant="outline"
-                        width="100%"
+                        flex="1"
                         onClick={handleGitHubSignIn}
                         loading={isLoading}
                       >
@@ -489,7 +489,7 @@ export const LoginPage: React.FC = () => {
                     <HStack width="100%" gap={3}>
                       <Button
                         variant="outline"
-                        width="100%"
+                        flex="1"
                         onClick={handleGoogleSignIn}
                         loading={isLoading}
                       >
@@ -498,7 +498,7 @@ export const LoginPage: React.FC = () => {
                       </Button>
                       <Button
                         variant="outline"
-                        width="100%"
+                        flex="1"
                         onClick={handleGitHubSignIn}
                         loading={isLoading}
                       >
