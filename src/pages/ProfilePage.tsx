@@ -39,7 +39,7 @@ interface PasswordFormErrors {
 }
 
 export const ProfilePage: React.FC = () => {
-  const { user, signOut } = useAuthContext();
+  const { user } = useAuthContext();
   const navigate = useNavigate();
 
   const [newPassword, setNewPassword] = useState('');
@@ -117,14 +117,6 @@ export const ProfilePage: React.FC = () => {
   };
 
   /**
-   * Handle sign out
-   */
-  const handleSignOut = async () => {
-    await signOut();
-    navigate('/login', { replace: true });
-  };
-
-  /**
    * Clear field errors when typing
    */
   const handleNewPasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -144,7 +136,7 @@ export const ProfilePage: React.FC = () => {
   };
 
   return (
-    <Box minH="100vh" bg="gray.50" py={12}>
+    <Box py={12}>
       <Container maxW="lg">
         <VStack gap={8} align="stretch">
           {/* Header */}
@@ -253,20 +245,6 @@ export const ProfilePage: React.FC = () => {
             </Card.Body>
           </Card.Root>
 
-          {/* Sign Out Card */}
-          <Card.Root>
-            <Card.Header>
-              <Card.Title>Sign Out</Card.Title>
-              <Card.Description>
-                Sign out of your account on this device.
-              </Card.Description>
-            </Card.Header>
-            <Card.Body>
-              <Button colorScheme="red" variant="outline" onClick={handleSignOut}>
-                Sign Out
-              </Button>
-            </Card.Body>
-          </Card.Root>
         </VStack>
       </Container>
     </Box>

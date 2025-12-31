@@ -20,6 +20,7 @@ import {
   SharedDocumentPage
 } from './router/lazyRoutes';
 import { Box, Spinner, VStack, Text, Button, HStack } from '@chakra-ui/react';
+import { AppLayout } from './components/layout';
 import { ErrorBoundary, FallbackProps } from './components/ErrorBoundary';
 import logger from './lib/logger';
 import './styles/annotations.css';
@@ -206,12 +207,14 @@ function App() {
                 <Route path="/auth/callback" element={<AuthCallbackPage />} />
                 <Route path="/shared/:token" element={<SharedDocumentPage />} />
 
-                {/* Protected Routes */}
+                {/* Protected Routes - wrapped with AppLayout for consistent navigation */}
                 <Route
                   path="/profile"
                   element={
                     <ProtectedRoute>
-                      <ProfilePage />
+                      <AppLayout>
+                        <ProfilePage />
+                      </AppLayout>
                     </ProtectedRoute>
                   }
                 />
@@ -219,7 +222,9 @@ function App() {
                   path="/dashboard"
                   element={
                     <ProtectedRoute>
-                      <DashboardPage />
+                      <AppLayout>
+                        <DashboardPage />
+                      </AppLayout>
                     </ProtectedRoute>
                   }
                 />
@@ -227,7 +232,9 @@ function App() {
                   path="/project/:projectId"
                   element={
                     <ProtectedRoute>
-                      <ProjectPage />
+                      <AppLayout>
+                        <ProjectPage />
+                      </AppLayout>
                     </ProtectedRoute>
                   }
                 />
@@ -235,7 +242,9 @@ function App() {
                   path="/document/:documentId"
                   element={
                     <ProtectedRoute>
-                      <DocumentPage />
+                      <AppLayout>
+                        <DocumentPage />
+                      </AppLayout>
                     </ProtectedRoute>
                   }
                 />

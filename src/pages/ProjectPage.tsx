@@ -51,7 +51,7 @@ export const ProjectPage: React.FC = () => {
   // Wait for auth to load before rendering upload component
   if (authLoading) {
     return (
-      <Box minH="100vh" display="flex" alignItems="center" justifyContent="center">
+      <Box display="flex" alignItems="center" justifyContent="center" py={20}>
         <Text>Loading...</Text>
       </Box>
     );
@@ -67,7 +67,7 @@ export const ProjectPage: React.FC = () => {
   };
 
   return (
-    <Box minH="100vh" bg="gray.50" p={8}>
+    <Box p={8}>
       <Container maxW="container.xl">
         <VStack gap={6} align="stretch">
           {/* Header */}

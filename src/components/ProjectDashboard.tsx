@@ -28,7 +28,6 @@ import {
   FiFolder,
   FiEdit2,
   FiTrash2,
-  FiLogOut,
 } from 'react-icons/fi';
 import { useProjectStore } from '../stores/projectStore';
 import { useProjects } from '../hooks/useProjects';
@@ -40,7 +39,7 @@ type Project = Database['public']['Tables']['projects']['Row'];
 
 export const ProjectDashboard: React.FC = () => {
   const navigate = useNavigate();
-  const { user, signOut } = useAuth();
+  const { user } = useAuth();
   const { projects, setCurrentProject } = useProjectStore();
   const { isLoading, createProject, updateProject, deleteProject } = useProjects(
     user?.id
@@ -125,11 +124,6 @@ export const ProjectDashboard: React.FC = () => {
     navigate(`/project/${project.id}`);
   };
 
-  const handleSignOut = async () => {
-    await signOut();
-    navigate('/login');
-  };
-
   const handleEditProject = (project: Project) => {
     setEditingProject(project);
     setProjectName(project.title);
@@ -157,21 +151,12 @@ export const ProjectDashboard: React.FC = () => {
               Organize your documents into projects
             </Text>
           </VStack>
-          <HStack>
-            <Button
-              colorScheme="blue"
-              onClick={onOpen}
-            >
-              <FiPlus /> New Project
-            </Button>
-            <IconButton
-              aria-label="Sign out"
-              variant="ghost"
-              onClick={handleSignOut}
-            >
-              <FiLogOut />
-            </IconButton>
-          </HStack>
+          <Button
+            colorScheme="blue"
+            onClick={onOpen}
+          >
+            <FiPlus /> New Project
+          </Button>
         </HStack>
 
         {/* Projects Grid */}
